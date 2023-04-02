@@ -102,12 +102,12 @@ extension Collection {
 
 extension Collection {
     
-    func sum<N: Numeric>(of value: (Element) -> N) -> N? {
+    public func sum<N: Numeric>(of value: (Element) -> N) -> N? {
         guard isNotEmpty else { return nil }
         return reduce(into: N.zero) { $0 += value($1) }
     }
     
-    func product<N: Numeric>(of value: (Element) -> N) -> N? {
+    public func product<N: Numeric>(of value: (Element) -> N) -> N? {
         guard isNotEmpty else { return nil }
         return reduce(into: (1 as N)) { $0 *= value($1) }
     }
@@ -116,12 +116,20 @@ extension Collection {
 
 extension Collection where Element: Numeric {
     
-    func sum() -> Element? {
+    public func sum() -> Element? {
         return self.sum(of: { $0 })
     }
     
-    func product() -> Element? {
+    public func product() -> Element? {
         return self.product(of: { $0 })
+    }
+    
+}
+
+extension Collection where Element: Equatable {
+    
+    public func count(of element: Element) -> Int {
+        return self.count(where: { $0 == element })
     }
     
 }

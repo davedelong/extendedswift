@@ -14,6 +14,18 @@ extension BidirectionalCollection {
         return self.index(before: self.endIndex)
     }
     
+    public func last(_ k: Int) -> SubSequence {
+        guard k > 0 else {
+            return self[endIndex ..< endIndex]
+        }
+        
+        if let start = self.index(self.endIndex, offsetBy: -k, limitedBy: self.startIndex) {
+            return self[start ..< endIndex]
+        } else {
+            return self[...]
+        }
+    }
+    
 }
 
 extension BidirectionalCollection where Self: MutableCollection, Self.SubSequence == Self {

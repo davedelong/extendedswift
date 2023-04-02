@@ -43,4 +43,14 @@ class CollectionTests: XCTestCase {
         XCTAssertEqual("   ".trimmingPrefix(where: \.isWhitespace), "")
         XCTAssertEqual("   ".trimmingSuffix(where: \.isWhitespace), "")
     }
+    
+    func testLastK() {
+        let s = "abc"
+        XCTAssertEqual(s.last(-1), "")
+        XCTAssertEqual(s.last(0), "")
+        XCTAssertEqual(s.last(1), "c")
+        XCTAssertEqual(s.last(2), "bc")
+        XCTAssertEqual(s.last(3), "abc")
+        XCTAssertEqual(s.last(4), "abc")
+    }
 }
