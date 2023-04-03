@@ -11,6 +11,9 @@ extension Collection {
     
     /// Slice a collection into multiple sub-collections
     ///
+    /// Example: given `[0, 1, 2, 3, 4, 5]` and the indices `[1, 3]`, this returns
+    /// `[[1, 2], [3, 4, 5]]`
+    ///
     /// - Parameter indices: The indices where slices should begin
     /// - Returns: An array of subsequences
     public func slices(startingAt indices: Array<Index>) -> Array<SubSequence> {

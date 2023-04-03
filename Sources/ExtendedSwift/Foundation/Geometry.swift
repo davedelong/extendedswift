@@ -42,4 +42,12 @@ extension CGRect {
         self.init(origin: origin, size: size)
     }
     
+    public init(center: CGPoint, square: CGFloat) {
+        self.init(center: center, size: CGSize(width: square, height: square))
+    }
+    
+    public init(origin: CGPoint, square: CGFloat) {
+        self.init(origin: origin, size: CGSize(width: square, height: square))
+    }
+    
 }

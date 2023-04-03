@@ -9,21 +9,26 @@ import Foundation
 
 extension Bundle {
     
-    public var shortBundleVersion: String? {
-        return object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+    public var shortVersionString: String? {
+        if let s = string(forInfoDictionaryKey: "CFBundleShortVersionString") { return s }
+        return nil
     }
     
-    public var bundleVersion: String {
-        return shortBundleVersion ??
-               object(forInfoDictionaryKey: kCFBundleVersionKey as String) as? String ??
-               ""
+    public var versionString: String? {
+        if let s = string(forInfoDictionaryKey: "CFBundleVersion") { return s }
+        if let s = shortVersionString { return s }
+        return ""
     }
     
     public var name: String {
-        return (object(forInfoDictionaryKey: "CFBundleName") as? String) ??
-               (object(forInfoDictionaryKey: "CFBundleDisplayName") as? String) ??
-               bundleIdentifier ??
-               bundleURL.lastPathComponent
+        if let s = string(forInfoDictionaryKey: "CFBundleName") { return s }
+        if let s = string(forInfoDictionaryKey: "CFBundleDisplayName") { return s }
+        if let s = bundleIdentifier { return s }
+        return bundleURL.lastPathComponent
+    }
+    
+    public func string(forInfoDictionaryKey key: String) -> String? {
+        return object(forInfoDictionaryKey: key) as? String
     }
 
 }
