@@ -28,7 +28,7 @@ extension BidirectionalCollection {
     
 }
 
-extension BidirectionalCollection where Self: MutableCollection, Self.SubSequence == Self {
+extension BidirectionalCollection where Self: RangeReplaceableCollection {
     
     public var last: Element? {
         get {
@@ -38,64 +38,13 @@ extension BidirectionalCollection where Self: MutableCollection, Self.SubSequenc
         set {
             if let newValue {
                 if let lastIndex {
-                    self[lastIndex] = newValue
+                    self.replaceSubrange(lastIndex ..< endIndex, with: [newValue])
                 } else {
-                    // self is empty; add/append the value??
-                    print("Cannot append \(newValue) to empty collection of type \(type(of: self)). Please file a bug.")
+                    self = .init()
+                    self.append(newValue)
                 }
             } else {
                 // remove the last value
-                self.removeLast()
-            }
-        }
-    }
-    
-}
-
-/*
- Array and String both have discrete SubSequence types (ArraySlice and Substring),
- and therefore can't use the default implementation above.
- 
- Since they're extremely common types, they deserve their own implementations
- */
-
-extension Array {
-    
-    public var last: Element? {
-        get {
-            guard let lastIndex else { return nil }
-            return self[lastIndex]
-        }
-        set {
-            if let newValue {
-                if let lastIndex {
-                    self[lastIndex] = newValue
-                } else {
-                    self.append(newValue)
-                }
-            } else {
-                self.removeLast()
-            }
-        }
-    }
-    
-}
-
-extension String {
-    
-    public var last: Element? {
-        get {
-            guard let lastIndex else { return nil }
-            return self[lastIndex]
-        }
-        set {
-            if let newValue {
-                if let lastIndex {
-                    self.replaceSubrange(lastIndex ... lastIndex, with: [newValue])
-                } else {
-                    self.append(newValue)
-                }
-            } else {
                 self.removeLast()
             }
         }
