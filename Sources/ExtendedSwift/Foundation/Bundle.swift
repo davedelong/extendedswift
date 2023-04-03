@@ -15,15 +15,15 @@ extension Bundle {
     
     public var bundleVersion: String {
         return shortBundleVersion ??
-            object(forInfoDictionaryKey: kCFBundleVersionKey as String) as? String ??
-            ""
+               object(forInfoDictionaryKey: kCFBundleVersionKey as String) as? String ??
+               ""
     }
     
     public var name: String {
         return (object(forInfoDictionaryKey: "CFBundleName") as? String) ??
-        (object(forInfoDictionaryKey: "CFBundleDisplayName") as? String) ??
-        bundleIdentifier ??
-        bundleURL.lastPathComponent
+               (object(forInfoDictionaryKey: "CFBundleDisplayName") as? String) ??
+               bundleIdentifier ??
+               bundleURL.lastPathComponent
     }
 
 }

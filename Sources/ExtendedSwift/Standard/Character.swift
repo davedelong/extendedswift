@@ -13,4 +13,7 @@ extension Character {
         return isASCII && isWholeNumber
     }
     
+    public var isAlphanumeric: Bool {
+        return isLetter || isNumber
+    }
 }

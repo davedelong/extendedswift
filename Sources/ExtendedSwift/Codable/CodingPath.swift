@@ -9,8 +9,10 @@ import Foundation
 
 extension Decoder {
     
-    public func errorContext(for key: CodingKey, debugDescription: String, underlyingError: Error? = nil) -> DecodingError.Context {
-        return .init(codingPath: codingPath + [key],
+    public func errorContext(for key: CodingKey? = nil, debugDescription: String, underlyingError: Error? = nil) -> DecodingError.Context {
+        var newPath = codingPath
+        if let key { newPath.append(key) }
+        return .init(codingPath: newPath,
                      debugDescription: debugDescription,
                      underlyingError: underlyingError)
     }
@@ -26,8 +28,10 @@ extension DecodingError.Context {
 
 extension Encoder {
     
-    public func errorContext(for key: CodingKey, debugDescription: String, underlyingError: Error? = nil) -> EncodingError.Context {
-        return .init(codingPath: codingPath + [key],
+    public func errorContext(for key: CodingKey? = nil, debugDescription: String, underlyingError: Error? = nil) -> EncodingError.Context {
+        var newPath = codingPath
+        if let key { newPath.append(key) }
+        return .init(codingPath: newPath,
                      debugDescription: debugDescription,
                      underlyingError: underlyingError)
     }
@@ -44,10 +48,10 @@ extension EncodingError.Context {
 fileprivate func prettyPath(_ parts: Array<CodingKey>) -> String {
     let components = parts.enumerated().map { (offset, key) -> String in
         if let idx = key.intValue {
-            if offset == 0 {
-                return ".[\(idx)]"
-            } else {
+            if offset > 0 {
                 return "[\(idx)]"
+            } else {
+                return ".[\(idx)]"
             }
         } else {
             if offset > 0 {

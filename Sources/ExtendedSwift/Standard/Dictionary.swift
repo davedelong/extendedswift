@@ -36,6 +36,14 @@ extension Dictionary {
         }
     }
     
+    public mutating func removeValues(where predicate: (Value) -> Bool) {
+        for (key, value) in self {
+            if predicate(value) == true {
+                removeValue(forKey: key)
+            }
+        }
+    }
+    
     public subscript(key: Key, inserting value: @autoclosure () -> Value) -> Value {
         mutating get {
             if let e = self[key] { return e }
