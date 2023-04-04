@@ -1,3 +1,3 @@
 # ExtendedSwift
 
-A description of this package.
+Things that should be in Swift, but aren't.
