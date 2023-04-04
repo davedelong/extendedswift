@@ -46,25 +46,26 @@ public struct AbsolutePath: Path {
         return AbsolutePath(resolvedURL)
     }
     
-    public func extendedAttribute(named: String) -> Data? {
-        let path = fileSystemPath
-        let length = getxattr(path, named, nil, 0, 0, 0)
-        if length < 0 { return nil }
-        
-        let data = NSMutableData(length: length)!
-        if getxattr(path, named, data.mutableBytes, length, 0, 0) >= 0 {
-            return data as Data
-        } else {
-            return nil
+    public subscript(extendedAttribute name: String) -> Data? {
+        get {
+            let path = fileSystemPath
+            let length = getxattr(path, name, nil, 0, 0, 0)
+            if length < 0 { return nil }
+            
+            var data = Data(repeating: 0, count: length)
+            let written = data.withUnsafeMutableBytes { (ptr: UnsafeMutableRawBufferPointer) in
+                return getxattr(path, name, ptr.baseAddress, length, 0, 0)
+            }
+            
+            return written > 0 ? data : nil
         }
-    }
-    
-    public func setExtendedAttribute(named: String, value: Data?) {
-        if let data = value {
-            let nsData = data as NSData
-            setxattr(fileSystemPath, named, nsData.bytes, nsData.length, 0, 0)
-        } else {
-            removexattr(fileSystemPath, named, 0)
+        nonmutating set {
+            if let data = newValue {
+                let nsData = data as NSData
+                setxattr(fileSystemPath, name, nsData.bytes, nsData.length, 0, 0)
+            } else {
+                removexattr(fileSystemPath, name, 0)
+            }
         }
     }
     

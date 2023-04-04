@@ -18,7 +18,13 @@ public struct Scanner<C: RandomAccessCollection> {
     public typealias Element = C.Element
     
     public let data: C
-    public var location: C.Index
+    public var location: C.Index {
+        willSet {
+            guard newValue >= data.startIndex && newValue <= data.endIndex else {
+                fatalError("Setting the location to an invalid index is a programmer error")
+            }
+        }
+    }
     public var isAtEnd: Bool { location >= data.endIndex }
     
     public init(data: C) {
@@ -36,6 +42,15 @@ public struct Scanner<C: RandomAccessCollection> {
     }
     
     @discardableResult
+    public mutating func scanElement(using predicate: (Element) -> Bool) throws -> Element {
+        let start = location
+        let next = try scanElement()
+        if predicate(next) { return next }
+        location = start
+        throw ScannerError.invalidElement(next)
+    }
+    
+    @discardableResult
     public mutating func scan(while matches: (Element) -> Bool) throws -> C.SubSequence {
         if isAtEnd { throw ScannerError.isAtEnd }
         let start = location
@@ -50,17 +65,6 @@ public struct Scanner<C: RandomAccessCollection> {
         let start = location
         location = data.index(location, offsetBy: count, limitedBy: data.endIndex) ?? data.endIndex
         return data[start ..< location]
-    }
-    
-    // Scanning
-    
-    @discardableResult
-    public mutating func scan(using predicate: (Element) -> Bool) throws -> Element {
-        let start = location
-        let next = try scanElement()
-        if predicate(next) { return next }
-        location = start
-        throw ScannerError.invalidElement(next)
     }
     
     @discardableResult
@@ -114,10 +118,19 @@ public struct Scanner<C: RandomAccessCollection> {
 
 extension Scanner where Element: Equatable {
     
-    // Scanning
     @discardableResult
-    public mutating func scan(_ element: Element) throws -> Element {
-        try self.scan(using: { $0 == element })
+    public mutating func scanElement(_ element: Element) throws -> Element {
+        try self.scanElement(using: { $0 == element })
+    }
+    
+    @discardableResult
+    public mutating func scanElement(in other: some Collection<Element>) throws -> Element {
+        try scanElement(using: { other.contains($0) })
+    }
+    
+    @discardableResult
+    public mutating func scan(anyFrom other: some Collection<Element>) throws -> C.SubSequence {
+        try scan(while: { other.contains($0) })
     }
     
     @discardableResult

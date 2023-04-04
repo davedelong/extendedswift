@@ -20,6 +20,12 @@ extension Comparable {
 
 extension Collection {
     
+    public func sorted<V: Comparable>(by value: (Element) -> V) -> Array<Element> {
+        return sorted(by: {
+            value($0) < value($1)
+        })
+    }
+    
     public func max<C: Comparable>(by property: (Element) -> C) -> Element? {
         return self.max(by: { (l, r) -> Bool in
             let lValue = property(l)

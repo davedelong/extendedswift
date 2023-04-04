@@ -30,8 +30,8 @@ extension Scanner where Element == Character {
     @discardableResult
     public mutating func scanHexInt() throws -> Int {
         let start = location
-        try scan("0" as Character)
-        try scan(using: { $0 == "x" || $0 == "X" })
+        try scanElement("0" as Character)
+        try scanElement(in: "xX")
         let slice = try scan(while: \.isHexDigit)
         if let i = Int(Substring(slice), radix: 16) { return i }
         location = start
@@ -41,7 +41,7 @@ extension Scanner where Element == Character {
     @discardableResult
     public mutating func scanInt() throws -> Int {
         let start = location
-        try scan("-" as Character)
+        try scanElement("-" as Character)
         let slice = try scan(while: \.isWholeNumber)
         if let i = Int(Substring(slice)) { return i }
         location = start
@@ -62,17 +62,17 @@ extension Scanner where Element == Character {
         
         try scan(while: \.isWholeNumber)
         
-        if (try? scan(".")) == true {
+        if let _ = try? scanElement("." as Character) {
             // consume fractional digits
             _ = try? scan(while: \.isWholeNumber)
         }
         
         let locationBeforeE = location
-        if let _ = try? scan(using: { $0 == "e" || $0 == "E" }) {
+        if let _ = try? scanElement(in: "eE") {
             let locationOfExponent = location
             
             // there might be a "-" or "+" character preceding the exponent
-            _ = try? scan(using: { $0 == "-" || $0 == "+" })
+            _ = try? scanElement(in: "-+")
             
             _ = try? scan(while: \.isWholeNumber)
             

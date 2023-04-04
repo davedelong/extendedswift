@@ -28,14 +28,14 @@ extension String {
         return self
     }
     
-    public func leadingPadded(toLength count: Int, with character: Character) -> String {
+    public func paddingLeading(toLength count: Int, with character: Character) -> String {
         let numberNeeded = count - self.count
         if numberNeeded <= 0 { return self }
         let prefix = String(repeating: character, count: numberNeeded)
         return prefix + self
     }
     
-    public var withLeadingZeroesStripped: String {
+    public func strippingLeadingZeroes() -> String {
         return String(trimmingPrefix(where: { $0 == "0" }))
     }
     
