@@ -12,11 +12,11 @@ public actor TaskQueue {
     private var maximumNumberOfTasks: Int
     
     private var ongoingCount = 0
-    var hasOngoingTasks: Bool { ongoingCount > 0 }
+    public var hasOngoingTasks: Bool { ongoingCount > 0 }
     
     private var pending = Array<CheckedContinuation<Void, Never>>()
     
-    public init(capacity: Int, target: TaskQueue? = nil) {
+    public init(capacity: Int = Int.max, target: TaskQueue? = nil) {
         self.maximumNumberOfTasks = capacity
         self.target = target
     }

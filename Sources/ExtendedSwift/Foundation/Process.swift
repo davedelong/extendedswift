@@ -31,19 +31,9 @@ extension Process {
         p.qualityOfService = .userInitiated
         
         return try await withUnsafeThrowingContinuation { c in
-            let stdout = Pipe()
-            let stderr = Pipe()
-            
-            p.standardOutput = stdout
-            p.standardError = stderr
-            
-            let aggregator = ProcessOutputAggregator()
-            stdout.fileHandleForReading.readabilityHandler = { h in
-                aggregator.output.append(h.availableData)
-            }
-            stderr.fileHandleForReading.readabilityHandler = { h in
-                aggregator.error.append(h.availableData)
-            }
+            let aggregator = ProcessIO()
+            p.standardOutput = aggregator.outputPipe
+            p.standardError = aggregator.errorPipe
             
             p.terminationHandler = { proc in
                 let status = proc.terminationStatus
@@ -51,8 +41,8 @@ extension Process {
                 
                 let output = ProcessOutput(exitCode: Int(status),
                                            reason: reason,
-                                           standardOutput: aggregator.output,
-                                           standardError: aggregator.error)
+                                           standardOutput: aggregator.outputData,
+                                           standardError: aggregator.errorData)
                 
                 c.resume(returning: output)
             }
@@ -67,10 +57,22 @@ extension Process {
     
 }
 
-private class ProcessOutputAggregator {
+private class ProcessIO {
     
-    var output = Data()
-    var error = Data()
+    let outputPipe = Pipe()
+    let errorPipe = Pipe()
+    
+    private(set) var outputData = Data()
+    private(set) var errorData = Data()
+    
+    init() {
+        outputPipe.fileHandleForReading.readabilityHandler = { [weak self] h in
+            self?.outputData.append(h.availableData)
+        }
+        errorPipe.fileHandleForReading.readabilityHandler = { [weak self] h in
+            self?.errorData.append(h.availableData)
+        }
+    }
     
 }
 

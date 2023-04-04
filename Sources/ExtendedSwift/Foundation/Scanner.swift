@@ -42,7 +42,7 @@ public struct Scanner<C: RandomAccessCollection> {
     }
     
     @discardableResult
-    public mutating func scanElement(using predicate: (Element) -> Bool) throws -> Element {
+    public mutating func scanElement(where predicate: (Element) -> Bool) throws -> Element {
         let start = location
         let next = try scanElement()
         if predicate(next) { return next }
@@ -61,9 +61,19 @@ public struct Scanner<C: RandomAccessCollection> {
     }
     
     @discardableResult
-    public mutating func scan(count: Int) -> C.SubSequence {
+    public mutating func scan(count: Int) throws -> C.SubSequence {
         let start = location
-        location = data.index(location, offsetBy: count, limitedBy: data.endIndex) ?? data.endIndex
+        guard let end = data.index(location, offsetBy: count, limitedBy: data.endIndex) else {
+            throw ScannerError.isAtEnd
+        }
+        location = end
+        return data[start ..< location]
+    }
+    
+    @discardableResult
+    public mutating func scan(count: Int, where matches: (Element) -> Bool) throws -> C.SubSequence {
+        let start = location
+        for _ in 0 ..< count { _ = try scanElement(where: matches) }
         return data[start ..< location]
     }
     
@@ -120,12 +130,12 @@ extension Scanner where Element: Equatable {
     
     @discardableResult
     public mutating func scanElement(_ element: Element) throws -> Element {
-        try self.scanElement(using: { $0 == element })
+        try self.scanElement(where: { $0 == element })
     }
     
     @discardableResult
     public mutating func scanElement(in other: some Collection<Element>) throws -> Element {
-        try scanElement(using: { other.contains($0) })
+        try scanElement(where: { other.contains($0) })
     }
     
     @discardableResult
