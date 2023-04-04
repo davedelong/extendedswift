@@ -9,11 +9,14 @@ import Foundation
 
 extension Character {
     
-    public var isASCIIDigit: Bool {
-        return isASCII && isWholeNumber
-    }
+    public var isASCIIDigit: Bool { isASCII && isWholeNumber }
     
-    public var isAlphanumeric: Bool {
-        return isLetter || isNumber
+    public var isAlphanumeric: Bool { isLetter || isNumber }
+    
+    public var isWhitespaceOrNewline: Bool { isWhitespace || isNewline }
+    
+    public init?(ascii: Int) {
+        guard let scalar = Unicode.Scalar(ascii) else { return nil }
+        self.init(scalar)
     }
 }
