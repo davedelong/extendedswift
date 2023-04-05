@@ -29,10 +29,30 @@ extension Result {
         return false
     }
     
+    public func eraseSuccess() -> Result<Void, Failure> {
+        switch self {
+            case .success: return .success(())
+            case .failure(let e): return .failure(e)
+        }
+    }
+    
 }
 
 extension Result where Success == Void {
     
     public static var success: Self { return Result<Void, Failure>.success(()) }
+    
+}
+
+extension Result where Failure == Error {
+    
+    public init(attempting: () async throws -> Success) async {
+        do {
+            let value = try await attempting()
+            self = .success(value)
+        } catch {
+            self = .failure(error)
+        }
+    }
     
 }

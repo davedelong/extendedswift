@@ -41,6 +41,53 @@ extension String {
     
 }
 
+extension String: RawRepresentable {
+    
+    public var rawValue: String { self }
+    
+    public init(rawValue: String) { self = rawValue }
+    
+}
+
+extension String {
+    
+    public static func longestCommonPrefix<C: Collection>(of strings: C) -> String? where C.Element: Collection, C.Element.Element == Character {
+        guard strings.isNotEmpty else { return nil }
+        if strings.count == 1 { return String(strings.first!) }
+        
+        var otherSlices = strings.map { $0[...] }
+        
+        let first = otherSlices.removeFirst()
+        let otherCount = otherSlices.count
+        var currentIndex = first.startIndex
+        while currentIndex < first.endIndex {
+            let character = first[currentIndex]
+            
+            for i in 0 ..< otherCount {
+                if otherSlices[i].isEmpty {
+                    // cannot pop
+                    return String(first[first.startIndex ..< currentIndex])
+                } else {
+                    let sliceChar = otherSlices[i].removeFirst()
+                    if sliceChar != character {
+                        return String(first[first.startIndex ..< currentIndex])
+                    }
+                }
+            }
+            
+            currentIndex = first.index(after: currentIndex)
+        }
+        // got all the way to the end of the first string without finding a mismatch
+        // the first string is the match
+        return String(first)
+    }
+    
+    public static func longestCommonSuffix<C: Collection>(of strings: C) -> String? where C.Element == Self {
+        let reversed: Array<ReversedCollection<Self>> = strings.map { $0.reversed() }
+        return longestCommonPrefix(of: reversed)
+    }
+}
+
 extension String {
     
     public struct MatchOption: Hashable, RawRepresentable {

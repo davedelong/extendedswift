@@ -64,6 +64,36 @@ extension Collection {
         return final
     }
     
+    public func split(includingBoundary: Bool = false, onBoundary: (Element) -> Bool) -> Array<SubSequence> {
+        var final = Array<SubSequence>()
+        
+        var start = self.startIndex
+        var current = self.index(after: start)
+        
+        while current < self.endIndex {
+            
+            if onBoundary(self[current]) {
+                final.append(self[start ..< current])
+                
+                if includingBoundary == false {
+                    current = self.index(after: current)
+                }
+                
+                start = current
+            }
+            
+            if current < self.endIndex {
+                current = self.index(after: current)
+            }
+        }
+        
+        if start < self.endIndex {
+            final.append(self[start ..< current])
+        }
+        
+        return final
+    }
+    
 }
 
 extension Collection where Element: Equatable {
