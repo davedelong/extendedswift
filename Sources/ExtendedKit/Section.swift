@@ -9,8 +9,8 @@ import SwiftUI
 
 extension Section where Content: View, Footer: View, Parent == Text {
     
-    public init(_ header: LocalizedStringKey, footer: Footer, @ViewBuilder content: () -> Content) {
-        self.init(header: Text(header), footer: footer, content: content)
+    public init(_ header: LocalizedStringKey, @ViewBuilder footer: () -> Footer, @ViewBuilder content: () -> Content) {
+        self.init(content: content, header: { Text(header) }, footer: footer)
     }
     
 }
@@ -18,12 +18,12 @@ extension Section where Content: View, Footer: View, Parent == Text {
 extension Section where Content: View, Parent == Text, Footer == EmptyView {
     
     public init(_ header: LocalizedStringKey, @ViewBuilder content: () -> Content) {
-        self.init(header: Text(header), footer: EmptyView(), content: content)
+        self.init(content: content, header: { Text(header) }, footer: { EmptyView() })
     }
     
     @_disfavoredOverload
     public init(_ header: String, @ViewBuilder content: () -> Content) {
-        self.init(header: Text(header), footer: EmptyView(), content: content)
+        self.init(content: content, header: { Text(header) }, footer: { EmptyView() })
     }
     
 }
@@ -31,22 +31,22 @@ extension Section where Content: View, Parent == Text, Footer == EmptyView {
 extension Section where Content: View, Parent == Text, Footer == Text {
     
     public init(header: LocalizedStringKey, footer: LocalizedStringKey, @ViewBuilder content: () -> Content) {
-        self.init(header: Text(header), footer: Text(footer), content: content)
+        self.init(content: content, header: { Text(header) }, footer: { Text(footer) })
     }
     
     @_disfavoredOverload
     public init(header: String, footer: LocalizedStringKey, @ViewBuilder content: () -> Content) {
-        self.init(header: Text(header), footer: Text(footer), content: content)
+        self.init(content: content, header: { Text(header) }, footer: { Text(footer) })
     }
     
     @_disfavoredOverload
     public init(header: LocalizedStringKey, footer: String, @ViewBuilder content: () -> Content) {
-        self.init(header: Text(header), footer: Text(footer), content: content)
+        self.init(content: content, header: { Text(header) }, footer: { Text(footer) })
     }
     
     @_disfavoredOverload
     public init(header: String, footer: String, @ViewBuilder content: () -> Content) {
-        self.init(header: Text(header), footer: Text(footer), content: content)
+        self.init(content: content, header: { Text(header) }, footer: { Text(footer) })
     }
     
 }
