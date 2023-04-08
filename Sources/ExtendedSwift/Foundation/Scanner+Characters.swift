@@ -13,7 +13,7 @@ extension Scanner where Element == Character {
     public mutating func scanDecimal() throws -> Decimal {
         let start = location
         let slice = try scanFloatingPointSequence()
-        if let d = Decimal(string: String(slice)) { return d }
+        if slice.isNotEmpty, let d = Decimal(string: String(slice)) { return d }
         location = start
         throw ScannerError.invalidSequence(slice)
     }
@@ -22,7 +22,7 @@ extension Scanner where Element == Character {
     public mutating func scanDouble() throws -> Double {
         let start = location
         let slice = try scanFloatingPointSequence()
-        if let d = Double(Substring(slice)) { return d }
+        if slice.isNotEmpty, let d = Double(Substring(slice)) { return d }
         location = start
         throw ScannerError.invalidSequence(slice)
     }
@@ -33,7 +33,7 @@ extension Scanner where Element == Character {
         try scanElement("0" as Character)
         try scanElement(in: "xX")
         let slice = try scan(while: \.isHexDigit)
-        if let i = Int(Substring(slice), radix: 16) { return i }
+        if slice.isNotEmpty, let i = Int(Substring(slice), radix: 16) { return i }
         location = start
         throw ScannerError.invalidSequence(slice)
     }
@@ -41,9 +41,10 @@ extension Scanner where Element == Character {
     @discardableResult
     public mutating func scanInt() throws -> Int {
         let start = location
-        try scanElement("-" as Character)
-        let slice = try scan(while: \.isWholeNumber)
-        if let i = Int(Substring(slice)) { return i }
+        _ = try? scanElement("-" as Character)
+        try scan(while: \.isWholeNumber)
+        let slice = data[start ..< location]
+        if slice.isNotEmpty, let i = Int(Substring(slice)) { return i }
         location = start
         throw ScannerError.invalidSequence(slice)
     }
@@ -52,7 +53,7 @@ extension Scanner where Element == Character {
     public mutating func scanUInt() throws -> UInt {
         let start = location
         let slice = try scan(while: \.isWholeNumber)
-        if let u = UInt(Substring(slice)) { return u }
+        if slice.isNotEmpty, let u = UInt(Substring(slice)) { return u }
         location = start
         throw ScannerError.invalidSequence(slice)
     }
