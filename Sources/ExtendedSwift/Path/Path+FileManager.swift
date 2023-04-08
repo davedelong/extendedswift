@@ -17,30 +17,30 @@ extension FileManager {
         return AbsolutePath(result)
     }
     
-    public func pathExists(_ path: AbsolutePath, isDirectory: UnsafeMutablePointer<ObjCBool>? = nil) -> Bool {
-        return fileExists(atPath: path.fileSystemPath, isDirectory: isDirectory)
+    public func pathExists(_ path: AbsolutePath) -> Bool {
+        var isDir = false
+        return pathExists(path, isDirectory: &isDir)
     }
     
-    public func folderExists(atPath path: String) -> Bool {
+    public func pathExists(_ path: AbsolutePath, isDirectory: inout Bool) -> Bool {
         var isFolder: ObjCBool = false
-        let exists = fileExists(atPath: path, isDirectory: &isFolder)
-        return exists && isFolder.boolValue
+        if self.fileExists(atPath: path.fileSystemPath, isDirectory: &isFolder) {
+            isDirectory = isFolder.boolValue
+            return true
+        }
+        return false
     }
     
-    public func folderExists(atURL url: URL) -> Bool {
-        return folderExists(atPath: url.path)
-    }
-    
-    public func folderExists(atPath path: AbsolutePath) -> Bool {
-        var isFolder: ObjCBool = false
+    public func folderExists(at path: AbsolutePath) -> Bool {
+        var isFolder = false
         let exists = pathExists(path, isDirectory: &isFolder)
-        return exists && isFolder.boolValue
+        return exists && isFolder
     }
     
-    public func fileExists(atPath path: AbsolutePath) -> Bool {
-        var isFolder: ObjCBool = false
+    public func fileExists(at path: AbsolutePath) -> Bool {
+        var isFolder = false
         let exists = pathExists(path, isDirectory: &isFolder)
-        return exists && !isFolder.boolValue
+        return exists && isFolder == false
     }
     
     public func copyItem(at path: AbsolutePath, to newPath: AbsolutePath) throws {
@@ -90,7 +90,7 @@ private func appSpecificDirectory(directory: FileManager.SearchPathDirectory) ->
     let folder = try! fm.path(for: directory)
     let id = Bundle.main.name
     let appFolder = folder.appending(component: id)
-    if fm.folderExists(atPath: appFolder) == false {
+    if fm.folderExists(at: appFolder) == false {
         try? fm.createDirectory(at: appFolder)
     }
     return appFolder
