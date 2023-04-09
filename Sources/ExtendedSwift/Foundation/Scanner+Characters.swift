@@ -10,6 +10,21 @@ import Foundation
 extension Scanner where Element == Character {
     
     @discardableResult
+    public mutating func scan<S: StringProtocol>(_ other: S, options: String.CompareOptions) throws -> Bool {
+        let start = location
+        let characterCount = other.count
+        let slice = try scan(count: characterCount)
+        
+        let stringSlice = Substring(slice)
+        if other.compare(stringSlice, options: options, range: nil, locale: nil) == .orderedSame {
+            return true
+        }
+        
+        location = start
+        throw ScannerError.invalidSequence(slice)
+    }
+    
+    @discardableResult
     public mutating func scanDecimal() throws -> Decimal {
         let start = location
         let slice = try scanFloatingPointSequence()
