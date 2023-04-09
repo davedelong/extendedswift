@@ -13,7 +13,7 @@ import OpenDirectory
 
 extension Process {
     
-    public static func which(_ command: String, shell: URL? = nil) async throws -> URL? {
+    public static func which(_ command: String, shell: URL? = nil, PATH: String? = nil) async throws -> URL? {
         guard command.contains(where: \.isWhitespace) == false else {
             throw NSError(domain: "NSTask", code: -1, userInfo: [
                 "invalidCommand": command
@@ -25,8 +25,10 @@ extension Process {
         }
         
         let resolvedShell = shell ?? Self.userShell
+        var environment = ProcessInfo.processInfo.environment
+        if let PATH { environment["PATH"] = PATH }
         
-        let output = try await Process.execute(resolvedShell, arguments: ["--login", "-c", "which \(command)"])
+        let output = try await Process.execute(resolvedShell, arguments: ["--login", "-c", "which \(command)"], environment: environment)
         
         if output.exitCode == 0, let path = String(bytes: output.standardOutput, encoding: .utf8) {
             let trimmed = path.trimmed()
