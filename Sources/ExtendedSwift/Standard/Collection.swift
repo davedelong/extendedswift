@@ -98,6 +98,12 @@ extension Collection {
         return anySatisfy(predicate) == false
     }
     
+    public func firstMap<E>(_ mapper: (Element) -> E?) -> E? {
+        for item in self {
+            if let mapped = mapper(item) { return mapped }
+        }
+        return nil
+    }
 }
 
 extension Collection {

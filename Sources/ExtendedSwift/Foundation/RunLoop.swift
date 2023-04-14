@@ -10,10 +10,17 @@ import Combine
 
 extension RunLoop {
     
-    public func onEveryTurn(perform work: @escaping () -> Void) -> Cancellable {
-        
+    public func onEntry(perform work: @escaping () -> Void) -> Cancellable {
+        return self.on(.entry, perform: work)
+    }
+    
+    public func onExit(perform work: @escaping () -> Void) -> Cancellable {
+        return self.on(.exit, perform: work)
+    }
+    
+    public func on(_ activity: CFRunLoopActivity, perform work: @escaping () -> Void) -> Cancellable {
         let observer = CFRunLoopObserverCreateWithHandler(nil,
-                                                          CFRunLoopActivity.entry.rawValue,
+                                                          activity.rawValue,
                                                           true,
                                                           0,
                                                           { _, _ in

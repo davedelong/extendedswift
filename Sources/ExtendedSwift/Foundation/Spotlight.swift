@@ -98,16 +98,6 @@ private class SpotlightDelegate: NSObject, NSMetadataQueryDelegate {
                                                object: query)
     }
     
-    deinit {
-        print(#function)
-    }
-    
-    @objc func didStartGathering(_ note: Notification) {
-        let query = note.object as? NSMetadataQuery !! "Bad notification"
-        print(#function)
-        dump(note)
-    }
-    
     @objc func didStopGathering(_ note: Notification) {
         let query = note.object as? NSMetadataQuery !! "Bad notification"
         
