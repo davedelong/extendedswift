@@ -89,45 +89,27 @@ extension CountedSet: Sequence {
     public var underestimatedCount: Int { storage.count }
     
     public func makeIterator() -> Iterator {
-        return Iterator(storage: storage)
+        return Iterator(set: self)
     }
     
     public struct Iterator: IteratorProtocol {
         
-        private var iterator: Storage.Iterator
-        private var current: (Element, Int)?
+        private let set: CountedSet<Element>
+        private var current: Index
         
-        internal init(storage: Storage) {
-            self.iterator = storage.makeIterator()
-            self.current = nil
+        internal init(set: CountedSet<Element>) {
+            self.set = set
+            self.current = set.startIndex
         }
         
         public mutating func next() -> Element? {
-            while current == nil {
-                current = iterator.next()
-                
-                // if the iterator returned nil, we return nil
-                // ie, nothing more to iterate
-                if current == nil { return nil }
-                
-                // skip over things that have zero counts
-                if current?.1 ?? 0 <= 0 { current = nil }
+            guard current < set.endIndex else {
+                return nil
             }
             
-            // make sure we actually got something
-            guard let current else { return nil }
-            
-            let next = current.0
-            let timesRemaining = current.1 - 1
-            if timesRemaining <= 0 {
-                // this was the last one of this item
-                // set current to nil so we'll call next() on the iterator
-                self.current = nil
-            } else {
-                self.current = (next, timesRemaining)
-            }
-            
-            return next
+            let element = set[current]
+            current = set.index(after: current)
+            return element
         }
         
     }
