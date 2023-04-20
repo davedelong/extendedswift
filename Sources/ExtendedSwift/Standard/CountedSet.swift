@@ -115,6 +115,14 @@ extension CountedSet: Sequence {
     }
 }
 
+extension CountedSet: Equatable, Hashable {
+    
+    public static func ==(lhs: Self, rhs: Self) -> Bool {
+        return lhs.storage == rhs.storage
+    }
+    
+}
+
 extension CountedSet: Collection {
     
     public struct Index: Comparable {
