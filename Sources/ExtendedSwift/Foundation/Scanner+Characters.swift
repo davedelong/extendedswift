@@ -13,8 +13,8 @@ extension Scanner where Element == Character {
     public mutating func scanQuotedString() throws -> C.SubSequence {
         let start = location
         
-        let doubleQuote = Character(ascii: 34)!
-        let backslash = Character(ascii: 92)!
+        let doubleQuote = "\"" as Character
+        let backslash = "\\" as Character
         
         do {
             let openQuote = try self.scanElement()
