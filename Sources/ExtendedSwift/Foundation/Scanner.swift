@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct Scanner<C: RandomAccessCollection> {
+public struct Scanner<C: Collection> {
     
     public enum ScannerError: Error {
         case isAtEnd
@@ -73,34 +73,50 @@ public struct Scanner<C: RandomAccessCollection> {
     @discardableResult
     public mutating func scan(count: Int, where matches: (Element) -> Bool) throws -> C.SubSequence {
         let start = location
-        for _ in 0 ..< count { _ = try scanElement(where: matches) }
-        return data[start ..< location]
+        do {
+            for _ in 0 ..< count { _ = try scanElement(where: matches) }
+            return data[start ..< location]
+        } catch {
+            location = start
+            throw error
+        }
     }
     
     @discardableResult
     public mutating func scan(_ other: some Collection<Element>, using predicate: (Element, Element) -> Bool) throws -> Bool {
         let start = location
-        for element in other {
-            let next = try scanElement()
-            guard predicate(next, element) else {
-                location = start
-                throw ScannerError.invalidElement(next)
+        do {
+            for element in other {
+                let next = try scanElement()
+                guard predicate(next, element) else {
+                    location = start
+                    throw ScannerError.invalidElement(next)
+                }
             }
+            return true
+        } catch {
+            location = start
+            throw error
         }
-        return true
     }
     
     @discardableResult
     public mutating func scan(upTo element: Element, using predicate: (Element, Element) -> Bool) throws -> C.SubSequence {
         let start = location
-        while isAtEnd == false {
-            let next = try scanElement()
-            if predicate(next, element) == true {
-                return data[start ..< location]
+        do {
+            while isAtEnd == false {
+                let beforeThisElement = location
+                let next = try scanElement()
+                if predicate(next, element) == true {
+                    location = beforeThisElement
+                    return data[start ..< beforeThisElement]
+                }
             }
+            throw ScannerError.isAtEnd
+        } catch {
+            location = start
+            throw error
         }
-        location = start
-        throw ScannerError.isAtEnd
     }
     
     @discardableResult
@@ -110,19 +126,22 @@ public struct Scanner<C: RandomAccessCollection> {
         let startLocation = location
         let startOfOther = other.first!
         
-        while isAtEnd == false {
-            try self.scan(upTo: startOfOther, using: predicate)
-            let potentialStart = location
-            if let _ = try? self.scan(other, using: predicate) {
-                // the collection follows
-                location = potentialStart
-                return data[startLocation ..< location]
+        do {
+            while isAtEnd == false {
+                try self.scan(upTo: startOfOther, using: predicate)
+                let potentialStart = location
+                if let _ = try? self.scan(other, using: predicate) {
+                    // the collection follows
+                    location = potentialStart
+                    return data[startLocation ..< location]
+                }
+                try self.scanElement()
             }
-            try self.scanElement()
+            throw ScannerError.isAtEnd
+        } catch {
+            location = startLocation
+            throw error
         }
-        
-        location = startLocation
-        throw ScannerError.isAtEnd
     }
 }
 

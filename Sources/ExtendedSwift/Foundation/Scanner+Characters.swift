@@ -10,6 +10,39 @@ import Foundation
 extension Scanner where Element == Character {
     
     @discardableResult
+    public mutating func scanQuotedString() throws -> C.SubSequence {
+        let start = location
+        
+        let doubleQuote = Character(ascii: 34)!
+        let backslash = Character(ascii: 92)!
+        
+        do {
+            let openQuote = try self.scanElement()
+            guard openQuote == doubleQuote else {
+                throw ScannerError.invalidElement(openQuote)
+            }
+            
+            var isEscaped = false
+            while true {
+                let next = try self.scanElement()
+                if isEscaped {
+                    isEscaped = false
+                } else if next == backslash {
+                    isEscaped = true
+                } else if next == doubleQuote {
+                    // the end of the quoted string
+                    break
+                }
+            }
+            
+            return data[start ..< location]
+        } catch {
+            location = start
+            throw error
+        }
+    }
+    
+    @discardableResult
     public mutating func scan<S: StringProtocol>(_ other: S, options: String.CompareOptions) throws -> Bool {
         let start = location
         let characterCount = other.count
@@ -27,54 +60,76 @@ extension Scanner where Element == Character {
     @discardableResult
     public mutating func scanDecimal() throws -> Decimal {
         let start = location
-        let slice = try scanFloatingPointSequence()
-        if slice.isNotEmpty, let d = Decimal(string: String(slice)) { return d }
-        location = start
-        throw ScannerError.invalidSequence(slice)
+        do {
+            let slice = try scanFloatingPointSequence()
+            if slice.isNotEmpty, let d = Decimal(string: String(slice)) { return d }
+            throw ScannerError.invalidSequence(slice)
+        } catch {
+            location = start
+            throw error
+        }
     }
     
     @discardableResult
     public mutating func scanDouble() throws -> Double {
         let start = location
-        let slice = try scanFloatingPointSequence()
-        if slice.isNotEmpty, let d = Double(Substring(slice)) { return d }
-        location = start
-        throw ScannerError.invalidSequence(slice)
+        do {
+            let slice = try scanFloatingPointSequence()
+            if slice.isNotEmpty, let d = Double(Substring(slice)) { return d }
+            throw ScannerError.invalidSequence(slice)
+        } catch {
+            location = start
+            throw error
+        }
     }
     
     @discardableResult
     public mutating func scanHexInt() throws -> Int {
         let start = location
-        try scanElement("0" as Character)
-        try scanElement(in: "xX")
-        let slice = try scan(while: \.isHexDigit)
-        if slice.isNotEmpty, let i = Int(Substring(slice), radix: 16) { return i }
-        location = start
-        throw ScannerError.invalidSequence(slice)
+        do {
+            try scanElement("0" as Character)
+            try scanElement(in: "xX")
+            let slice = try scan(while: \.isHexDigit)
+            if slice.isNotEmpty, let i = Int(Substring(slice), radix: 16) { return i }
+            throw ScannerError.invalidSequence(slice)
+        } catch {
+            location = start
+            throw error
+        }
     }
     
     @discardableResult
     public mutating func scanInt() throws -> Int {
         let start = location
-        _ = try? scanElement("-" as Character)
-        try scan(while: \.isWholeNumber)
-        let slice = data[start ..< location]
-        if slice.isNotEmpty, let i = Int(Substring(slice)) { return i }
-        location = start
-        throw ScannerError.invalidSequence(slice)
+        do {
+            _ = try? scanElement("-" as Character)
+            try scan(while: \.isWholeNumber)
+            let slice = data[start ..< location]
+            if slice.isNotEmpty, let i = Int(Substring(slice)) { return i }
+            throw ScannerError.invalidSequence(slice)
+        } catch {
+            location = start
+            throw error
+        }
     }
     
     @discardableResult
     public mutating func scanUInt() throws -> UInt {
         let start = location
-        let slice = try scan(while: \.isWholeNumber)
-        if slice.isNotEmpty, let u = UInt(Substring(slice)) { return u }
-        location = start
-        throw ScannerError.invalidSequence(slice)
+        do {
+            let slice = try scan(while: \.isWholeNumber)
+            if slice.isNotEmpty, let u = UInt(Substring(slice)) { return u }
+            throw ScannerError.invalidSequence(slice)
+        } catch {
+            location = start
+            throw error
+        }
     }
     
     private mutating func scanFloatingPointSequence() throws -> C.SubSequence {
         let start = location
+        
+        _ = try? scanElement("-" as Character)
         
         try scan(while: \.isWholeNumber)
         
