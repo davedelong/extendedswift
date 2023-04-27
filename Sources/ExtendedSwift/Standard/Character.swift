@@ -20,7 +20,19 @@ extension Character {
             case "\u{00B2}": return true
             case "\u{00B3}": return true
             case "\u{00B9}": return true
+            case "\u{0670}": return true
+            case "\u{0711}": return true
             case "\u{2070}"..."\u{207F}": return true
+            default: return false
+        }
+    }
+    
+    public var isSubscript: Bool {
+        switch self {
+            case "\u{0656}": return true
+            case "\u{1D62}"..."\u{1D6A}": return true
+            case "\u{2080}"..."\u{209C}": return true
+            case "\u{2C7C}": return true
             default: return false
         }
     }
