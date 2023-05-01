@@ -9,6 +9,17 @@ import Foundation
 
 extension FileManager {
     
+    public func directoryExists(at url: URL) -> Bool {
+        return self.folderExists(at: url)
+    }
+    
+    public func createDirectory(at url: URL, withIntermediateDirectorys: Bool = true, attributes: [FileAttributeKey: Any]? = nil) throws {
+        
+        try self.createDirectory(atPath: url.path(percentEncoded: false),
+                                 withIntermediateDirectories: withIntermediateDirectorys,
+                                 attributes: attributes)
+    }
+    
     public func folderExists(at url: URL) -> Bool {
         var isDir: ObjCBool = false
         let exists = self.fileExists(atPath: url.path(percentEncoded: false), isDirectory: &isDir)
