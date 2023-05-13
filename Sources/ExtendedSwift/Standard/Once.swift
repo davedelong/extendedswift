@@ -34,6 +34,11 @@ public class ThrowingOnce<In, Out> {
         self.init(closure: wrappedValue, file: file, line: line)
     }
     
+    @available(*, unavailable, message: "Use @Once for non-throwing closures")
+    public convenience init(wrappedValue: @escaping (In) -> Out, file: StaticString = #fileID, line: UInt = #line) {
+        self.init(closure: wrappedValue, file: file, line: line)
+    }
+    
     deinit {
         if hasInvoked == false {
             fatalError("Closure (\(In.self)) -> \(Out.self) captured at \(file):\(line) was never invoked")
@@ -51,6 +56,11 @@ public class Once<In, Out>: ThrowingOnce<In, Out> {
     }
     
     public init(wrappedValue: @escaping (In) -> Out, file: StaticString = #fileID, line: UInt = #line) {
+        super.init(closure: wrappedValue, file: file, line: line)
+    }
+    
+    @available(*, unavailable, message: "Use @ThrowingOnce for throwing closures")
+    public init(wrappedValue: @escaping (In) throws -> Out, file: StaticString = #fileID, line: UInt = #line) {
         super.init(closure: wrappedValue, file: file, line: line)
     }
     
