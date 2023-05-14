@@ -7,41 +7,79 @@
 
 import Foundation
 
-public struct Interpolator {
+public protocol Interpolator {
+    func interpolate(_ number: Double) -> Double
+    func reverseInterpolate(_ number: Double) -> Double
+}
+
+extension Interpolator where Self == LinearInterpolator {
     
-    public static func linear(_ range: ClosedRange<Double>) -> Interpolator {
-        let span = range.upperBound - range.lowerBound
-        let lower = range.lowerBound
-        return Interpolator(interpolate: { ($0 - lower) / span },
-                            reverseInterpolate: { ($0 * span) + lower })
+    public static func linear(_ range: ClosedRange<Double>) -> Self {
+        return LinearInterpolator(range)
     }
     
-    public static func logarithmic(_ range: ClosedRange<Double>, scale: Double = 1.0) -> Interpolator {
+}
+
+extension Interpolator where Self == LogarithmicInterpolator {
+    
+    public static func logarithmic(_ range: ClosedRange<Double>, scale: Double = 1.0) -> Self {
+        return LogarithmicInterpolator(range, scale: scale)
+    }
+    
+}
+
+public struct LinearInterpolator: Interpolator {
+    
+    public let range: ClosedRange<Double>
+    private let span: Double
+    
+    public init(_ range: ClosedRange<Double>) {
+        self.range = range
+        self.span = range.upperBound - range.lowerBound
+    }
+    
+    public func interpolate(_ number: Double) -> Double {
+        let clamped = number.clamped(to: range)
+        return (clamped - range.lowerBound) / span
+    }
+    
+    public func reverseInterpolate(_ number: Double) -> Double {
+        let clamped = number.clamped(to: 0 ... 1)
+        return (clamped * span) + range.lowerBound
+    }
+    
+}
+
+public struct LogarithmicInterpolator: Interpolator {
+    
+    public let range: ClosedRange<Double>
+    public let scale: Double
+    private let span: Double
+    
+    public init(_ range: ClosedRange<Double>, scale: Double = 1.0) {
+        self.range = range
+        self.span = range.upperBound - range.lowerBound
+        self.scale = scale
+    }
+    
+    public func interpolate(_ number: Double) -> Double {
+        let clamped = number.clamped(to: range)
         let logMin = log1p(range.lowerBound)
         let logRange = log1p(range.upperBound) - log1p(range.lowerBound)
         
-        return Interpolator(interpolate: {
-                                if $0 <= range.lowerBound { return 0 }
-                                if $0 >= range.upperBound { return 1 }
-                                let interpolated = (log1p($0) - logMin) / logRange
-                                if scale <= 0 || scale == 1 { return interpolated }
-                                return pow(interpolated, 1.0 / scale)
-                            },
-                            reverseInterpolate: {
-                                if $0 <= 0 { return range.lowerBound }
-                                if $0 >= 1 { return range.upperBound }
-                                var input = $0
-                                if scale > 0 && scale != 1 { input = pow($0, scale) }
-                                return expm1((input * logRange) + logMin)
-                            }
-        )
+        let interpolated = (log1p(clamped) - logMin) / logRange
+        if scale <= 0 || scale == 1 { return interpolated }
+        return pow(interpolated, 1.0 / scale)
     }
     
-    public let interpolate: (Double) -> Double
-    public let reverseInterpolate: (Double) -> Double
-    
-    public init(interpolate: @escaping (Double) -> Double, reverseInterpolate: @escaping (Double) -> Double) {
-        self.interpolate = interpolate
-        self.reverseInterpolate = reverseInterpolate
+    public func reverseInterpolate(_ number: Double) -> Double {
+        let clamped = number.clamped(to: 0 ... 1)
+        let logMin = log1p(range.lowerBound)
+        let logRange = log1p(range.upperBound) - log1p(range.lowerBound)
+        
+        var input = clamped
+        if scale > 0 && scale != 1 { input = pow(clamped, scale) }
+        return expm1((input * logRange) + logMin)
     }
+    
 }
