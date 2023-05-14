@@ -7,27 +7,31 @@
 
 import Foundation
 
-public func lcm<I: FixedWidthInteger>(_ values: I ...) -> I {
-    return lcm(of: values)
-}
-
-public func lcm<C: Collection>(of values: C) -> C.Element where C.Element: FixedWidthInteger {
-    let v = values.first!
-    let r = values.dropFirst()
-    if r.isEmpty { return v }
+extension FixedWidthInteger {
     
-    let lcmR = lcm(of: r)
-    return v / gcd(v, lcmR) * lcmR
-}
-
-public func gcd<I: FixedWidthInteger>(_ m: I, _ n: I) -> I {
-    var a: I = 0
-    var b: I = max(m, n)
-    var r: I = min(m, n)
-    while r != 0 {
-        a = b
-        b = r
-        r = a % b
+    public static func lcm(_ values: Self...) -> Self {
+        return self.lcm(of: values)
     }
-    return b
+    
+    public static func lcm(of values: some Collection<Self>) -> Self {
+        let v = values.first!
+        let r = values.dropFirst()
+        if r.isEmpty { return v }
+        
+        let lcmR = lcm(of: r)
+        return v / gcd(of: v, and: lcmR) * lcmR
+    }
+    
+    public static func gcd(of m: Self, and n: Self) -> Self {
+        var a = Self.zero
+        var b = Swift.max(m, n)
+        var r = Swift.min(m, n)
+        while r != 0 {
+            a = b
+            b = r
+            r = a % b
+        }
+        return b
+    }
+    
 }
