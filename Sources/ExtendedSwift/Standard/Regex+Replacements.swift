@@ -22,6 +22,11 @@ extension String {
         return self.replacingFirstMatch(of: regex, with: replacement)
     }
     
+    public func replacingFirstMatch<Output>(of regex: Regex<Output>, with keyPath: KeyPath<Regex<Output>.Match, Substring>) -> String {
+        let replacement = Regex.Replacement(parts: [.matchPortion(keyPath)])
+        return self.replacingFirstMatch(of: regex, with: replacement)
+    }
+    
     public func replacingLastMatch<Output>(of regex: Regex<Output>, with replacement: Regex<Output>.Replacement) -> String {
         guard let match = try? regex.lastMatch(in: self) else { return self }
         let replacement = replacement.buildReplacement(match)
@@ -35,12 +40,22 @@ extension String {
         return self.replacingLastMatch(of: regex, with: replacement)
     }
     
+    public func replacingLastMatch<Output>(of regex: Regex<Output>, with keyPath: KeyPath<Regex<Output>.Match, Substring>) -> String {
+        let replacement = Regex.Replacement(parts: [.matchPortion(keyPath)])
+        return self.replacingLastMatch(of: regex, with: replacement)
+    }
+    
     public func replacingAllMatches<Output>(of regex: Regex<Output>, with replacement: Regex<Output>.Replacement) -> String {
         return self.replacing(regex, with: { replacement.buildReplacement($0) })
     }
     
     public func replacingAllMatches<Output>(of regex: Regex<Output>, @Regex<Output>.ReplacementBuilder with builder: () -> [Regex<Output>.ReplacementPart]) -> String {
         let replacement = Regex.Replacement(parts: builder())
+        return self.replacingAllMatches(of: regex, with: replacement)
+    }
+    
+    public func replacingAllMatches<Output>(of regex: Regex<Output>, with keyPath: KeyPath<Regex<Output>.Match, Substring>) -> String {
+        let replacement = Regex.Replacement(parts: [.matchPortion(keyPath)])
         return self.replacingAllMatches(of: regex, with: replacement)
     }
     
@@ -55,6 +70,11 @@ extension String {
         self.replaceFirstMatch(of: regex, with: replacement)
     }
     
+    public mutating func replaceFirstMatch<Output>(of regex: Regex<Output>, with keyPath: KeyPath<Regex<Output>.Match, Substring>) {
+        let replacement = Regex.Replacement(parts: [.matchPortion(keyPath)])
+        self.replaceFirstMatch(of: regex, with: replacement)
+    }
+    
     public mutating func replaceLastMatch<Output>(of regex: Regex<Output>, with replacement: Regex<Output>.Replacement) {
         self = self.replacingLastMatch(of: regex, with: replacement)
     }
@@ -64,12 +84,22 @@ extension String {
         self.replaceLastMatch(of: regex, with: replacement)
     }
     
+    public mutating func replaceLastMatch<Output>(of regex: Regex<Output>, with keyPath: KeyPath<Regex<Output>.Match, Substring>) {
+        let replacement = Regex.Replacement(parts: [.matchPortion(keyPath)])
+        self.replaceLastMatch(of: regex, with: replacement)
+    }
+    
     public mutating func replaceAllMatches<Output>(of regex: Regex<Output>, with replacement: Regex<Output>.Replacement) {
         self = self.replacingAllMatches(of: regex, with: replacement)
     }
     
     public mutating func replaceAllMatches<Output>(of regex: Regex<Output>, @Regex<Output>.ReplacementBuilder with builder: () -> [Regex<Output>.ReplacementPart]) {
         let replacement = Regex.Replacement(parts: builder())
+        self.replaceAllMatches(of: regex, with: replacement)
+    }
+    
+    public mutating func replaceAllMatches<Output>(of regex: Regex<Output>, with keyPath: KeyPath<Regex<Output>.Match, Substring>) {
+        let replacement = Regex.Replacement(parts: [.matchPortion(keyPath)])
         self.replaceAllMatches(of: regex, with: replacement)
     }
     
