@@ -53,7 +53,7 @@ extension String {
         for scalar in self.unicodeScalars {
             let value = scalar.value
             
-            if let name = EntitiesByScalar[value], options.contains(.preferNamedEntities) {
+            if let name = HTMLEntities[value], options.contains(.preferNamedEntities) {
                 scalars.append(contentsOf: "&\(name);".unicodeScalars)
             } else if value >= 128 {
                 var format = "&#"
@@ -83,7 +83,7 @@ extension String {
     
 }
 
-fileprivate let HTMLEntities: Dictionary<String, UInt32> = [
+fileprivate let HTMLEntities: Bimap<String, UInt32> = [
     "exclamation": 33,
     "quot": 34,
     "percent": 37,
@@ -343,14 +343,5 @@ fileprivate let HTMLEntities: Dictionary<String, UInt32> = [
     "hearts": 9829,
     "diams": 9830
 ]
-
-fileprivate let EntitiesByScalar: Dictionary<UInt32, String> = {
-    var d = Dictionary<UInt32, String>()
-    d.reserveCapacity(HTMLEntities.count)
-    for (name, scalarValue) in HTMLEntities {
-        d[scalarValue] = name
-    }
-    return d
-}()
 
 fileprivate let EntityRegex = /&(#(\d+)|#x([:xdigit:]+)|([^&#;]+));/

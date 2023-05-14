@@ -58,15 +58,11 @@ extension Regex {
     }
     
     public func allMatches(in s: String) throws -> Array<Match> {
-        return try self.allMatches(in: s[...])
+        return Array(self.matches(in: s))
     }
     
     public func allMatches(in s: Substring) throws -> Array<Match> {
-        var matches = Array<Match>()
-        for match in self.matches(in: s) {
-            matches.append(match)
-        }
-        return matches
+        return Array(self.matches(in: s))
     }
     
     public func matches(in s: String) -> MatchSequence {
