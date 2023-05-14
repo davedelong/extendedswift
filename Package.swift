@@ -22,6 +22,10 @@ let package = Package(
         
         .target(name: "ExtendedKit", dependencies: ["ExtendedSwift"]),
         
-        .testTarget(name: "ExtendedSwiftTests", dependencies: ["ExtendedSwift"]),
+        .testTarget(name: "ExtendedSwiftTests",
+                    dependencies: ["ExtendedSwift"],
+                    swiftSettings: [
+                        .unsafeFlags(["-enable-bare-slash-regex"])
+                    ]),
     ]
 )
