@@ -104,6 +104,14 @@ extension Collection {
         }
         return nil
     }
+    
+    public func pairs() -> some Sequence<(Element, Element)> {
+        return sequence(state: makeIterator(), next: { iterator in
+            guard let a = iterator.next() else { return nil }
+            guard let b = iterator.next() else { return nil }
+            return (a, b)
+        })
+    }
 }
 
 extension Collection {
