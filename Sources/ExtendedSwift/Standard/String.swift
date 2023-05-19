@@ -18,6 +18,14 @@ extension String {
         return trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
+    public mutating func removePrefix(_ prefix: String) {
+        self = self.removingPrefix(prefix)
+    }
+    
+    public mutating func removeSuffix(_ suffix: String) {
+        self = self.removingSuffix(suffix)
+    }
+    
     public func removingPrefix(_ prefix: String) -> String {
         if hasPrefix(prefix) { return String(dropFirst(prefix.count)) }
         return self

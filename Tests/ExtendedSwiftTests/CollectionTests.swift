@@ -11,7 +11,7 @@ import XCTest
 class CollectionTests: XCTestCase {
     
     func testIsNotEmpty() {
-        XCTAssertFalse([].isNotEmpty)
+        XCTAssertFalse(Array<Int>().isNotEmpty)
         XCTAssertTrue([1, 2, 3].isNotEmpty)
         
         XCTAssertTrue([1, 2, 3][0 ..< 0].isEmpty)
