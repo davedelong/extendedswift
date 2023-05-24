@@ -31,6 +31,10 @@ extension FileManager {
         return false
     }
     
+    public func directoryExists(at path: AbsolutePath) -> Bool {
+        return folderExists(at: path)
+    }
+    
     public func folderExists(at path: AbsolutePath) -> Bool {
         var isFolder = false
         let exists = pathExists(path, isDirectory: &isFolder)
@@ -72,16 +76,59 @@ extension FileManager {
         return contents.map { AbsolutePath($0) }
     }
     
-    public func removeItem(atPath path: AbsolutePath) throws {
+    public func removeItem(at path: AbsolutePath) throws {
         try removeItem(atPath: path.fileSystemPath)
     }
     
-    public func moveItem(atPath srcPath: AbsolutePath, toPath dstPath: AbsolutePath) throws {
+    public func moveItem(at srcPath: AbsolutePath, to dstPath: AbsolutePath) throws {
         try moveItem(atPath: srcPath.fileSystemPath, toPath: dstPath.fileSystemPath)
     }
     
-    public func displayName(atPath path: AbsolutePath) -> String {
+    public func symlinkItem(at srcPath: AbsolutePath, to dstPath: AbsolutePath) throws {
+        let src = srcPath.fileSystemPath
+        let dst = dstPath.fileSystemPath
+        
+        try src.withCString { srcStr in
+            try dst.withCString { dstStr in
+                let status = symlink(srcStr, dstStr)
+                if status != 0 {
+                    let error = errno
+                    throw NSError(domain: "extendedswift.symlink", code: Int(error), userInfo: [
+                        "source": src,
+                        "destination": dst
+                    ])
+                }
+            }
+        }
+    }
+    
+    public func hardlinkItem(at srcPath: AbsolutePath, to dstPath: AbsolutePath) throws {
+        let src = srcPath.fileSystemPath
+        let dst = dstPath.fileSystemPath
+        
+        try src.withCString { srcStr in
+            try dst.withCString { dstStr in
+                let status = link(srcStr, dstStr)
+                if status != 0 {
+                    let error = errno
+                    throw NSError(domain: "extendedswift.hardlink", code: Int(error), userInfo: [
+                        "source": src,
+                        "destination": dst
+                    ])
+                }
+            }
+        }
+    }
+    
+    public func displayName(at path: AbsolutePath) -> String {
         return displayName(atPath: path.fileSystemPath)
+    }
+    
+    @discardableResult
+    public func trashItem(at path: AbsolutePath) throws -> AbsolutePath? {
+        var resultingURL: NSURL?
+        try self.trashItem(at: path.fileURL, resultingItemURL: &resultingURL)
+        return resultingURL.map { AbsolutePath($0 as URL) }
     }
 }
 

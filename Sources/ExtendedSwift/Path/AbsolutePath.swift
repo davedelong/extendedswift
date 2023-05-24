@@ -69,6 +69,54 @@ public struct AbsolutePath: Path {
         }
     }
     
+    public var extendedAttributeNames: Array<String> {
+        get throws {
+            var final = Array<String>()
+            var listSize = listxattr(fileSystemPath, nil, 0, 0)
+            if listSize < 0 {
+                throw NSError(domain: "extendedswift.xattr", code: Int(errno), userInfo: [
+                    "path": fileSystemPath
+                ])
+            }
+            
+            var data = Data(repeating: 0, count: listSize)
+            listSize = data.withUnsafeMutableBytes { (ptr: UnsafeMutableRawBufferPointer) in
+                return listxattr(fileSystemPath, ptr.baseAddress, listSize, 0)
+            }
+            
+            var startOfNextName = data.startIndex
+            while startOfNextName < data.endIndex {
+                guard let nextNull = data[startOfNextName...].firstIndex(of: 0) else {
+                    break
+                }
+                
+                let nameBytes = data[startOfNextName ..< nextNull]
+                if let nameString = String(data: nameBytes, encoding: .utf8) {
+                    final.append(nameString)
+                }
+                
+                startOfNextName = data.index(after: nextNull)
+            }
+            
+            return final
+        }
+    }
+    
+    public var extendedAttributes: Dictionary<String, Data> {
+        get throws {
+            var final = Dictionary<String, Data>()
+            let names = try self.extendedAttributeNames
+            
+            for name in names {
+                if let data = self[extendedAttribute: name] {
+                    final[name] = data
+                }
+            }
+            
+            return final
+        }
+    }
+    
     public func relativeTo(_ start: AbsolutePath) -> RelativePath {
         var startComponents = start.components
         var destComponents = self.components

@@ -107,6 +107,8 @@ fileprivate let EntityLookup: Bimap<EntityName, EntityReplacement> = {
         return [:]
     }
     
+    // Technically, some entities allow for a missing ; after the name, such as &AMP
+    // This deliberately ignores those
     var bimap = Bimap<EntityName, EntityReplacement>()
     for (name, entity) in entities {
         let cleaned = name.removingPrefix("&").removingSuffix(";")
