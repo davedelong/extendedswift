@@ -6,15 +6,13 @@
 //
 
 import Foundation
+import Algorithms
 
 extension Collection {
     
     public var isNotEmpty: Bool { isEmpty == false }
     
-    public var firstIndex: Index? {
-        guard isNotEmpty else { return nil }
-        return startIndex
-    }
+    public var firstIndex: Index? { self.indices.first }
     
     public func allPrefixes() -> Array<SubSequence> {
         return indices.map { self[startIndex ... $0] }
@@ -26,10 +24,6 @@ extension Collection {
             i += matches(item) ? 1 : 0
         }
         return i
-    }
-    
-    public func compacted<Value>() -> Array<Value> where Element == Optional<Value> {
-        return compactMap { $0 }
     }
     
     public func filter<T>(is type: T.Type) -> Array<T> {
@@ -98,19 +92,21 @@ extension Collection {
         return anySatisfy(predicate) == false
     }
     
-    public func firstMap<E>(_ mapper: (Element) -> E?) -> E? {
-        for item in self {
-            if let mapped = mapper(item) { return mapped }
-        }
-        return nil
-    }
-    
     public func pairs() -> some Sequence<(Element, Element)> {
         return sequence(state: makeIterator(), next: { iterator in
             guard let a = iterator.next() else { return nil }
             guard let b = iterator.next() else { return nil }
             return (a, b)
         })
+    }
+    
+    public func pluck(indices: some Collection<Index>) -> Array<Element> {
+        return indices.map { self[$0] }
+    }
+    
+    public subscript(at position: Index) -> Element? {
+        guard position < endIndex else { return nil }
+        return self[position]
     }
 }
 

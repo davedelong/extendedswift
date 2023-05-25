@@ -6,22 +6,12 @@
 //
 
 import Foundation
+import Algorithms
 
 extension Collection {
     
     public func uniqued<V: Hashable>(by value: (Element) -> V) -> Array<Element> {
-        var final = Array<Element>()
-        var seen = Set<V>()
-        
-        for element in self {
-            let id = value(element)
-            if seen.contains(id) == false {
-                seen.insert(id)
-                final.append(element)
-            }
-        }
-        
-        return final
+        return self.uniqued(on: value)
     }
     
 }

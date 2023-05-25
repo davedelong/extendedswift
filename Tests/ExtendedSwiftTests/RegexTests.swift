@@ -27,6 +27,10 @@ class RegexTests: XCTestCase {
         
         let m2 = try r.allMatches(in: "hello, world")
         XCTAssertEqual(m2.count, 0)
+        
+        let r2 = /^ab/
+        let m3 = try r2.allMatches(in: "abab")
+        XCTAssertEqual(m3.count, 1)
     }
     
     func testFirstReplacement() throws {

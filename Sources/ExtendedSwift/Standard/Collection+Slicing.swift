@@ -35,36 +35,10 @@ extension Collection {
     /// - Parameter matches: The predicate to identify elements
     /// - Returns: An array of subsequences
     public func slices(where matches: (Element) -> Bool) -> Array<SubSequence> {
-        guard isEmpty == false else { return [] }
-        
-        var final = Array<SubSequence>()
-        
-        var start = startIndex
-        var current = start
-        
-        var currentSubSequenceMatches = matches(self[current])
-        current = index(after: current)
-        
-        while current < endIndex {
-            let thisMatches = matches(self[current])
-            
-            if thisMatches != currentSubSequenceMatches {
-                final.append(self[start ..< current])
-                start = current
-                currentSubSequenceMatches = thisMatches
-            }
-            
-            current = index(after: current)
-        }
-        
-        if start < endIndex {
-            final.append(self[start ..< endIndex])
-        }
-        
-        return final
+        return self.split(omittingEmptySubsequences: true, whereSeparator: { matches($0) == false })
     }
     
-    public func split(includingBoundary: Bool = false, onBoundary: (Element) -> Bool) -> Array<SubSequence> {
+    public func split(includingBoundary: Bool = false, on boundary: (Element) -> Bool) -> Array<SubSequence> {
         var final = Array<SubSequence>()
         
         var start = self.startIndex
@@ -72,7 +46,7 @@ extension Collection {
         
         while current < self.endIndex {
             
-            if onBoundary(self[current]) {
+            if boundary(self[current]) {
                 final.append(self[start ..< current])
                 
                 if includingBoundary == false {
@@ -102,29 +76,8 @@ extension Collection where Element: Equatable {
     ///
     /// - Parameter slice: The collection of elements to locate within the receiver
     /// - Returns: The array of indices where the slice begins. Will be empty if `slice` does not occur in the collection.
-    public func indices(of slice: some RandomAccessCollection<Element>) -> Array<Index> {
-        var starts = Array<Index>()
-        
-        var mostRecentSliceStart: Index? = nil
-        var sliceIndex = slice.startIndex
-        
-        for (index, element) in zip(indices, self) {
-            if element == slice[sliceIndex] {
-                slice.formIndex(after: &sliceIndex)
-                if mostRecentSliceStart == nil { mostRecentSliceStart = index }
-                
-                if sliceIndex >= slice.endIndex {
-                    sliceIndex = slice.startIndex
-                    starts.append(mostRecentSliceStart!)
-                    mostRecentSliceStart = nil
-                }
-            } else {
-                sliceIndex = slice.startIndex
-                mostRecentSliceStart = nil
-            }
-        }
-        
-        return starts
+    public func indices(of slice: some Collection<Element>) -> Array<Index> {
+        return self.ranges(of: slice).map(\.lowerBound)
     }
     
 }

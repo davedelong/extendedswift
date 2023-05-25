@@ -7,6 +7,14 @@
 
 import Foundation
 
+extension Collection where Element: Hashable {
+    
+    public func frequencies() -> CountedSet<Element> {
+        return CountedSet(self)
+    }
+    
+}
+
 /// An unordered data structure that keeps a count of all the elements that are inserted into it
 public struct CountedSet<Element: Hashable> {
     

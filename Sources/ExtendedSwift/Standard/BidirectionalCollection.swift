@@ -9,10 +9,7 @@ import Foundation
 
 extension BidirectionalCollection {
     
-    public var lastIndex: Index? {
-        guard isNotEmpty else { return nil }
-        return self.index(before: self.endIndex)
-    }
+    public var lastIndex: Index? { self.indices.last }
     
     public func last(_ k: Int) -> SubSequence {
         guard k > 0 else {
