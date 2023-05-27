@@ -8,6 +8,11 @@
 import Foundation
 import Algorithms
 
+/*
+ TODO: removingPrefix, removingSuffix, hasPrefix, hasSuffix
+ TODO: removePrefix, removeSuffix where Self == SubSequence ?
+ */
+
 extension Collection {
     
     public func trimmingPrefix(where matches: (Element) -> Bool) -> SubSequence {

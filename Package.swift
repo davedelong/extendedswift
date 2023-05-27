@@ -10,14 +10,11 @@ let package = Package(
         // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(name: "ExtendedSwift", targets: ["ExtendedSwift"]),
         .library(name: "ExtendedKit", targets: ["ExtendedKit"]),
-        .executable(name: "debug", targets: ["debug"])
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-algorithms.git", from: "1.0.0")
     ],
     targets: [
-        .executableTarget(name: "debug", dependencies: ["ExtendedSwift"]),
-        
         .target(name: "ExtendedSwift",
                 dependencies: [
                     .product(name: "Algorithms", package: "swift-algorithms")
