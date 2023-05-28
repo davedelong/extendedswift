@@ -125,7 +125,7 @@ internal class _MapCoordinator<Data, Label: MKAnnotationView>: NSObject, MKMapVi
         }
         
         if let clusterAnnotation = annotation as? MKClusterAnnotation {
-            let cluster = clusterAnnotation.memberAnnotations.firstMap {
+            let cluster = clusterAnnotation.memberAnnotations.firstNonNil {
                 ($0 as? _MapAnnotation<Data.Element>)?.item.resolvedCluster
             }
             
