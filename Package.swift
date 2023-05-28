@@ -8,6 +8,7 @@ let package = Package(
     platforms: [.macOS(.v13), .iOS(.v16), .watchOS(.v9), .tvOS(.v16)],
     products: [
         // Products define the executables and libraries a package produces, and make them visible to other packages.
+        .library(name: "ExtendedObjC", targets: ["ExtendedObjC"]),
         .library(name: "ExtendedSwift", targets: ["ExtendedSwift"]),
         .library(name: "ExtendedKit", targets: ["ExtendedKit"]),
     ],
