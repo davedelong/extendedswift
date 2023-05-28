@@ -21,13 +21,12 @@ public class AppSession {
     public static var current: AppSession { _current !! "Missing call to AppSession.initialize(_:)" }
     
     public let uuid: UUID
-    public let logFolder: URL
     
+    public var logFolder: URL { app_session_log_folder() }
     public var allCrashFiles: Array<URL> { app_session_all_crash_files() }
     
     private init(scope: String) {
         uuid = scope.withCString { app_session_initialize($0) }
-        logFolder = app_session_log_folder()
     }
     
     public func addCrashMetadata(key: String, value: Bool) { app_session_crash_metadata_add_bool(key, value) }
