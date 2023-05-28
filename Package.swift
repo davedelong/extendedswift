@@ -15,6 +15,8 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-algorithms.git", from: "1.0.0")
     ],
     targets: [
+        .target(name: "ExtendedObjC", dependencies: []),
+        
         .target(name: "ExtendedSwift",
                 dependencies: [
                     .product(name: "Algorithms", package: "swift-algorithms")
@@ -26,7 +28,7 @@ let package = Package(
                     .unsafeFlags(["-enable-bare-slash-regex"])
                 ]),
         
-        .target(name: "_ExtendedKit", dependencies: ["ExtendedSwift"]),
+        .target(name: "_ExtendedKit", dependencies: ["ExtendedObjC", "ExtendedSwift"]),
         
         .target(name: "ExtendedKit", dependencies: ["ExtendedSwift", "_ExtendedKit"]),
         
