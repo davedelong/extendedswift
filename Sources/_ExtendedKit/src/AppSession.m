@@ -41,6 +41,7 @@ void _app_session_provide_issue(JSONCustom *custom);
 typedef struct AppSession {
     NSUUID *uuid;
     NSURL *logFolder;
+    time_t launchTime;
     
     char *crashFilePath;
     JSON *crashLogRoot;
@@ -92,6 +93,7 @@ NSUUID *_Nonnull app_session_initialize(const char *scope) {
         session.crashFilePath = strdup(crashFileURL.fileSystemRepresentation);
         
         // track initial metadata
+        session.launchTime = time(NULL);
         JSONObjectAppend(session.metadata, "id", JSONCreateNSString(session.uuid.UUIDString));
         JSONObjectAppend(session.metadata, "launch", JSONCreateNSString([[NSDate date] descriptionWithLocale:[NSLocale currentLocale]]));
         
@@ -319,7 +321,9 @@ NSException *_local_exception = NULL;
 void _app_session_provide_issue(JSONCustom *custom) {
     JSONCustomProvideObject(custom, ^(JSONCustomObject * obj) {
         
-        JSONCustomObjectProvideInt(obj, "timestamp", time(NULL));
+        time_t now = time(NULL);
+        JSONCustomObjectProvideInt(obj, "timestamp", now);
+        JSONCustomObjectProvideInt(obj, "elapsed", now - session.launchTime);
         JSONCustomObjectProvideTimestamp(obj, "date", time(NULL), (int64_t)session.tzoffset);
         
         if (_local_signal > 0) {
