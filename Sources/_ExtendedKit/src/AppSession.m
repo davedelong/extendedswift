@@ -58,10 +58,6 @@ AppSession session;
 NSUUID *_Nonnull app_session_initialize(const char *scope) {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        // make sure the memory holding signal handlers is entirely zeroed out
-        session.previousExceptionHandler = NULL;
-        bzero(session.previousSignalHandlers, sizeof(struct sigaction) * SIG_MAX);
-        
         session.uuid = [NSUUID UUID];
         
         session.crashLogRoot = JSONCreateObject();

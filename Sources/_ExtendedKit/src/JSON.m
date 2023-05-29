@@ -242,27 +242,32 @@ void JSONVisit(JSON *json, JSONVisitor visitor, void *context) {
     _JSON *j = (_JSON *)json;
     
     switch (j->_type) {
-        case JSONTypeNull:
+        case JSONTypeNull: {
             visitor.visitNull(context);
             break;
+        }
             
-        case JSONTypeBool:
+        case JSONTypeBool: {
             visitor.visitBool(j->_payload.boolean, context);
             break;
+        }
             
-        case JSONTypeString:
+        case JSONTypeString: {
             visitor.visitString(j->_payload.string, context);
             break;
+        }
             
-        case JSONTypeInt:
+        case JSONTypeInt: {
             visitor.visitInt(j->_payload.integer, context);
             break;
+        }
             
-        case JSONTypeDouble:
+        case JSONTypeDouble: {
             visitor.visitDouble(j->_payload.number, context);
             break;
+        }
             
-        case JSONTypeArray:
+        case JSONTypeArray: {
             visitor.enterArray(context);
             _JSONArray *values = j->_payload.array;
             if (values != NULL) {
@@ -273,8 +278,9 @@ void JSONVisit(JSON *json, JSONVisitor visitor, void *context) {
             }
             visitor.leaveArray(context);
             break;
+        }
             
-        case JSONTypeObject:
+        case JSONTypeObject: {
             visitor.enterObject(context);
             _JSONObject *object = j->_payload.object;
             if (object != NULL) {
@@ -289,9 +295,9 @@ void JSONVisit(JSON *json, JSONVisitor visitor, void *context) {
             }
             visitor.leaveObject(context);
             break;
+        }
             
-        case JSONTypeCustom:
-            true; // C has a weird quirk where the first expression of a case statement can't be a variable declaration
+        case JSONTypeCustom: {
             void(*callback)(JSONCustom *) = j->_payload.custom;
             if (callback != NULL) {
                 _JSONCustom custom;
@@ -308,9 +314,11 @@ void JSONVisit(JSON *json, JSONVisitor visitor, void *context) {
                 }
             }
             break;
+        }
             
-        default:
+        default: {
             break;
+        }
     }
 }
 
