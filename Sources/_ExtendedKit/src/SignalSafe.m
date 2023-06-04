@@ -7,7 +7,7 @@
 
 #import "SignalSafe.h"
 
-void SafeFormatUInt(char *buffer, int d, int length) {
+void SafeFormatUInt(char *buffer, int d, size_t length) {
     int remaining = d;
     if (remaining < 0) { return; }
     
@@ -38,7 +38,7 @@ void SafeFormatUInt(char *buffer, int d, int length) {
     }
 }
 
-void SafeFormatHex(char *buffer, int d, int length) {
+void SafeFormatHex(char *buffer, int d, size_t length) {
     if (d == 0) {
         for (int i = 0; i < length; i++) {
             *buffer = '0';

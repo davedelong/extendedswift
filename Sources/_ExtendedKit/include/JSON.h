@@ -89,8 +89,9 @@ JSON *JSONCreateNSString(NSString * _Nonnull string);
 JSON *JSONCreateUUID(uuid_t _Nonnull);
 
 void JSONCustomProvideUUID(JSONCustom *, uuid_t _Nonnull);
+void JSONCustomProvideTimestamp(JSONCustom *, time_t, int16_t);
 
-void JSONCustomObjectProvideTimestamp(JSONCustomObject *, const char *, time_t, int64_t);
 void JSONCustomObjectProvideUUID(JSONCustomObject *, const char *, uuid_t _Nonnull);
+void JSONCustomObjectProvideTimestamp(JSONCustomObject *, const char *, time_t, int16_t);
 
 CF_ASSUME_NONNULL_END

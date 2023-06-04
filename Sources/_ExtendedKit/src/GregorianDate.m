@@ -10,7 +10,7 @@
 #define IsLeapYear(_y) (((_y) % 400 == 0) || ((_y) % 4 == 0 && ((_y) % 100 != 0)))
 #define IsInRange(_n, _l, _h) (_n >= _l && _n <= _h)
 
-int8_t _Gregorian_LastDayOfMonthForYear(int8_t month, int16_t year) {
+int8_t _Gregorian_LastDayOfMonthForYear(uint8_t month, int16_t year) {
     if (month < 1 || month > 12) { return 0; }
     int8_t febDays = IsLeapYear(year) ? 29 : 28;
     int8_t days[13] = {0, 31, febDays, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};

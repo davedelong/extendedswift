@@ -428,18 +428,22 @@ void JSONCustomProvideUUID(JSONCustom *custom, uuid_t uuid) {
     JSONCustomProvideString(custom, uuidBuffer);
 }
 
+void JSONCustomProvideTimestamp(JSONCustom *custom, time_t timestamp, int16_t tzoffset) {
+    GregorianDate date = GregorianDateParseTimestamp(timestamp, tzoffset);
+    char timeString[26] = "yyyy-MM-dd HH:mm:ss +0000";
+    SafeFormatDateWithTimezone(timeString, date);
+    JSONCustomProvideString(custom, timeString);
+}
+
 void JSONCustomObjectProvideUUID(JSONCustomObject *custom, const char *key, uuid_t uuid) {
     __darwin_uuid_string_t uuidBuffer = {0};
     SafeFormatUUID(uuidBuffer, uuid);
     JSONCustomObjectProvideString(custom, key, uuidBuffer);
 }
 
-void JSONCustomObjectProvideTimestamp(JSONCustomObject *custom, const char *key, time_t timestamp, int64_t tzoffset) {
-    if (timestamp < 0) {
-        JSONCustomObjectProvideInt(custom, key, timestamp);
-    } else {
-        char timeString[26] = "yyyy-MM-dd HH:mm:ss +0000";
-        SafeFormatTimestampWithTimezone(timeString, timestamp, tzoffset);
-        JSONCustomObjectProvideString(custom, key, timeString);
-    }
+void JSONCustomObjectProvideTimestamp(JSONCustomObject *custom, const char *key, time_t timestamp, int16_t tzoffset) {
+    GregorianDate date = GregorianDateParseTimestamp(timestamp, tzoffset);
+    char timeString[26] = "yyyy-MM-dd HH:mm:ss +0000";
+    SafeFormatDateWithTimezone(timeString, date);
+    JSONCustomObjectProvideString(custom, key, timeString);
 }

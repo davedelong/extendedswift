@@ -10,8 +10,8 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-void SafeFormatUInt(char *buffer, int d, int length);
-void SafeFormatHex(char *buffer, int d, int length);
+void SafeFormatUInt(char *buffer, int d, size_t length);
+void SafeFormatHex(char *buffer, int d, size_t length);
 
 void SafeFormatUUID(__darwin_uuid_string_t _Nonnull buffer, uuid_t _Nonnull uuid);
 
