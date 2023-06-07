@@ -8,6 +8,7 @@
 #import <XCTest/XCTest.h>
 #import "GregorianDate.h"
 #import "GregorianDate+Format.h"
+#import <objc/runtime.h>
 
 #define XCTAssertEqualDate(_date, _y, _m, _d, _h, _mi, _s, _tz) ({ \
     XCTAssertEqual((_date).year, _y); \
@@ -19,11 +20,73 @@
     XCTAssertEqual((_date).tzoffset, _tz); \
 })
 
+typedef struct _FormatTest {
+    const char *name;
+    const char *format;
+    size_t expectedLength;
+    
+    NSInteger line;
+} _FormatTest;
+
+_FormatTest formatTests[] = {
+    {"no format characters", "123", 3, __LINE__},
+    {"single format character", "y", 4, __LINE__},
+    {"fixed-length format sequence", "yyyy", 4, __LINE__},
+    {"multiple format sequences", "ym", 5, __LINE__},
+    {"multiple format sequences with literal characters", "y-m", 6, __LINE__},
+    {"simple escaping", "'ab'", 2, __LINE__},
+    {"escaping format sequences", "'y'", 1, __LINE__},
+    {"escaped single quote", "''''", 2, __LINE__},
+    {"invalid escape sequence", "yyyy-MM-dd'T", 0, __LINE__},
+    {"full-length format", "yyyyMMdd'T'HHmmssZ", 22, __LINE__},
+    {"format preceding literal", "yyyy'a'", 5, __LINE__},
+    {"format following literal", "'a'yyyy", 5, __LINE__},
+};
+size_t formatTestCount = sizeof(formatTests)/sizeof(_FormatTest);
+
 @interface GregorianDateTests : XCTestCase
 
 @end
 
 @implementation GregorianDateTests
+
++ (NSInvocation *)testInvocationWithName:(NSString *)name block:(void(^)(id))testBlock {
+    NSString *methodName = [NSString stringWithFormat:@"formats: %@", name];
+    SEL methodSelector = sel_getUid(methodName.UTF8String);
+    IMP imp = imp_implementationWithBlock(testBlock);
+    class_addMethod(self, methodSelector, imp, "v@:");
+    
+    NSMethodSignature *sig = [self instanceMethodSignatureForSelector:methodSelector];
+    NSInvocation *i = [NSInvocation invocationWithMethodSignature:sig];
+    i.selector = methodSelector;
+    return i;
+}
+
++ (NSArray<NSInvocation *> *)testInvocations {
+    NSMutableArray<NSInvocation *> *invocations = [[super testInvocations] mutableCopy];
+    
+    for (size_t i = 0; i < formatTestCount; i++) {
+        _FormatTest f = formatTests[i];
+        [invocations addObject:[self testInvocationWithName:@(f.name) block:^(id _self){
+            GregorianDate d1 = GregorianDateParseTimestamp(0, 0);
+            size_t actual = GregorianDateFormatBuffer(d1, f.format, NULL);
+            if (actual != f.expectedLength) {
+                NSString *msg = [NSString stringWithFormat:@"Formatting failure for '%s': Expected %zu but got %zu", f.name, f.expectedLength, actual];
+                XCTSourceCodeLocation *loc = [[XCTSourceCodeLocation alloc] initWithFilePath:@__FILE__ lineNumber:f.line];
+                XCTSourceCodeContext *ctx = [[XCTSourceCodeContext alloc] initWithLocation:loc];
+                XCTIssue *issue = [[XCTIssue alloc] initWithType:XCTIssueTypeAssertionFailure
+                                              compactDescription:[NSString stringWithFormat:@"expected %zu ≠ actual %zu", f.expectedLength, actual]
+                                             detailedDescription:msg
+                                               sourceCodeContext:ctx
+                                                 associatedError:nil
+                                                     attachments:@[]];
+                [_self recordIssue:issue];
+            }
+        }]];
+    }
+    
+    return invocations;
+}
 
 - (void)testParsing {
     GregorianDate d1 = GregorianDateParseTimestamp(0, 0);
@@ -39,47 +102,5 @@
     XCTAssertEqualDate(d3, 2020, 03, 23, 9, 00, 00, -21600);
 }
 
-- (void)testFormatSizing {
-    GregorianDate d1 = GregorianDateParseTimestamp(0, 0);
-    
-    // no format characters:
-    size_t s1 = GregorianDateFormatBuffer(d1, "abc", NULL);
-    XCTAssertEqual(s1, 3);
-    
-    // a single format character:
-    size_t s2 = GregorianDateFormatBuffer(d1, "y", NULL);
-    XCTAssertEqual(s2, 4); // should use the "natural" length of the unit
-    
-    // a fixed-length format sequence
-    size_t s3 = GregorianDateFormatBuffer(d1, "yyyy", NULL);
-    XCTAssertEqual(s3, 4);
-    
-    // multiple format sequences
-    size_t s4 = GregorianDateFormatBuffer(d1, "ym", NULL);
-    XCTAssertEqual(s4, 5); // year = 4, month = 1
-    
-    // multiple format sequences with non-format characters
-    size_t s5 = GregorianDateFormatBuffer(d1, "y-m", NULL);
-    XCTAssertEqual(s5, 6); // year = 4, month = 1
-    
-    // test simple escaping
-    size_t s6 = GregorianDateFormatBuffer(d1, "'ab'", NULL);
-    XCTAssertEqual(s6, 2);
-    
-    // test escaping format sequences
-    size_t s7 = GregorianDateFormatBuffer(d1, "'y'", NULL);
-    XCTAssertEqual(s7, 1);
-    
-    // test escaped single quote
-    size_t s8 = GregorianDateFormatBuffer(d1, "''''", NULL);
-    XCTAssertEqual(s8, 1);
-    
-    // test invalid escape sequence
-    size_t s9 = GregorianDateFormatBuffer(d1, "yyyy-MM-dd'T", NULL);
-    XCTAssertEqual(s9, 0);
-    
-    size_t s10 = GregorianDateFormatBuffer(d1, "yyyyMMdd'T'HHmmssZ", NULL);
-    XCTAssertEqual(s10, 20);
-}
 
 @end

@@ -22,18 +22,38 @@ public actor TaskQueue {
     }
     
     @discardableResult
-    public nonisolated func enqueue(name: String, priority: TaskPriority? = nil, _ task: @Sendable @escaping () async -> Void) -> Task<Void, Never> {
+    public nonisolated func enqueue<T>(name: String, priority: TaskPriority? = nil, _ task: @Sendable @escaping () async throws -> T) -> Task<T, Error> {
         return Task.detached(priority: priority, operation: {
             await self.waitForCapacity()
+            let result: Result<T, Error>
             if let t = self.target {
                 let targetTask = t.enqueue(name: name, priority: priority, task)
-                _ = await targetTask.result
+                result = await targetTask.result
             } else {
-                if Task.isCancelled == false {
-                    await task()
-                }
+                try Task.checkCancellation()
+                result = await Result { try await task() }
             }
             await self.signalAvailableCapacity()
+            return try result.get()
+        })
+    }
+    
+    @discardableResult
+    public nonisolated func enqueue<T>(name: String, priority: TaskPriority? = nil, _ task: @Sendable @escaping () async -> T) -> Task<T, Never> {
+        return Task.detached(priority: priority, operation: {
+            await self.waitForCapacity()
+            
+            let result: T
+            if let t = self.target {
+                let targetTask: Task<T, Never> = t.enqueue(name: name, priority: priority, task)
+                result = await targetTask.value
+            } else {
+                // cannot check for cancellation, because there's no error to convey
+                // the cancellation, nor do we know if the value can be nil
+                result = await task()
+            }
+            await self.signalAvailableCapacity()
+            return result
         })
     }
     

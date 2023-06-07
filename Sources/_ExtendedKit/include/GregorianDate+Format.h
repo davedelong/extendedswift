@@ -10,7 +10,8 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-const char *GregorianDateFormat(GregorianDate date, const char *format);
+// format a date into a string, using TR35 syntax
+const char * _Nullable GregorianDateFormat(GregorianDate date, const char *format);
 size_t GregorianDateFormatBuffer(GregorianDate date, const char *format, char *_Nullable buffer);
 
 

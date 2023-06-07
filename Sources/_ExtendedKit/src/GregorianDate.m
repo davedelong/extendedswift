@@ -55,6 +55,12 @@ time_t GregorianDateTimestamp(GregorianDate date) {
     return timestamp;
 }
 
+GregorianDate GregorianDateNormalizeToUTC(GregorianDate date) {
+    if (date.tzoffset == 0) { return date; }
+    time_t timestamp = GregorianDateTimestamp(date);
+    return GregorianDateParseTimestamp(timestamp, 0);
+}
+
 bool GregorianDateIsEqual(GregorianDate left, GregorianDate right) {
     if (GregorianDateIsValid(left) == false) { return false; }
     if (GregorianDateIsValid(right) == false) { return false; }
@@ -62,8 +68,62 @@ bool GregorianDateIsEqual(GregorianDate left, GregorianDate right) {
     return GregorianDateTimestamp(left) == GregorianDateTimestamp(right);
 }
 
+bool GregorianDateIsBefore(GregorianDate left, GregorianDate right) {
+    if (GregorianDateIsValid(left) == false) { return false; }
+    if (GregorianDateIsValid(right) == false) { return false; }
+    time_t leftTime = GregorianDateTimestamp(left);
+    time_t rightTime = GregorianDateTimestamp(right);
+    return leftTime < rightTime;
+}
+
+bool GregorianDateIsAfter(GregorianDate left, GregorianDate right) {
+    if (GregorianDateIsValid(left) == false) { return false; }
+    if (GregorianDateIsValid(right) == false) { return false; }
+    time_t leftTime = GregorianDateTimestamp(left);
+    time_t rightTime = GregorianDateTimestamp(right);
+    return leftTime > rightTime;
+}
+
 bool GregorianDateIsLeapYear(GregorianDate date) {
     return IsLeapYear(date.year);
+}
+
+int8_t GregorianDaysInYear(int16_t year) {
+    int8_t days = 0;
+    for (uint8_t i = 1; i <= 12; i++) {
+        days += _Gregorian_LastDayOfMonthForYear(i, year);
+    }
+    return days;
+}
+
+bool GregorianIsLeapYear(int16_t year) {
+    return IsLeapYear(year);
+}
+
+int8_t GregorianDateQuarter(GregorianDate date) {
+    if (date.month >= 1 && date.month <= 3) { return 1; }
+    if (date.month >= 4 && date.month <= 6) { return 2; }
+    if (date.month >= 4 && date.month <= 9) { return 3; }
+    if (date.month >= 4 && date.month <= 12) { return 4; }
+    return 0;
+}
+
+int8_t GregorianDateDayOfYear(GregorianDate date) {
+    int8_t doy = 0;
+    for (int8_t m = 1; m < date.month; m++) {
+        doy += _Gregorian_LastDayOfMonthForYear(m, date.year);
+    }
+    doy += date.day;
+    return doy;
+}
+
+int64_t GregorianDateJulianDay(GregorianDate date) {
+    // source: https://en.wikipedia.org/wiki/Julian_day#Converting_Gregorian_calendar_date_to_Julian_Day_Number
+    // Divisions are integer divisions towards zero; fractional parts are ignored
+    int64_t Y = date.year;
+    int64_t M = date.month;
+    int64_t D = date.day;
+    return (1461 * (Y + 4800 + (M - 14)/12))/4 +(367 * (M - 2 - 12 * ((M - 14)/12)))/12 - (3 * ((Y + 4900 + (M - 14)/12)/100))/4 + D - 32075;
 }
 
 GregorianDate GregorianDateIncrementDay(GregorianDate date) {

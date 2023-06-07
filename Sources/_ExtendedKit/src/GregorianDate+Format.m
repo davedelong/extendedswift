@@ -6,56 +6,17 @@
 //
 
 #import "GregorianDate+Format.h"
+#import "GregorianDate+Formatters.h"
 #import "SignalSafe.h"
 
 #define SINGLE_QUOTE '\''
 #define DIGIT_COUNT(_d) ((size_t)floor(log10((double)(_d)))+1)
-#define UNIT_YEAR 'y'
-#define UNIT_MONTH 'M'
-#define UNIT_DAY 'd'
-#define UNIT_HOUR 'H'
-#define UNIT_MINUTE 'm'
-#define UNIT_SECOND 's'
-#define UNIT_TIMEZONE 'Z'
 
 typedef struct _GDFormatSegment {
     char character;
-    size_t formatCount;
+    size_t count;
+    _GDFormatFunction formatter;
 } _GDFormatSegment;
-
-typedef size_t(*_FormatFunction)(GregorianDate date, size_t formatCount, char *buffer);
-
-typedef struct _GDFormatter {
-    char character;
-    size_t formatCount;
-    _FormatFunction formatter;
-} _GDFormatter;
-
-bool _IsFormatChar(char c) {
-    switch (c) {
-        case 'y': return true;
-        case 'M': return true;
-        case 'd': return true;
-        case 'H': return true;
-        case 'm': return true;
-        case 's': return true;
-        case 'Z': return true;
-        default: return false;
-    }
-}
-
-int16_t _ValueForFormatChar(GregorianDate d, char c) {
-    switch (c) {
-        case 'y': return d.year;
-        case 'M': return d.month;
-        case 'd': return d.day;
-        case 'H': return d.hour;
-        case 'm': return d.minute;
-        case 's': return d.second;
-        case 'Z': return d.tzoffset;
-        default: return 0;
-    }
-}
 
 /// Destructure a format string into constituent segments of literals and format sequences.
 ///
@@ -89,37 +50,47 @@ size_t _GDFormatParse(const char *format, _GDFormatSegment *segments, size_t max
         char currentChar = format[f];
         
         if (currentChar == SINGLE_QUOTE) {
-            if (isEscaped == false && previousChar == SINGLE_QUOTE) {
+            if (isEscaped && previousChar == SINGLE_QUOTE) {
                 // double-escaped single-quote
-                
-                isEscaped = true;
-                segments[segmentCount].formatCount = 0;
+                segments[segmentCount].count = 1;
                 segments[segmentCount].character = SINGLE_QUOTE;
+                segments[segmentCount].formatter = NULL;
                 segmentCount += 1;
-            } else {
-                isEscaped = !isEscaped;
             }
+            isEscaped = !isEscaped;
         } else if (isEscaped) {
-            segments[segmentCount].formatCount = 0;
+            segments[segmentCount].count = 1;
             segments[segmentCount].character = currentChar;
+            segments[segmentCount].formatter = NULL;
             segmentCount += 1;
-        } else if (_IsFormatChar(currentChar)) {
-            // this might be the appendable to the previous segment
-            if (segmentCount > 0 && segments[segmentCount-1].formatCount > 0 && segments[segmentCount-1].character == currentChar) {
-                // append to the previous segment
-                // do not increment the segment count
-                segments[segmentCount-1].formatCount += 1;
-            } else {
-                // new segment
-                segments[segmentCount].formatCount = 1;
-                segments[segmentCount].character = currentChar;
-                segmentCount += 1;
-            }
         } else {
-            // some fallback literal
-            segments[segmentCount].formatCount = 0;
-            segments[segmentCount].character = currentChar;
-            segmentCount += 1;
+            if (_GDIsFormatCharacter(currentChar)) {
+                // it's a format character
+                if (segmentCount > 0 && segments[segmentCount-1].formatter != NULL && segments[segmentCount-1].character == currentChar) {
+                    // it's the same as the last format character
+                    segments[segmentCount-1].count += 1;
+                    segments[segmentCount-1].formatter = _GDFormatterLookup(currentChar, segments[segmentCount-1].count);
+                } else {
+                    // it's a new format character
+                    segments[segmentCount].count = 1;
+                    segments[segmentCount].character = currentChar;
+                    segments[segmentCount].formatter = _GDFormatterLookup(currentChar, 1);
+                    segmentCount += 1;
+                }
+            } else {
+                // it's a literal character
+                if (segmentCount > 0 && segments[segmentCount-1].formatter == NULL && segments[segmentCount-1].character == currentChar) {
+                    // it's the same as the last literal character
+                    segments[segmentCount-1].count += 1;
+                } else {
+                    // it's a new literal segment
+                    segments[segmentCount].count = 1;
+                    segments[segmentCount].character = currentChar;
+                    segments[segmentCount].formatter = NULL;
+                    segmentCount += 1;
+                }
+                
+            }
         }
         
         previousChar = currentChar;
@@ -129,39 +100,6 @@ size_t _GDFormatParse(const char *format, _GDFormatSegment *segments, size_t max
     if (isEscaped) { return 0; }
     
     return segmentCount;
-}
-
-size_t _GDWriteSegmentToBuffer(GregorianDate date, _GDFormatSegment segment, char *buffer) {
-    if (segment.formatCount == 0) {
-        if (buffer != NULL) {
-            *buffer = segment.character;
-        }
-        return 1;
-    } else {
-        if (segment.character == UNIT_TIMEZONE) {
-            int16_t value = _ValueForFormatChar(date, segment.character);
-            
-            return 5;
-        } else {
-            int16_t value = _ValueForFormatChar(date, segment.character);
-            size_t naturalLength = DIGIT_COUNT(value);
-            size_t digitsToWrite = naturalLength;
-            
-            if (segment.formatCount > 1) {
-                digitsToWrite = segment.formatCount;
-            }
-            if (buffer != NULL) {
-                if (digitsToWrite != naturalLength) {
-                    // truncate the value to the number of digits required
-                    size_t mod = pow(10, digitsToWrite + 1);
-                    value = value % mod;
-                }
-                SafeFormatUInt(buffer, value, digitsToWrite);
-            }
-            
-            return digitsToWrite;
-        }
-    }
 }
 
 size_t _GDFormatBuffer(GregorianDate date, const char *format, char *buffer, size_t maxSegmentCount) {
@@ -174,24 +112,25 @@ size_t _GDFormatBuffer(GregorianDate date, const char *format, char *buffer, siz
         return 0;
     }
     
-    printf("==============================\n");
-    printf("format: %s\n", format);
-    printf("segments: (%zu)\n", segmentCount);
-    
     char *currentBufferPosition = buffer;
     size_t totalBytesWritten = 0;
     for (size_t s = 0; s < segmentCount; s++) {
-        size_t bytesWritten = _GDWriteSegmentToBuffer(date, segments[s], currentBufferPosition);
+        _GDFormatSegment segment = segments[s];
+        
+        size_t bytesWritten = 0;
+        if (segment.formatter != NULL && segment.count > 0) {
+            bytesWritten = segment.formatter(date, segment.count, currentBufferPosition);
+        } else {
+            for (size_t i = 0; i < segment.count; i++) {
+                if (currentBufferPosition != NULL) {
+                    *currentBufferPosition = segment.character;
+                }
+                bytesWritten += 1;
+            }
+        }
         if (currentBufferPosition != NULL) { currentBufferPosition += bytesWritten; }
         totalBytesWritten += bytesWritten;
-        
-        if (segments[s].formatCount > 0) {
-            printf("- %c x %zu (FORMAT) -> %zu\n", segments[s].character, segments[s].formatCount, bytesWritten);
-        } else {
-            printf("- %c (LITERAL) -> %zu\n", segments[s].character, bytesWritten);
-        }
     }
-    printf("total bytes: %zu\n", totalBytesWritten);
     
     return totalBytesWritten;
 }
@@ -199,6 +138,8 @@ size_t _GDFormatBuffer(GregorianDate date, const char *format, char *buffer, siz
 // MARK: - API
 
 size_t GregorianDateFormatBuffer(GregorianDate date, const char *format, char *buffer) {
+    if (GregorianDateIsValid(date) == false) { return 0; }
+    
     size_t formatLength = strlen(format);
     size_t segmentLengthMultiplier = 0;
     
@@ -214,7 +155,9 @@ size_t GregorianDateFormatBuffer(GregorianDate date, const char *format, char *b
     return 0;
 }
 
-const char *GregorianDateFormat(GregorianDate date, const char *format) {
+const char * _Nullable GregorianDateFormat(GregorianDate date, const char *format) {
+    if (GregorianDateIsValid(date) == false) { return NULL; }
+    
     size_t requiredLength = GregorianDateFormatBuffer(date, format, NULL);
     char *buffer = calloc(requiredLength + 1, sizeof(char));
     

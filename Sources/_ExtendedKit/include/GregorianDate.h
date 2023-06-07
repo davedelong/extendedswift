@@ -23,13 +23,26 @@ typedef struct GregorianDate {
 
 GregorianDate GregorianDateParseTimestamp(time_t timestamp, int16_t tzoffset);
 time_t GregorianDateTimestamp(GregorianDate date);
+GregorianDate GregorianDateNormalizeToUTC(GregorianDate date);
 
+int8_t GregorianDateQuarter(GregorianDate date);
+int8_t GregorianDateDayOfYear(GregorianDate date);
+int64_t GregorianDateJulianDay(GregorianDate date);
+
+// comparisons
 bool GregorianDateIsEqual(GregorianDate left, GregorianDate right);
+bool GregorianDateIsBefore(GregorianDate left, GregorianDate right);
+bool GregorianDateIsAfter(GregorianDate left, GregorianDate right);
 
 bool GregorianDateIsValid(GregorianDate date);
 bool GregorianDateIsLeapYear(GregorianDate date);
 
 GregorianDate GregorianDateIncrementDay(GregorianDate date);
 GregorianDate GregorianDateDecrementDay(GregorianDate date);
+
+// Utilities
+
+int8_t GregorianDaysInYear(int16_t year);
+bool GregorianIsLeapYear(int16_t year);
 
 NS_ASSUME_NONNULL_END
