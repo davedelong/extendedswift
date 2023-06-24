@@ -36,6 +36,13 @@ extension RangeReplaceableCollection {
         self = copy
     }
     
+    public init<S: AsyncSequence>(sequence: S) async throws where S.Element == Element {
+        self.init()
+        for try await item in sequence {
+            self.append(item)
+        }
+    }
+    
 }
 
 extension RangeReplaceableCollection where Self: MutableCollection {
