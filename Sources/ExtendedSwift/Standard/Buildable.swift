@@ -12,6 +12,7 @@ public typealias BuilderBlock<T: Buildable> = (inout Builder<T>) -> Void
 public protocol Buildable {
     
     init(builder: Builder<Self>)
+    init()
     
 }
 
@@ -24,6 +25,10 @@ extension Buildable {
         var builder = Builder(building: Self.self)
         build(&builder)
         self.init(builder: builder)
+    }
+    
+    public init() {
+        self.init(builder: Self.builder())
     }
     
 }
