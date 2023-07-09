@@ -14,3 +14,23 @@ extension Encoder {
     }
     
 }
+
+extension KeyedEncodingContainer {
+    
+    public mutating func encode<E: Encodable & Collection>(ifNotEmpty value: E?, key: Key) throws {
+        guard let value else { return }
+        guard value.isEmpty == false else { return }
+        try self.encode(value, forKey: key)
+    }
+    
+}
+
+extension UnkeyedEncodingContainer {
+    
+    public mutating func encode<E: Encodable & Collection>(ifNotEmpty value: E?) throws {
+        guard let value else { return }
+        guard value.isEmpty == false else { return }
+        try self.encode(value)
+    }
+    
+}

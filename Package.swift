@@ -44,3 +44,15 @@ let package = Package(
         .testTarget(name: "_ExtendedKitTests", dependencies: ["_ExtendedKit"]),
     ]
 )
+
+#if DEBUG
+package.targets.append(
+    .executableTarget(name: "debug",
+                      dependencies: ["ExtendedObjC", "ExtendedSwift", "ExtendedKit"],
+                      swiftSettings: [
+                          .unsafeFlags(["-enable-bare-slash-regex"])
+                      ])
+)
+
+package.products.append(.executable(name: "debug", targets: ["debug"]))
+#endif

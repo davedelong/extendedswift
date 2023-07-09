@@ -37,6 +37,14 @@ extension KeyedDecodingContainer {
         get throws { try self.decodeIfPresent(T.self, forKey: key) ?? T.init() }
     }
     
+    public subscript<T: Decodable & Collection>(ifNotEmpty key: Key) -> T? {
+        get throws {
+            let collection = try self.decodeIfPresent(T.self, forKey: key)
+            if collection?.isEmpty == false { return collection }
+            return nil
+        }
+    }
+    
     public subscript<T: Decodable>(key: Key, default value: @autoclosure () -> T) -> T {
         get throws { try self.decodeIfPresent(T.self, forKey: key) ?? value() }
     }
@@ -74,6 +82,11 @@ extension UnkeyedDecodingContainer {
             }
         }
         return final
+    }
+    
+    public mutating func decodeIfNotEmpty<T: Decodable & Collection>(_ type: T.Type = T.self) throws -> T? {
+        guard let collection = try self.decodeIfPresent(type) else { return nil }
+        return collection.isEmpty ? nil : collection
     }
     
     public mutating func map<T>(_ transform: (Decoder) throws -> T) throws -> Array<T> {
