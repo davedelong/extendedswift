@@ -35,5 +35,13 @@ extension Bundle {
     public func string(forInfoDictionaryKey key: String) -> String? {
         return object(forInfoDictionaryKey: key) as? String
     }
+    
+    public var entitlementsDictionary: Dictionary<String, Any>? {
+        if self == Bundle.main { return ProcessInfo.processInfo.entitlementsDictionary }
+        
+        guard let executableURL = self.executableURL else { return nil }
+        let path = AbsolutePath(executableURL)
+        return ProcessInfo.entitlementsDictionary(for: path)
+    }
 
 }

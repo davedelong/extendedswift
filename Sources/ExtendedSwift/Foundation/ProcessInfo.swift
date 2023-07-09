@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import ExtendedObjC
 
 extension ProcessInfo {
     
@@ -25,4 +26,17 @@ extension ProcessInfo {
         return false
     }
     
+    public var entitlementsDictionary: Dictionary<String, Any> { _entitlements }
+    
+    public static func entitlementsDictionary(for path: AbsolutePath) -> Dictionary<String, Any>? {
+        autoreleasepool {
+            guard let data = try? Data(contentsOf: path) else { return nil }
+            return EntitlementsPlistForBinary(data)
+        }
+    }
+    
 }
+
+private let _entitlements: Dictionary<String, Any> = {
+    EntitlementsPlistForCurrentProcess() ?? [:]
+}()

@@ -20,6 +20,7 @@ let package = Package(
         
         .target(name: "ExtendedSwift",
                 dependencies: [
+                    "ExtendedObjC",
                     .product(name: "Algorithms", package: "swift-algorithms")
                 ],
                 resources: [
@@ -29,9 +30,7 @@ let package = Package(
                     .unsafeFlags(["-enable-bare-slash-regex"])
                 ]),
         
-        .target(name: "_ExtendedKit", dependencies: ["ExtendedObjC", "ExtendedSwift"]),
-        
-        .target(name: "ExtendedKit", dependencies: ["ExtendedSwift", "_ExtendedKit"]),
+        .target(name: "ExtendedKit", dependencies: ["ExtendedSwift", "ExtendedObjC"]),
         
         // TEST TARGETS
         
@@ -41,11 +40,11 @@ let package = Package(
                         .unsafeFlags(["-enable-bare-slash-regex"])
                     ]),
         
-        .testTarget(name: "_ExtendedKitTests", dependencies: ["_ExtendedKit"]),
+        .testTarget(name: "ExtendedObjCTests", dependencies: ["ExtendedObjC"]),
     ]
 )
 
-#if DEBUG
+//#if DEBUG
 package.targets.append(
     .executableTarget(name: "debug",
                       dependencies: ["ExtendedObjC", "ExtendedSwift", "ExtendedKit"],
@@ -55,4 +54,4 @@ package.targets.append(
 )
 
 package.products.append(.executable(name: "debug", targets: ["debug"]))
-#endif
+//#endif

@@ -7,13 +7,20 @@
 
 import Foundation
 import ExtendedSwift
-@_implementationOnly import _ExtendedKit
+@_implementationOnly import ExtendedObjC
 
 public class AppSession {
     
     public static func initialize(_ scope: String, groupIdentifier: String? = nil) {
         if _current == nil {
-            _current = AppSession(scope: scope, group: groupIdentifier)
+            var group = groupIdentifier
+            if group == nil {
+                let entitlements = ProcessInfo.processInfo.entitlementsDictionary
+                let groups = entitlements["com.apple.security.application-groups"] as? Array<String> ?? []
+                group = groups.first
+            }
+            
+            _current = AppSession(scope: scope, group: group)
         }
     }
     
