@@ -50,6 +50,7 @@ NSData *_ReadEntitlementsFromTEXT(const struct mach_header *executable) {
 }
 
 NSData *_ReadEntitlementsFromCodeSignature(const struct mach_header *executable) {
+    // TODO: does this need to be more resilient about big/little endian executables?
     
     BOOL is64bit = executable->magic == MH_MAGIC_64 || executable->magic == MH_CIGAM_64;
     uintptr_t cursor = (uintptr_t)executable + (is64bit ? sizeof(struct mach_header_64) : sizeof(struct mach_header));
@@ -126,9 +127,9 @@ NSDictionary<NSString *, id> * _Nullable EntitlementsPlistForCurrentProcess() {
 NSDictionary<NSString *, id> * _Nullable EntitlementsPlistForBinary(NSData * _Nonnull data) {
     const void *raw = data.bytes;
     
-    // first, see if it's a fat Mach-O binary
     const struct fat_header *fatHeader = raw;
     
+    // See if it's a fat little-endian Mach-O binary
     if (fatHeader->magic == FAT_MAGIC) {
         uint32_t numberOfArches = CFSwapInt32LittleToHost(fatHeader->nfat_arch);
         // it is!
@@ -142,6 +143,7 @@ NSDictionary<NSString *, id> * _Nullable EntitlementsPlistForBinary(NSData * _No
         }
     }
     
+    // See if it's a fat big-endian Mach-O binary
     if (fatHeader->magic == FAT_CIGAM) {
         uint32_t numberOfArches = CFSwapInt32BigToHost(fatHeader->nfat_arch);
         
@@ -156,7 +158,7 @@ NSDictionary<NSString *, id> * _Nullable EntitlementsPlistForBinary(NSData * _No
         }
     }
     
-    // next, it might be a 64-bit fat Mach-O binary
+    // See if it's a 64-bit fat little-endian Mach-O binary
     if (fatHeader->magic == FAT_MAGIC_64) {
         uint32_t numberOfArches = CFSwapInt32LittleToHost(fatHeader->nfat_arch);
         
@@ -171,7 +173,7 @@ NSDictionary<NSString *, id> * _Nullable EntitlementsPlistForBinary(NSData * _No
         }
     }
     
-    // next, it might be a 64-bit fat Mach-O binary
+    // See if it's a 64-bit fat big-endian Mach-O binary
     if (fatHeader->magic == FAT_CIGAM_64) {
         uint32_t numberOfArches = CFSwapInt32BigToHost(fatHeader->nfat_arch);
         
