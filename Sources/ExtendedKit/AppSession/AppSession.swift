@@ -11,7 +11,8 @@ import ExtendedSwift
 
 public class AppSession {
     
-    public static func initialize(_ scope: String, groupIdentifier: String? = nil) {
+    @discardableResult
+    public static func initialize(groupIdentifier: String? = nil) -> AppSession {
         if _current == nil {
             var group = groupIdentifier
             if group == nil {
@@ -19,9 +20,9 @@ public class AppSession {
                 let groups = entitlements["com.apple.security.application-groups"] as? Array<String> ?? []
                 group = groups.first
             }
-            
-            _current = AppSession(scope: scope, group: group)
+            _current = AppSession(group: group)
         }
+        return AppSession.current
     }
     
     private static var _current: AppSession?
@@ -33,10 +34,10 @@ public class AppSession {
     
     public var allCrashFiles: Array<URL> { app_session_all_crash_files() }
     
-    private init(scope: String, group: String?) {
+    private init(group: String?) {
         self.sandbox = Sandbox(groupIdentifier: group)
         let logs = sandbox.logs.fileURL
-        uuid = scope.withCString { app_session_initialize($0, logs) }
+        uuid = app_session_initialize(logs)
     }
     
     public func addCrashMetadata(key: String, value: Bool) { app_session_crash_metadata_add_bool(key, value) }

@@ -61,7 +61,7 @@ typedef struct AppSession {
 
 AppSession session;
 
-NSUUID *_Nonnull app_session_initialize(const char *scope, NSURL * _Nonnull logFolder) {
+NSUUID *_Nonnull app_session_initialize(NSURL * _Nonnull logFolder) {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         session.uuid = [NSUUID UUID];

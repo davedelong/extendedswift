@@ -9,8 +9,9 @@ import Combine
 import Compression
 import Foundation
 import ExtendedSwift
+import ExtendedKit
 import UniformTypeIdentifiers
-import _ExtendedKit
+import ExtendedObjC
 
 @main
 struct Debug {
