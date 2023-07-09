@@ -14,13 +14,7 @@ public class AppSession {
     @discardableResult
     public static func initialize(groupIdentifier: String? = nil) -> AppSession {
         if _current == nil {
-            var group = groupIdentifier
-            if group == nil {
-                let entitlements = ProcessInfo.processInfo.entitlementsDictionary
-                let groups = entitlements["com.apple.security.application-groups"] as? Array<String> ?? []
-                group = groups.first
-            }
-            _current = AppSession(group: group)
+            _current = AppSession(group: groupIdentifier)
         }
         return AppSession.current
     }
@@ -31,13 +25,18 @@ public class AppSession {
     
     public let uuid: UUID
     public let sandbox: Sandbox
+    public let entitlements: Entitlements
     
     public var allCrashFiles: Array<URL> { app_session_all_crash_files() }
     
     private init(group: String?) {
-        self.sandbox = Sandbox(groupIdentifier: group)
+        self.entitlements = ProcessInfo.processInfo.entitlements
+        
+        let actualGroup = group ?? entitlements.applicationGroups?.first
+        self.sandbox = Sandbox(groupIdentifier: actualGroup)
+        
         let logs = sandbox.logs.fileURL
-        uuid = app_session_initialize(logs)
+        self.uuid = app_session_initialize(logs)
     }
     
     public func addCrashMetadata(key: String, value: Bool) { app_session_crash_metadata_add_bool(key, value) }

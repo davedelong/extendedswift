@@ -26,7 +26,9 @@ extension ProcessInfo {
         return false
     }
     
-    public var entitlementsDictionary: Dictionary<String, Any> { _entitlements }
+    public var entitlementsDictionary: Dictionary<String, Any> { _entitlementsDict }
+    
+    public var entitlements: Entitlements { Entitlements(source: _entitlementsDict) }
     
     public static func entitlementsDictionary(for path: AbsolutePath) -> Dictionary<String, Any>? {
         autoreleasepool {
@@ -37,6 +39,6 @@ extension ProcessInfo {
     
 }
 
-private let _entitlements: Dictionary<String, Any> = {
+private let _entitlementsDict: Dictionary<String, Any> = {
     EntitlementsPlistForCurrentProcess() ?? [:]
 }()

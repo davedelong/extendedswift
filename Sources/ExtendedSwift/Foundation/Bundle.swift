@@ -43,5 +43,10 @@ extension Bundle {
         let path = AbsolutePath(executableURL)
         return ProcessInfo.entitlementsDictionary(for: path)
     }
+    
+    public var entitlements: Entitlements? {
+        guard let dict = entitlementsDictionary else { return nil }
+        return Entitlements(source: dict)
+    }
 
 }
