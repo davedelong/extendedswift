@@ -9,6 +9,8 @@
 #import "JSON.h"
 #import "JSON+Serialize.h"
 #import "SignalSafe.h"
+#import "GregorianDate.h"
+#import "GregorianDate+Format.h"
 
 #import <signal.h>
 #import <sys/signal.h>
@@ -29,7 +31,7 @@ void app_session_set_signal_handler(int32_t signal, struct sigaction *action);
 
 void app_session_signal_handler(int32_t signal, struct __siginfo *, void *);
 void app_session_exception_handler(NSException *exception);
-void app_session_write_log(int32_t signal, NSException *exception);
+void app_session_write_log();
 
 void _app_session_track_loaded_image(const struct mach_header* mh, intptr_t vmaddr_slide);
 void _app_session_provide_backtrace(JSONCustom *);
@@ -52,6 +54,9 @@ typedef struct AppSession {
     
     NSUncaughtExceptionHandler *previousExceptionHandler;
     struct sigaction previousSignalHandlers[SIG_MAX];
+    
+    int32_t signal;
+    NSException *exception;
 } AppSession;
 
 AppSession session;
@@ -202,7 +207,9 @@ void app_session_signal_handler(int32_t signal, siginfo_t *something, void *some
      - you cannot call code that is interruptible by a signal
      
      */
-    app_session_write_log(signal, nil);
+    session.signal = signal;
+    
+    app_session_write_log();
     
     if (0 <= signal && signal < SIG_MAX) {
         struct sigaction previous = session.previousSignalHandlers[signal];
@@ -216,7 +223,8 @@ void app_session_signal_handler(int32_t signal, siginfo_t *something, void *some
 // MARK: - Exceptions
 
 void app_session_exception_handler(NSException *exception) {
-    app_session_write_log(0, exception);
+    session.exception = exception;
+    app_session_write_log();
     
     if (session.previousExceptionHandler != NULL) {
         session.previousExceptionHandler(exception);
@@ -315,9 +323,6 @@ void _app_session_provide_backtrace(JSONCustom *custom) {
 #endif
 }
 
-int32_t _local_signal = -1;
-NSException *_local_exception = NULL;
-
 void _app_session_provide_issue(JSONCustom *custom) {
     JSONCustomProvideObject(custom, ^(JSONCustomObject * obj) {
         
@@ -326,11 +331,11 @@ void _app_session_provide_issue(JSONCustom *custom) {
         JSONCustomObjectProvideInt(obj, "elapsed", now - session.launchTime);
         JSONCustomObjectProvideTimestamp(obj, "date", time(NULL), (int64_t)session.tzoffset);
         
-        if (_local_signal > 0) {
+        if (session.signal > 0) {
             JSONCustomObjectProvideString(obj, "type", "signal");
-            JSONCustomObjectProvideInt(obj, "signal", _local_signal);
+            JSONCustomObjectProvideInt(obj, "signal", session.signal);
             const char *signalName = "UNKNOWN";
-            switch (_local_signal) {
+            switch (session.signal) {
                 case SIGABRT: signalName = "SIGABRT"; break;
                 case SIGILL: signalName = "SIGILL"; break;
                 case SIGSEGV: signalName = "SIGSEGV"; break;
@@ -341,15 +346,15 @@ void _app_session_provide_issue(JSONCustom *custom) {
                 default: break;
             }
             JSONCustomObjectProvideString(obj, "name", signalName);
-        } else if (_local_exception != nil) {
+        } else if (session.exception != nil) {
             JSONCustomObjectProvideString(obj, "type", "exception");
             JSONCustomObjectProvideObject(obj, "exception", ^(JSONCustomObject *inner) {
                 // technically it's not strictly safe to access this information inside the exception handler
                 // but so far it seems to be ok, and if it goes wrong … too bad. the process is *already crashing*.
-                JSONCustomObjectProvideString(inner, "name", _local_exception.name.UTF8String);
-                JSONCustomObjectProvideString(inner, "reason", _local_exception.reason.UTF8String);
+                JSONCustomObjectProvideString(inner, "name", session.exception.name.UTF8String);
+                JSONCustomObjectProvideString(inner, "reason", session.exception.reason.UTF8String);
                 
-                NSDictionary *userinfo = _local_exception.userInfo;
+                NSDictionary *userinfo = session.exception.userInfo;
                 if (userinfo.count > 0) {
                     JSONCustomObjectProvideObject(inner, "userInfo", ^(JSONCustomObject * info) {
                         for (NSString *key in userinfo) {
@@ -372,7 +377,7 @@ void _app_session_provide_issue(JSONCustom *custom) {
     });
 }
 
-void app_session_write_log(int32_t signal, NSException *exception) {
+void app_session_write_log() {
     if (session.crashFilePath == NULL) { return; }
     
     // modify current.crashFilePath to format the current timestamp
@@ -381,7 +386,10 @@ void app_session_write_log(int32_t signal, NSException *exception) {
     size_t nameOffset = length - 5 - 19;
     char *timeStart = path + nameOffset;
     
-    SafeFormatTimestamp(timeStart, time(NULL));
+    time_t now = time(NULL);
+    GregorianDate nowDate = GregorianDateParseTimestamp(now, 0);
+    
+    GregorianDateFormatBuffer(nowDate, "yyyy-MM-dd-HH-mm-ss", timeStart);
     
     int fd = open(path, O_CREAT | O_TRUNC | O_WRONLY, S_IRWXU | S_IRWXG);
     
@@ -397,9 +405,6 @@ void app_session_write_log(int32_t signal, NSException *exception) {
         write(STDOUT_FILENO, errstr, strlen(errstr));
         return;
     }
-    
-    _local_signal = signal;
-    _local_exception = exception;
     
     JSONSerializationOptions opts;
     opts.prettyPrint = true;

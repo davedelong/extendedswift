@@ -6,6 +6,7 @@
 //
 
 #import "JSON.h"
+#import "GregorianDate+Format.h"
 #import "SignalSafe.h"
 
 typedef struct _JSONArray _JSONArray;
@@ -431,7 +432,7 @@ void JSONCustomProvideUUID(JSONCustom *custom, uuid_t uuid) {
 void JSONCustomProvideTimestamp(JSONCustom *custom, time_t timestamp, int16_t tzoffset) {
     GregorianDate date = GregorianDateParseTimestamp(timestamp, tzoffset);
     char timeString[26] = "yyyy-MM-dd HH:mm:ss +0000";
-    SafeFormatDateWithTimezone(timeString, date);
+    GregorianDateFormatBuffer(date, "yyyy-MM-dd HH:mm:ss xx", timeString);
     JSONCustomProvideString(custom, timeString);
 }
 
@@ -444,6 +445,6 @@ void JSONCustomObjectProvideUUID(JSONCustomObject *custom, const char *key, uuid
 void JSONCustomObjectProvideTimestamp(JSONCustomObject *custom, const char *key, time_t timestamp, int16_t tzoffset) {
     GregorianDate date = GregorianDateParseTimestamp(timestamp, tzoffset);
     char timeString[26] = "yyyy-MM-dd HH:mm:ss +0000";
-    SafeFormatDateWithTimezone(timeString, date);
+    GregorianDateFormatBuffer(date, "yyyy-MM-dd HH:mm:ss xx", timeString);
     JSONCustomObjectProvideString(custom, key, timeString);
 }

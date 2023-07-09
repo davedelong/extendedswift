@@ -91,33 +91,3 @@ void SafeFormatUUID(__darwin_uuid_string_t buffer, uuid_t uuid) {
     SafeFormatHex(buffer+32, uuid[14], 2);
     SafeFormatHex(buffer+34, uuid[15], 2);
 }
-
-void SafeFormatDate(char buffer[_Nonnull 20], GregorianDate date) {
-    // yyyy-mm-dd HH:mm:ss
-    SafeFormatUInt(buffer, date.year, 4);
-    SafeFormatUInt(buffer+5, date.month, 2);
-    SafeFormatUInt(buffer+8, date.day, 2);
-    SafeFormatUInt(buffer+11, date.hour, 2);
-    SafeFormatUInt(buffer+14, date.minute, 2);
-    SafeFormatUInt(buffer+17, date.second, 2);
-}
-
-void SafeFormatDateWithTimezone(char buffer[_Nonnull 26], GregorianDate date) {
-    buffer[20] = (date.tzoffset < 0) ? '-' : '+';
-    int tz = abs(date.tzoffset);
-    
-    int tzhour = tz / 3600;
-    int tzmin = tz % 3600;
-    SafeFormatUInt(buffer+21, tzhour, 2);
-    SafeFormatUInt(buffer+23, tzmin, 2);
-}
-
-void SafeFormatTimestamp(char buffer[_Nonnull 20], time_t timestamp) {
-    GregorianDate date = GregorianDateParseTimestamp(timestamp, 0);
-    SafeFormatDate(buffer, date);
-}
-
-void SafeFormatTimestampWithTimezone(char buffer[_Nonnull 26], time_t timestamp, int16_t tzoffset) {
-    GregorianDate date = GregorianDateParseTimestamp(timestamp, tzoffset);
-    SafeFormatDateWithTimezone(buffer, date);
-}
