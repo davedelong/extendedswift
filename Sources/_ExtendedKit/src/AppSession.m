@@ -61,11 +61,11 @@ typedef struct AppSession {
 
 AppSession session;
 
-NSUUID *_Nonnull app_session_initialize(const char *scope) {
+NSUUID *_Nonnull app_session_initialize(const char *scope, NSURL * _Nonnull logFolder) {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         session.uuid = [NSUUID UUID];
-        
+        session.logFolder = logFolder;
         session.crashLogRoot = JSONCreateObject();
         session.metadata = JSONCreateObject();
         session.images = JSONCreateArray();
@@ -75,22 +75,6 @@ NSUUID *_Nonnull app_session_initialize(const char *scope) {
         JSONObjectAppend(session.crashLogRoot, "backtrace", JSONCreateCustom(_app_session_provide_backtrace));
         JSONObjectAppend(session.crashLogRoot, "images", session.images);
         
-        // Locate+Create the log folder
-#if TARGET_OS_OSX
-        NSURL *library = [[NSFileManager defaultManager] URLForDirectory:NSLibraryDirectory inDomain:NSUserDomainMask appropriateForURL:nil create:YES error:nil];
-        if (library == nil) {
-            library = [NSURL fileURLWithPath:[@"~/Library" stringByExpandingTildeInPath]];
-        }
-        NSURL *logsFolder = [library URLByAppendingPathComponent:@"Logs"];
-        session.logFolder = [logsFolder URLByAppendingPathComponent:@(scope)];
-#else
-        NSURL *appSupport = [[NSFileManager defaultManager] URLForDirectory:NSApplicationSupportDirectory
-                                                                   inDomain:NSUserDomainMask
-                                                          appropriateForURL:nil
-                                                                     create:YES
-                                                                      error:nil];
-        current.logFolder = [appSupport URLByAppendingPathComponent:@"Logs"];
-#endif
         [[NSFileManager defaultManager] createDirectoryAtURL:session.logFolder withIntermediateDirectories:YES attributes:nil error:nil];
         
         // Locate the crash file
@@ -142,11 +126,7 @@ NSUUID *_Nonnull app_session_initialize(const char *scope) {
     return session.uuid;
 }
 
-// MARK: - Log File & Folder Locating
-
-NSURL *app_session_log_folder(void) {
-    return session.logFolder;
-}
+// MARK: - Log File Information
 
 void app_session_crash_metadata_add_string(NSString * _Nonnull key, NSString * _Nonnull value) {
     JSONObjectAppend(session.metadata, key.UTF8String, JSONCreateNSString(value));

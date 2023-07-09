@@ -9,9 +9,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-NSUUID *_Nonnull app_session_initialize(const char *scope);
-
-NSURL *_Nonnull app_session_log_folder(void);
+NSUUID *_Nonnull app_session_initialize(const char *scope, NSURL * _Nonnull logFolder);
 
 void app_session_crash_metadata_add_bool(NSString * _Nonnull key, BOOL value);
 void app_session_crash_metadata_add_int(NSString * _Nonnull key, NSInteger value);
