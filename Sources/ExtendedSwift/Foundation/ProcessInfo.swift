@@ -22,7 +22,6 @@ extension ProcessInfo {
             return true
         }
     #endif
-        
         return false
     }
     

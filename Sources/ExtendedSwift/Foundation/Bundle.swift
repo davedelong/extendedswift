@@ -9,6 +9,11 @@ import Foundation
 
 extension Bundle {
     
+    public var identifier: ID<Bundle, String>? {
+        guard let bundleIdentifier else { return nil }
+        return ID(rawValue: bundleIdentifier)
+    }
+    
     public var shortVersionString: String? {
         if let s = string(forInfoDictionaryKey: "CFBundleShortVersionString") { return s }
         return nil

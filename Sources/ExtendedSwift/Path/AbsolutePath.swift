@@ -137,5 +137,11 @@ public struct AbsolutePath: Path {
     public func contains(_ other: AbsolutePath) -> Bool {
         return fileURL.contains(other.fileURL)
     }
+    
+    
+    public var isIncludedInBackup: Bool {
+        get { fileURL.isIncludedInBackup }
+        nonmutating set { fileURL.isIncludedInBackup = newValue }
+    }
 }
 

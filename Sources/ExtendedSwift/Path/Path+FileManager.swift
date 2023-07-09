@@ -17,6 +17,13 @@ extension FileManager {
         return AbsolutePath(result)
     }
     
+    public func containerPath(for groupIdentifier: String) -> AbsolutePath? {
+        guard let url = self.containerURL(forSecurityApplicationGroupIdentifier: groupIdentifier) else {
+            return nil
+        }
+        return AbsolutePath(url)
+    }
+    
     public func pathExists(_ path: AbsolutePath) -> Bool {
         var isDir = false
         return pathExists(path, isDirectory: &isDir)
