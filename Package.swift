@@ -13,7 +13,8 @@ let package = Package(
         .library(name: "ExtendedKit", targets: ["ExtendedKit"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-algorithms.git", from: "1.0.0")
+        .package(url: "https://github.com/apple/swift-algorithms.git", from: "1.0.0"),
+        .package(url: "https://github.com/apple/swift-log.git", from: "1.5.0")
     ],
     targets: [
         .target(name: "ExtendedObjC", dependencies: []),
@@ -30,7 +31,15 @@ let package = Package(
                     .unsafeFlags(["-enable-bare-slash-regex"])
                 ]),
         
-        .target(name: "ExtendedKit", dependencies: ["ExtendedSwift", "ExtendedObjC"]),
+        .target(name: "ExtendedKit",
+                dependencies: [
+                    "ExtendedSwift",
+                    "ExtendedObjC",
+                    .product(name: "Logging", package: "swift-log")
+                ],
+                swiftSettings: [
+                    .unsafeFlags(["-enable-bare-slash-regex"])
+                ]),
         
         // TEST TARGETS
         
