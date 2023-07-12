@@ -11,7 +11,7 @@ public struct AnyCodingKey: CodingKey {
     
     public var stringValue: String
     
-    public init?(stringValue: String) {
+    public init(stringValue: String) {
         self.stringValue = stringValue
         self.intValue = nil
     }

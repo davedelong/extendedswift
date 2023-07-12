@@ -43,6 +43,13 @@ public enum PathComponent: Hashable {
         guard case .item = self else { return nil }
         return pathString
     }
+    
+    public var baseName: String? {
+        guard case .item(let basename, _) = self else {
+            return nil
+        }
+        return basename
+    }
 }
 
 public protocol Path: Hashable, CustomDebugStringConvertible {

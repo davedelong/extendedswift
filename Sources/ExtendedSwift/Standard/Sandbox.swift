@@ -38,6 +38,16 @@ public class Sandbox {
         }
     }
     
+    public func existingValue<S: SandboxProperty>(for property: S.Type) -> S.PropertyValue? {
+        return lock.withLock {
+            values[ObjectIdentifier(property)] as? S.PropertyValue
+        }
+    }
+    
+    public func hasProperty<S: SandboxProperty>(_ property: S.Type) -> Bool {
+        return existingValue(for: property) != nil
+    }
+    
     public let groupIdentifier: String?
     
     public init(groupIdentifier: String?) {

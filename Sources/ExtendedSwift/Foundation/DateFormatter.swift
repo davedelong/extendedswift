@@ -8,6 +8,7 @@
 import Foundation
 
 extension DateFormatter {
+    
     public convenience init(dateStyle: Style) {
         self.init()
         self.dateStyle = dateStyle
@@ -25,11 +26,10 @@ extension DateFormatter {
         self.dateStyle = dateStyle
         self.timeStyle = timeStyle
     }
+    
 }
 
 public class UnlocalizedDateFormatter: DateFormatter {
-    
-    private let df: DateFormatter
     
     /// Instantiate a new unlocalized date formatter
     /// - Parameters:
@@ -38,45 +38,60 @@ public class UnlocalizedDateFormatter: DateFormatter {
     ///   - locale: The locale to be used for formatting. If `nil`, the calendar's locale will be used, falling back to the current locale
     ///   - timeZone: The timezone to be used for formatting. If `nil`, the current timezone will be used
     public init(dateFormat: String, calendar: Calendar? = nil, locale: Locale? = nil, timeZone: TimeZone? = nil) {
-        let key = CacheKey(format: dateFormat,
-                           calendar: calendar ?? .current,
-                           locale: locale ?? calendar?.locale ?? .current,
-                           timeZone: timeZone ?? .current)
-        
-        cacheLock.lock()
-        
-        if let existing = cachedFormatters[key] {
-            self.df = existing
-        } else {
-            let new = DateFormatter()
-            new.calendar = key.calendar
-            new.locale = key.locale
-            new.timeZone = key.timeZone
-            new.dateFormat = dateFormat
-            
-            cachedFormatters[key] = new
-            self.df = new
-        }
-        
-        cacheLock.unlock()
         super.init()
+        super.dateFormat = dateFormat
+        super.calendar = calendar ?? .current
+        super.locale = locale ?? .current
+        super.timeZone = timeZone ?? .current
     }
     
     public required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    public override func string(from date: Date) -> String { df.string(from: date) }
-    public override func date(from string: String) -> Date? { df.date(from: string) }
+    public override var calendar: Calendar! {
+        get { super.calendar }
+        set { }
+    }
+    
+    public override var timeZone: TimeZone! {
+        get { super.timeZone }
+        set { }
+    }
+    
+    public override var locale: Locale! {
+        get { super.locale }
+        set { }
+    }
+    
+    public override var dateStyle: DateFormatter.Style {
+        get { super.dateStyle }
+        set { }
+    }
+    
+    public override var timeStyle: DateFormatter.Style {
+        get { super.timeStyle }
+        set { }
+    }
+    
+    public override var dateFormat: String! {
+        get { super.dateFormat }
+        set { }
+    }
     
 }
 
-private var cacheLock = NSLock()
-private var cachedFormatters = Dictionary<CacheKey, DateFormatter>()
-
-private struct CacheKey: Hashable {
-    let format: String
-    let calendar: Calendar
-    let locale: Locale
-    let timeZone: TimeZone
+public class POSIXDateFormatter: UnlocalizedDateFormatter {
+    
+    public init(dateFormat: String) {
+        super.init(dateFormat: dateFormat,
+                   calendar: Calendar(identifier: .gregorian),
+                   locale: Locale(identifier: "en_US_POSIX"),
+                   timeZone: TimeZone(secondsFromGMT: 0))
+    }
+    
+    public required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
 }
