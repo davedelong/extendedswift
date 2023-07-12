@@ -8,7 +8,7 @@
 import Foundation
 import CoreData
 
-public struct QueryResults<T: Queryable>: RandomAccessCollection {
+public struct FetchResults<T: Fetchable>: RandomAccessCollection {
     
     private class Cache {
         var storage = Dictionary<Int, T>()

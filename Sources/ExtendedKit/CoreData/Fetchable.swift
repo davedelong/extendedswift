@@ -7,8 +7,8 @@
 
 import Foundation
 
-public protocol Queryable {
-    associatedtype Filter: QueryFilter
+public protocol Fetchable {
+    associatedtype Filter: FetchFilter
     
     init(result: Filter.ResultType)
 }

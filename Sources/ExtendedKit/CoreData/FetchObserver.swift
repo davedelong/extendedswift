@@ -9,7 +9,7 @@ import Foundation
 import CoreData
 import Combine
 
-public class QueryObserver<T: Queryable>: ObservableObject {
+public class FetchObserver<T: Fetchable>: ObservableObject {
     
     public let objectWillChange: ObservableObjectPublisher
     public let objectDidChange: ObservableObjectPublisher
@@ -28,7 +28,7 @@ public class QueryObserver<T: Queryable>: ObservableObject {
         set { core.context = newValue }
     }
     
-    public var results: QueryResults<T> { core.results }
+    public var results: FetchResults<T> { core.results }
     
     public var autoUpdates: Bool {
         get { core.autoupdates }
@@ -47,18 +47,18 @@ public class QueryObserver<T: Queryable>: ObservableObject {
     
 }
 
-private class _QueryCore<T: Queryable>: NSObject, NSFetchedResultsControllerDelegate {
+private class _QueryCore<T: Fetchable>: NSObject, NSFetchedResultsControllerDelegate {
     
     private let willChange: ObservableObjectPublisher
     private let didChange: ObservableObjectPublisher
     
     private var _frc: NSFetchedResultsController<T.Filter.ResultType>?
     
-    private var _results: QueryResults<T>?
+    private var _results: FetchResults<T>?
     
-    var results: QueryResults<T> {
+    var results: FetchResults<T> {
         fetchIfNecessary()
-        return _results ?? QueryResults()
+        return _results ?? FetchResults()
     }
     
     init(filter: T.Filter, willChange: ObservableObjectPublisher, didChange: ObservableObjectPublisher) {
@@ -110,7 +110,7 @@ private class _QueryCore<T: Queryable>: NSObject, NSFetchedResultsControllerDele
     func fetchIfNecessary() {
         
         guard let context else {
-            print("QueryObserver<\(T.self)> is missing its ManagedObjectContext")
+            print("FetchObserver<\(T.self)> is missing its ManagedObjectContext")
             return
         }
         
@@ -138,7 +138,7 @@ private class _QueryCore<T: Queryable>: NSObject, NSFetchedResultsControllerDele
             
             try! _frc?.performFetch()
             let resultsArray: NSArray = (_frc?.fetchedObjects as NSArray?) ?? NSArray()
-            _results = QueryResults(results: resultsArray, context: context)
+            _results = FetchResults(results: resultsArray, context: context)
             didChange.send()
         }
         
@@ -158,7 +158,7 @@ private class _QueryCore<T: Queryable>: NSObject, NSFetchedResultsControllerDele
         guard autoupdates == true else { return }
         
         let objects = (controller.fetchedObjects as NSArray?) ?? NSArray()
-        _results = QueryResults<T>(results: objects, context: controller.managedObjectContext)
+        _results = FetchResults<T>(results: objects, context: controller.managedObjectContext)
         didChange.send()
     }
 }

@@ -8,7 +8,7 @@
 import Foundation
 import CoreData
 
-public protocol QueryFilter: Equatable {
+public protocol FetchFilter: Equatable {
     
     associatedtype ResultType: NSFetchRequestResult
     

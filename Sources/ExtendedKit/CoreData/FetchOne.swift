@@ -9,8 +9,8 @@ import Foundation
 import SwiftUI
 
 @propertyWrapper
-public struct QueryOne<T: Queryable>: DynamicProperty {
-    @Query var inner: QueryResults<T>
+public struct FetchOne<T: Fetchable>: DynamicProperty {
+    @Fetch var inner: FetchResults<T>
     
     public var wrappedValue: T? { inner.first }
     
@@ -23,6 +23,6 @@ public struct QueryOne<T: Queryable>: DynamicProperty {
     public var autoupdateBinding: Binding<Bool> { _inner.autoupdateBinding }
     
     public init(_ filter: T.Filter, animation: Animation? = nil) {
-        _inner = Query(filter, animation: animation)
+        _inner = Fetch(filter, animation: animation)
     }
 }

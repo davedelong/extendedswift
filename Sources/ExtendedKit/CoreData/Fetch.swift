@@ -9,10 +9,10 @@ import Foundation
 import SwiftUI
 
 @propertyWrapper
-public struct Query<T: Queryable>: DynamicProperty {
+public struct Fetch<T: Fetchable>: DynamicProperty {
     @Environment(\.managedObjectContext) var context
     
-    @StateObject private var observer: QueryObserver<T>
+    @StateObject private var observer: FetchObserver<T>
     
     private let transaction: Transaction
     public let baseFilter: T.Filter
@@ -27,7 +27,7 @@ public struct Query<T: Queryable>: DynamicProperty {
                 set: { observer.autoUpdates = $0 })
     }
     
-    public var wrappedValue: QueryResults<T> {
+    public var wrappedValue: FetchResults<T> {
         observer.results
     }
     
@@ -42,7 +42,7 @@ public struct Query<T: Queryable>: DynamicProperty {
     }
     
     public init(_ filter: T.Filter, animation: Animation? = nil) {
-        let observer = QueryObserver<T>(filter: filter, context: nil)
+        let observer = FetchObserver<T>(filter: filter, context: nil)
         _observer = StateObject(wrappedValue: observer)
         
         self.baseFilter = filter
