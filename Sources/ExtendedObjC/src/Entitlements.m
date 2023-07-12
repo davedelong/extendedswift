@@ -28,6 +28,8 @@ typedef struct __MultiBlob {
     /* followed by Blobs in no particular order as indicated by offsets in index */
 } CS_MultiBlob;
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 NSData *_ReadEntitlementsFromTEXT(const struct mach_header *executable) {
     uint32_t dataOffset;
     uint64_t dataLength;
@@ -48,6 +50,7 @@ NSData *_ReadEntitlementsFromTEXT(const struct mach_header *executable) {
     uintptr_t dataStart = (uintptr_t)executable + dataOffset;
     return [NSData dataWithBytes:(const void *)dataStart length:dataLength];
 }
+#pragma clang diagnostic pop
 
 NSData *_ReadEntitlementsFromCodeSignature(const struct mach_header *executable) {
     // TODO: does this need to be more resilient about big/little endian executables?

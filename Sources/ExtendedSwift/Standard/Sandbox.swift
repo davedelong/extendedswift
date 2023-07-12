@@ -48,27 +48,27 @@ public class Sandbox {
 
 extension Sandbox {
     
-    public var documents: AbsolutePath {
+    public var documentsPath: AbsolutePath {
         get { self[DocumentsProperty.self] }
         set { self[DocumentsProperty.self] = newValue }
     }
     
-    public var caches: AbsolutePath {
+    public var cachesPath: AbsolutePath {
         get { self[CachesProperty.self] }
         set { self[CachesProperty.self] = newValue }
     }
     
-    public var support: AbsolutePath {
+    public var supportPath: AbsolutePath {
         get { self[SupportProperty.self] }
         set { self[SupportProperty.self] = newValue }
     }
     
-    public var temporary: AbsolutePath {
+    public var temporaryPath: AbsolutePath {
         get { self[TemporaryProperty.self] }
         set { self[TemporaryProperty.self] = newValue }
     }
     
-    public var logs: AbsolutePath {
+    public var logsPath: AbsolutePath {
         get { self[LogsProperty.self] }
         set { self[LogsProperty.self] = newValue }
     }
@@ -134,7 +134,7 @@ private struct TemporaryProperty: SandboxProperty {
 
 private struct LogsProperty: SandboxProperty {
     static func provideValue(for sandbox: Sandbox) -> AbsolutePath {
-        let path = sandbox.support.appending(component: "Logs")
+        let path = sandbox.supportPath.appending(component: "Logs")
         try? FileManager.default.createDirectory(at: path, withIntermediateDirectories: true)
         return path
     }

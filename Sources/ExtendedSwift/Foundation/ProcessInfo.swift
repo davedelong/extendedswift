@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import ExtendedObjC
+@_implementationOnly import ExtendedObjC
 
 extension ProcessInfo {
     
