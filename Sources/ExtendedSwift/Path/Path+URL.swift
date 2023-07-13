@@ -9,14 +9,14 @@ import Foundation
 
 extension URL {
     
-    public var absolutePath: AbsolutePath { AbsolutePath(fileSystemPath: self.path(percentEncoded: false)) }
+    public var absolutePath: Path { Path(fileSystemPath: self.path(percentEncoded: false)) }
     
 }
 
 extension URLComponents {
     
-    public var absolutePath: AbsolutePath {
-        get { AbsolutePath(fileSystemPath: self.path) }
+    public var absolutePath: Path {
+        get { Path(fileSystemPath: self.path) }
         set { self.path = newValue.fileSystemPath }
     }
     

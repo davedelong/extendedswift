@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct RelativePath: Path {
+public struct RelativePath: PathProtocol {
     public let components: Array<PathComponent>
     
     public var fileSystemPath: String {
@@ -41,7 +41,7 @@ public struct RelativePath: Path {
         }
     }
     
-    public func resolve(against: AbsolutePath) -> AbsolutePath {
-        return AbsolutePath(against.components + components)
+    public func resolve(against: Path) -> Path {
+        return Path(against.components + components)
     }
 }

@@ -9,11 +9,11 @@ import Foundation
 
 extension Data {
     
-    public init(contentsOf path: AbsolutePath, options: Data.ReadingOptions = []) throws {
+    public init(contentsOf path: Path, options: Data.ReadingOptions = []) throws {
         try self.init(contentsOf: path.fileURL, options: options)
     }
     
-    public func write(to path: AbsolutePath, options: Data.WritingOptions = []) throws {
+    public func write(to path: Path, options: Data.WritingOptions = []) throws {
         try self.write(to: path.fileURL, options: options)
     }
     
@@ -21,11 +21,11 @@ extension Data {
 
 extension String {
     
-    public init(contentsOf path: AbsolutePath) throws {
+    public init(contentsOf path: Path) throws {
         try self.init(contentsOf: path.fileURL)
     }
     
-    public func write(to path: AbsolutePath, atomically: Bool = true, encoding: String.Encoding = .utf8) throws {
+    public func write(to path: Path, atomically: Bool = true, encoding: String.Encoding = .utf8) throws {
         try self.write(to: path.fileURL, atomically: atomically, encoding: encoding)
     }
     

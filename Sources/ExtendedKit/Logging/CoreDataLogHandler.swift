@@ -67,7 +67,7 @@ public class CoreDataLogStore {
     private static let timestampFormatter = POSIXDateFormatter(dateFormat: "y-MM-dd'T'HH-mm-ssXX")
     
     private var psc: NSPersistentStoreCoordinator?
-    public var file: AbsolutePath?
+    public var file: Path?
     
     private let metadataEncoder = JSONEncoder()
 
@@ -80,8 +80,8 @@ public class CoreDataLogStore {
     public let timestamp: Date
     public let name: String
     
-    private init(storeFile: AbsolutePath) throws {
-        let basename = try storeFile.lastComponent?.baseName ?! CocoaError(.fileReadInvalidFileName)
+    private init(storeFile: Path) throws {
+        let basename = try storeFile.lastComponent?.itemBaseName ?! CocoaError(.fileReadInvalidFileName)
         let timestamp = try Self.timestampFormatter.date(from: basename) ?! CocoaError(.fileReadInvalidFileName)
         
         let psc = NSPersistentStoreCoordinator(managedObjectModel: LogSchema)
@@ -104,7 +104,7 @@ public class CoreDataLogStore {
         ])
     }
     
-    fileprivate convenience init?(file: AbsolutePath) {
+    fileprivate convenience init?(file: Path) {
         do {
             try self.init(storeFile: file)
         } catch {

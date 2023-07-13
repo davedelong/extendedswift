@@ -30,7 +30,7 @@ extension ProcessInfo {
     
     public var entitlements: Entitlements { Entitlements(source: _entitlementsDict) }
     
-    public static func entitlementsDictionary(for path: AbsolutePath) -> Dictionary<String, Any>? {
+    public static func entitlementsDictionary(for path: Path) -> Dictionary<String, Any>? {
         autoreleasepool {
             guard let data = try? Data(contentsOf: path) else { return nil }
             return EntitlementsPlistForBinary(data)

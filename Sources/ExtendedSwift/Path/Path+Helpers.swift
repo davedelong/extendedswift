@@ -26,7 +26,7 @@ extension PathComponent {
                         continue
                     } else if s.hasPrefix("~") && e == nil {
                         newComponents.removeAll()
-                        let expanded = AbsolutePath(fileSystemPath: s)
+                        let expanded = Path(fileSystemPath: s)
                         newComponents.append(contentsOf: expanded.components)
                     } else {
                         newComponents.append(c)

@@ -18,7 +18,7 @@ public struct ProcessOutput {
 
 extension Process {
     
-    public static func execute(_ command: AbsolutePath, arguments: Array<String> = [], environment: Dictionary<String, String>? = nil, cwd: URL? = nil) async throws -> ProcessOutput {
+    public static func execute(_ command: Path, arguments: Array<String> = [], environment: Dictionary<String, String>? = nil, cwd: URL? = nil) async throws -> ProcessOutput {
         return try await execute(command.fileURL, arguments: arguments, environment: environment, cwd: cwd)
     }
     

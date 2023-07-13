@@ -40,7 +40,7 @@ extension Bundle {
         if self == Bundle.main { return ProcessInfo.processInfo.entitlementsDictionary }
         
         guard let executableURL = self.executableURL else { return nil }
-        let path = AbsolutePath(executableURL)
+        let path = Path(executableURL)
         return ProcessInfo.entitlementsDictionary(for: path)
     }
     

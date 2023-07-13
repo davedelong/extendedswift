@@ -58,27 +58,27 @@ public class Sandbox {
 
 extension Sandbox {
     
-    public var documentsPath: AbsolutePath {
+    public var documentsPath: Path {
         get { self[DocumentsProperty.self] }
         set { self[DocumentsProperty.self] = newValue }
     }
     
-    public var cachesPath: AbsolutePath {
+    public var cachesPath: Path {
         get { self[CachesProperty.self] }
         set { self[CachesProperty.self] = newValue }
     }
     
-    public var supportPath: AbsolutePath {
+    public var supportPath: Path {
         get { self[SupportProperty.self] }
         set { self[SupportProperty.self] = newValue }
     }
     
-    public var temporaryPath: AbsolutePath {
+    public var temporaryPath: Path {
         get { self[TemporaryProperty.self] }
         set { self[TemporaryProperty.self] = newValue }
     }
     
-    public var logsPath: AbsolutePath {
+    public var logsPath: Path {
         get { self[LogsProperty.self] }
         set { self[LogsProperty.self] = newValue }
     }
@@ -94,7 +94,7 @@ extension Sandbox {
 
 private struct DocumentsProperty: SandboxProperty {
     
-    static func provideValue(for sandbox: Sandbox) -> AbsolutePath {
+    static func provideValue(for sandbox: Sandbox) -> Path {
         if let group = sandbox.groupIdentifier, let container = FileManager.default.containerPath(for: group) {
             let path = container.appending(component: "Documents")
             try? FileManager.default.createDirectory(at: path, withIntermediateDirectories: true)
@@ -108,8 +108,8 @@ private struct DocumentsProperty: SandboxProperty {
 
 private struct CachesProperty: SandboxProperty {
     
-    static func provideValue(for sandbox: Sandbox) -> AbsolutePath {
-        let path: AbsolutePath
+    static func provideValue(for sandbox: Sandbox) -> Path {
+        let path: Path
         if let group = sandbox.groupIdentifier, let container = FileManager.default.containerPath(for: group) {
             path = container.appending(component: "Caches")
         } else {
@@ -124,7 +124,7 @@ private struct CachesProperty: SandboxProperty {
 
 private struct SupportProperty: SandboxProperty {
     
-    static func provideValue(for sandbox: Sandbox) -> AbsolutePath {
+    static func provideValue(for sandbox: Sandbox) -> Path {
         if let group = sandbox.groupIdentifier, let container = FileManager.default.containerPath(for: group) {
             let path = container.appending(component: "Application Support")
             try? FileManager.default.createDirectory(at: path, withIntermediateDirectories: true)
@@ -137,13 +137,13 @@ private struct SupportProperty: SandboxProperty {
 }
 
 private struct TemporaryProperty: SandboxProperty {
-    static func provideValue(for sandbox: Sandbox) -> AbsolutePath {
-        return AbsolutePath(fileSystemPath: NSTemporaryDirectory())
+    static func provideValue(for sandbox: Sandbox) -> Path {
+        return Path(fileSystemPath: NSTemporaryDirectory())
     }
 }
 
 private struct LogsProperty: SandboxProperty {
-    static func provideValue(for sandbox: Sandbox) -> AbsolutePath {
+    static func provideValue(for sandbox: Sandbox) -> Path {
         let path = sandbox.supportPath.appending(component: "Logs")
         try? FileManager.default.createDirectory(at: path, withIntermediateDirectories: true)
         return path
