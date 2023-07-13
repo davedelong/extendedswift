@@ -11,6 +11,7 @@
 #import "SignalSafe.h"
 #import "GregorianDate.h"
 #import "GregorianDate+Format.h"
+#import "NSUUID+Time.h"
 
 #import <signal.h>
 #import <sys/signal.h>
@@ -64,7 +65,7 @@ AppSession session;
 NSUUID *_Nonnull app_session_initialize(NSURL * _Nonnull logFolder) {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        session.uuid = [NSUUID UUID];
+        session.uuid = [NSUUID extended_timedUUID];
         session.logFolder = logFolder;
         session.crashLogRoot = JSONCreateObject();
         session.metadata = JSONCreateObject();
