@@ -8,16 +8,21 @@
 import Foundation
 import Logging
 @_exported import ExtendedSwift
-@_implementationOnly import ExtendedObjC
+@_implementationOnly import PrivateAPI
 
 public class AppSession {
+    
+    public enum GroupContainer {
+        case `default`
+        case explicit(String)
+    }
     
     public typealias LogHandlers = (String, Sandbox) -> [LogHandler]
     
     @discardableResult
-    public static func initialize(groupIdentifier: String? = nil, logHandlers: LogHandlers? = nil) -> AppSession {
+    public static func initialize(groupContainer: GroupContainer? = nil, logHandlers: LogHandlers? = nil) -> AppSession {
         if _current == nil {
-            _current = AppSession(group: groupIdentifier, logHandlers: logHandlers)
+            _current = AppSession(group: groupContainer, logHandlers: logHandlers)
         }
         return AppSession.current
     }
@@ -33,12 +38,17 @@ public class AppSession {
     
     public var allCrashFiles: Array<URL> { app_session_all_crash_files() }
     
-    private init(group: String?, logHandlers: LogHandlers?) {
+    private init(group: GroupContainer?, logHandlers: LogHandlers?) {
         // first, read the entitlements
         self.entitlements = ProcessInfo.processInfo.entitlements
         
         // with the entilements, we can discern the app's group, if there is one
-        let actualGroup = group ?? entitlements.applicationGroups?.first
+        let actualGroup: String?
+        switch group {
+            case .none: actualGroup = nil
+            case .explicit(let g): actualGroup = g
+            case .default: actualGroup = entitlements.applicationGroups?.first
+        }
         let sandbox = Sandbox(groupIdentifier: actualGroup)
         
         // with the sandbox, we can locate the logs folder

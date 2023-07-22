@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_implementationOnly import ExtendedObjC
+@_implementationOnly import PrivateAPI
 
 extension ProcessInfo {
     

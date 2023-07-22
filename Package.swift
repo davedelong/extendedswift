@@ -19,9 +19,11 @@ let package = Package(
     targets: [
         .target(name: "ExtendedObjC", dependencies: []),
         
+        .target(name: "PrivateAPI", dependencies: []),
+        
         .target(name: "ExtendedSwift",
                 dependencies: [
-                    "ExtendedObjC",
+                    "PrivateAPI",
                     .product(name: "Algorithms", package: "swift-algorithms")
                 ],
                 resources: [
@@ -34,7 +36,7 @@ let package = Package(
         .target(name: "ExtendedKit",
                 dependencies: [
                     "ExtendedSwift",
-                    "ExtendedObjC",
+                    "PrivateAPI",
                     .product(name: "Logging", package: "swift-log")
                 ],
                 swiftSettings: [
@@ -49,6 +51,7 @@ let package = Package(
                         .unsafeFlags(["-enable-bare-slash-regex"])
                     ]),
         
+        .testTarget(name: "PrivateAPITests", dependencies: ["PrivateAPI"]),
         .testTarget(name: "ExtendedObjCTests", dependencies: ["ExtendedObjC"]),
     ]
 )
