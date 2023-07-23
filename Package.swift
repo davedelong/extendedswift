@@ -19,7 +19,7 @@ let package = Package(
     targets: [
         .target(name: "ExtendedObjC", dependencies: []),
         
-        .target(name: "PrivateAPI", dependencies: []),
+        .target(name: "PrivateAPI", dependencies: ["ExtendedObjC"]),
         
         .target(name: "ExtendedSwift",
                 dependencies: [

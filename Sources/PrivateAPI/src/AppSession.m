@@ -12,6 +12,7 @@
 #import "GregorianDate.h"
 #import "GregorianDate+Format.h"
 #import "NSUUID+Time.h"
+#import "ExtendedObjC.h"
 
 #import <signal.h>
 #import <sys/signal.h>
@@ -218,26 +219,13 @@ void _app_session_track_loaded_image(const struct mach_header* mh, intptr_t vmad
     Dl_info info;
     dladdr(mh, &info);
     
-    BOOL is64bit = mh->magic == MH_MAGIC_64 || mh->magic == MH_CIGAM_64;
-    uintptr_t cursor = (uintptr_t)mh + (is64bit ? sizeof(struct mach_header_64) : sizeof(struct mach_header));
-    
-    const struct segment_command *segmentCommand = NULL;
-    const struct segment_command *uuidSegment = NULL;
-    for (uint32_t i = 0; i < mh->ncmds && uuidSegment == NULL; i++, cursor += segmentCommand->cmdsize) {
-        segmentCommand = (struct segment_command *)cursor;
-        if (segmentCommand->cmd == LC_UUID) { uuidSegment = segmentCommand; }
-    }
-    
-    JSON *uuid = NULL;
-    if (uuidSegment != NULL) {
-        const struct uuid_command *uuidCommand = (const struct uuid_command *)uuidSegment;
-        uuid = JSONCreateUUID((unsigned char *)uuidCommand->uuid);
-    }
-    
     JSON *imageObject = JSONCreateObject();
     JSONObjectAppend(imageObject, "path", JSONCreateString(info.dli_fname));
-    if (uuid != NULL) {
-        JSONObjectAppend(imageObject, "uuid", uuid);
+    
+    const struct segment_command *uuidSegment = mach_findSegmentByCommand(mh, LC_UUID);
+    if (uuidSegment != NULL) {
+        const struct uuid_command *uuidCommand = (const struct uuid_command *)uuidSegment;
+        JSONObjectAppend(imageObject, "uuid", JSONCreateUUID((unsigned char *)uuidCommand->uuid));
     }
     
     JSONArrayAppend(session.images, imageObject);
