@@ -73,9 +73,6 @@ void _mach_enumerateSections(const struct mach_header *mh, const struct segment_
     BOOL is32Bit = mach_is32Bit(mh);
     BOOL needsSwap = mach_isSwapped(mh);
     
-    uint32_t dataOffset;
-    uint64_t dataLength;
-    
     uint32_t segmentSize = is32Bit ? sizeof(struct segment_command) : sizeof(struct segment_command_64);
     uintptr_t *cursor = (uintptr_t)segment + segmentSize;
     
@@ -129,9 +126,6 @@ const struct segment_command * _Nullable mach_findSegmentByName(const struct mac
 const struct section * _Nullable mach_findSection(const struct mach_header *mh, const char *segmentName, const char *sectionName) {
     BOOL is32Bit = mach_is32Bit(mh);
     BOOL needsSwap = mach_isSwapped(mh);
-    
-    uint32_t dataOffset;
-    uint64_t dataLength;
     
     const struct segment_command *segment = mach_findSegmentByName(mh, segmentName);
     if (segment == NULL) { return NULL; }
