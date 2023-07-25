@@ -7,6 +7,7 @@
 //
 
 #import "Runtime.h"
+#import "MachO.h"
 
 void objc_enumerateImages(void(^iterator)(const char *imageName, BOOL *keepGoing)) {
     unsigned int count = 0;
@@ -105,7 +106,7 @@ _Nullable IMP class_getClassMethodIMP(Class c, SEL s) {
     return method_getImplementation(m);
 }
 
-void typeEncoding_enumerateTypes(const char *encoding, void(^iterator)(const char *, BOOL *)) {
+void typeEncoding_enumerateTypes(const char *encoding, void(^iterator)(const char *, size_t, BOOL *)) {
     @try {
         // https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtTypeEncodings.html#//apple_ref/doc/uid/TP40008048-CH100
         
@@ -122,12 +123,26 @@ void typeEncoding_enumerateTypes(const char *encoding, void(^iterator)(const cha
             // NSGetSizeAndAlignment will skip over bitfields, such as "b1"
             // so we manually check for it:
             if (*next == 'b') {
+                // move to the character after the b
+                const char *startOfSize = next + 1;
+                const char *startOfNext = startOfSize;
+                size_t size = 0;
+                
+                // this finds the end of the bitfield size while also doing a simple "atoi" parse
+                while ((void *)startOfNext < end && *startOfNext >= '0' && *startOfNext <= '9') {
+                    size *= 10;
+                    size += (*startOfNext) - '0';
+                    startOfNext = startOfNext + 1;
+                }
                 BOOL keepGoing = YES;
-                iterator("b", &keepGoing);
+                
+                iterator("b", size, &keepGoing);
                 if (keepGoing == NO) { break; }
-                next = next + 1;
+                
+                next = startOfNext;
             } else {
-                const char *startOfNext = NSGetSizeAndAlignment(next, NULL, NULL);
+                size_t size = 0;
+                const char *startOfNext = NSGetSizeAndAlignment(next, &size, NULL);
                 
                 size_t length = (uintptr_t)startOfNext - (uintptr_t)next;
                 if (length == 0) { break; }
@@ -138,7 +153,7 @@ void typeEncoding_enumerateTypes(const char *encoding, void(^iterator)(const cha
                                                           freeWhenDone:NO];
                 
                 BOOL keepGoing = YES;
-                iterator(type.UTF8String, &keepGoing);
+                iterator(type.UTF8String, size, &keepGoing);
                 
                 if (keepGoing == NO) { break; }
                 next = startOfNext;
@@ -147,4 +162,122 @@ void typeEncoding_enumerateTypes(const char *encoding, void(^iterator)(const cha
     } @catch (NSException *exception) {
         
     }
+}
+
+@interface _EXSwiftLoadedImage : NSObject
+
+@property (nonatomic, copy) NSString *name;
+@property (nonatomic) uintptr_t loadAddress;
+
+@end
+
+@implementation _EXSwiftLoadedImage
+
+@end
+
+unsigned int class_enumerateSwizzledMethods(Class c, void(^iterator)(BOOL isClassMethod, Method m, const char * _Nullable image, BOOL *keepGoing)) {
+    NSMutableArray *images = [NSMutableArray array];
+    dyld_enumerateImages(^(const char * _Nonnull name, intptr_t slide, const struct mach_header * _Nonnull mh, BOOL * _Nonnull keepGoing) {
+        _EXSwiftLoadedImage *image = [[_EXSwiftLoadedImage alloc] init];
+        image.name = @(name);
+        image.loadAddress = (uintptr_t)mh;
+        
+        [images addObject:image];
+    });
+    
+    [images sortUsingComparator:^NSComparisonResult(_EXSwiftLoadedImage *obj1, _EXSwiftLoadedImage *obj2) {
+        return obj1.loadAddress > obj2.loadAddress;
+    }];
+    
+//    [images enumerateObjectsUsingBlock:^(_EXSwiftLoadedImage *obj1, NSUInteger idx, BOOL * _Nonnull stop) {
+//        printf("%lX: %s\n", obj1.loadAddress, obj1.name.UTF8String);
+//    }];
+    
+    const char *classNameRaw = class_getName(c);
+    
+    const char *classImageNameRaw = class_getImageName(c);
+    if (classImageNameRaw == NULL) {
+        printf("Class %s is not associated with a class; perhaps it's dynamically allocated?\n", class_getName(c));
+        return NSNotFound;
+    }
+    
+//    printf("Class %s is in image %s\n", classNameRaw, classImageNameRaw);
+    
+    NSString *classImageName = @(classImageNameRaw);
+    NSInteger index = [images indexOfObjectPassingTest:^BOOL(_EXSwiftLoadedImage *obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        return [obj.name isEqualTo:classImageName];
+    }];
+    
+    if (index == NSNotFound) {
+        printf("Class %s cannot be located in the list of loaded images\n", classImageNameRaw);
+        return NSNotFound;
+    }
+    
+    _EXSwiftLoadedImage *classImage = [images objectAtIndex:index];
+    NSRange addressRange = NSMakeRange(classImage.loadAddress, NSUIntegerMax - classImage.loadAddress);
+    
+    NSInteger nextImageIndex = index + 1;
+    if (nextImageIndex < images.count) {
+        _EXSwiftLoadedImage *nextImage = [images objectAtIndex:nextImageIndex];
+        addressRange.length = nextImage.loadAddress - classImage.loadAddress;
+//        printf("Image %s is followed by image %s. Using memory range of %lX ..< %lX\n", classImageNameRaw, nextImage.name.UTF8String, classImage.loadAddress, nextImage.loadAddress);
+    } else {
+//        printf("Image %s is the last image. Assuming full range of memory: %lX ...\n", classImageNameRaw, classImage.loadAddress);
+    }
+    
+    __block unsigned int swizzledCount = 0;
+    __block BOOL keepGoing = YES;
+    
+    class_enumerateClassMethods(c, ^(Method m, BOOL *keepGoingClass) {
+        uintptr_t methodLocation = (uintptr_t)method_getImplementation(m);
+        
+        BOOL inTargetRange = NSLocationInRange(methodLocation, addressRange);
+        
+        if (inTargetRange == NO) {
+//            printf("+[%s %s] @ %lX: not in target range of %lX ..< %lX\n", class_getName(c), sel_getName(method_getName(m)), methodLocation, addressRange.location, addressRange.location + addressRange.length);
+            
+            swizzledCount += 1;
+            
+            // see if we can figure out which image this method is coming from
+            NSInteger index = [images indexOfObjectPassingTest:^BOOL(_EXSwiftLoadedImage *obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                return obj.loadAddress > methodLocation;
+            }];
+            
+            if (index == NSNotFound || index == 0) {
+                iterator(YES, m, NULL, &keepGoing);
+            } else {
+                _EXSwiftLoadedImage *sourceImage = [images objectAtIndex:index - 1];
+                iterator(YES, m, sourceImage.name.UTF8String, &keepGoing);
+            }
+            
+            *keepGoingClass = keepGoing;
+        }
+    });
+    
+    if (keepGoing == NO) { return swizzledCount; }
+    
+    class_enumerateInstanceMethods(c, ^(Method m, BOOL *keepGoingInstance) {
+        uintptr_t methodLocation = (uintptr_t)method_getImplementation(m);
+        
+        BOOL inTargetRange = NSLocationInRange(methodLocation, addressRange);
+        
+        if (inTargetRange == NO) {
+//            printf("-[%s %s] @ %lX: not in target range of %lX ..< %lX\n", class_getName(c), sel_getName(method_getName(m)), methodLocation, addressRange.location, addressRange.location + addressRange.length);
+            swizzledCount += 1;
+            
+            // see if we can figure out which image this method is coming from
+            NSInteger index = [images indexOfObjectPassingTest:^BOOL(_EXSwiftLoadedImage *obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                return obj.loadAddress > methodLocation;
+            }];
+            
+            if (index == NSNotFound || index == 0) {
+                iterator(NO, m, NULL, keepGoingInstance);
+            } else {
+                _EXSwiftLoadedImage *sourceImage = [images objectAtIndex:index - 1];
+                iterator(NO, m, sourceImage.name.UTF8String, keepGoingInstance);
+            }
+        }
+    });
+    
+    return swizzledCount;
 }
