@@ -13,6 +13,7 @@ import Logging
 public class AppSession {
     
     public enum GroupContainer {
+        case none
         case `default`
         case explicit(String)
     }
@@ -20,7 +21,7 @@ public class AppSession {
     public typealias LogHandlers = (String, Sandbox) -> [LogHandler]
     
     @discardableResult
-    public static func initialize(groupContainer: GroupContainer? = nil, logHandlers: LogHandlers? = nil) -> AppSession {
+    public static func initialize(groupContainer: GroupContainer = .default, logHandlers: LogHandlers? = nil) -> AppSession {
         if _current == nil {
             _current = AppSession(group: groupContainer, logHandlers: logHandlers)
         }
@@ -38,7 +39,7 @@ public class AppSession {
     
     public var allCrashFiles: Array<URL> { app_session_all_crash_files() }
     
-    private init(group: GroupContainer?, logHandlers: LogHandlers?) {
+    private init(group: GroupContainer, logHandlers: LogHandlers?) {
         // first, read the entitlements
         self.entitlements = ProcessInfo.processInfo.entitlements
         
@@ -46,8 +47,8 @@ public class AppSession {
         let actualGroup: String?
         switch group {
             case .none: actualGroup = nil
-            case .explicit(let g): actualGroup = g
             case .default: actualGroup = entitlements.applicationGroups?.first
+            case .explicit(let g): actualGroup = g
         }
         let sandbox = Sandbox(groupIdentifier: actualGroup)
         
