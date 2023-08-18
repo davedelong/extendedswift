@@ -39,12 +39,14 @@ extension Process {
                 let status = proc.terminationStatus
                 let reason = proc.terminationReason
                 
-                let output = ProcessOutput(exitCode: Int(status),
-                                           reason: reason,
-                                           standardOutput: aggregator.outputData,
-                                           standardError: aggregator.errorData)
-                
-                c.resume(returning: output)
+                aggregator.withStdoutAndStderr { stdout, stderr in
+                    let output = ProcessOutput(exitCode: Int(status),
+                                               reason: reason,
+                                               standardOutput: stdout,
+                                               standardError: stderr)
+                    
+                    c.resume(returning: output)
+                }
             }
             
             do {
@@ -62,15 +64,22 @@ private class ProcessIO {
     let outputPipe = Pipe()
     let errorPipe = Pipe()
     
+    private let queue = DispatchQueue(label: "ProcessIO", qos: .userInitiated)
     private(set) var outputData = Data()
     private(set) var errorData = Data()
     
     init() {
         outputPipe.fileHandleForReading.readabilityHandler = { [weak self] h in
-            self?.outputData.append(h.availableData)
+            self?.queue.async { self?.outputData.append(h.availableData) }
         }
         errorPipe.fileHandleForReading.readabilityHandler = { [weak self] h in
-            self?.errorData.append(h.availableData)
+            self?.queue.async { self?.errorData.append(h.availableData) }
+        }
+    }
+    
+    func withStdoutAndStderr(_ task: @escaping (Data, Data) -> Void) {
+        self.queue.async {
+            task(self.outputData, self.errorData)
         }
     }
     
