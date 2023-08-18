@@ -7,7 +7,29 @@
 
 import Foundation
 
+prefix operator /
+
+infix operator /: AdditionPrecedence
+
+public prefix func / (rhs: String) -> Path {
+    return Path(RelativePath(path: rhs).components)
+}
+
+public prefix func / (rhs: RelativePath) -> Path {
+    return Path(rhs.components)
+}
+
 public struct Path: PathProtocol {
+    
+    public static func / (lhs: Self, rhs: String) -> Path {
+        let components = lhs.components + RelativePath(path: rhs).components
+        return Path(components)
+    }
+    
+    public static func / (lhs: Self, rhs: RelativePath) -> Path {
+        let components = lhs.components + rhs.components
+        return Path(components)
+    }
     
     public static let root = Path([])
     public static let temporaryDirectory = Path(fileSystemPath: NSTemporaryDirectory())
