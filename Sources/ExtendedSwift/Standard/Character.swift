@@ -15,6 +15,14 @@ extension Character {
     
     public var isWhitespaceOrNewline: Bool { isWhitespace || isNewline }
     
+    public var isOctalDigit: Bool { octalDigitValue != nil }
+    
+    public var octalDigitValue: Int? {
+        guard let hexDigitValue else { return nil }
+        guard hexDigitValue >= 0 && hexDigitValue < 8 else { return nil }
+        return hexDigitValue
+    }
+    
     public var isSuperscript: Bool {
         switch self {
             case "\u{00B2}": return true

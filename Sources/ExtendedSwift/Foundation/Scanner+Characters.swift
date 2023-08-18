@@ -99,6 +99,21 @@ extension Scanner where Element == Character {
     }
     
     @discardableResult
+    public mutating func scanOctInt() throws -> Int {
+        let start = location
+        do {
+            try scanElement("0" as Character)
+            try scanElement(in: "oO")
+            let slice = try scan(while: \.isOctalDigit)
+            if slice.isNotEmpty, let i = Int(Substring(slice), radix: 8) { return i }
+            throw ScannerError.invalidSequence(slice)
+        } catch {
+            location = start
+            throw error
+        }
+    }
+    
+    @discardableResult
     public mutating func scanInt() throws -> Int {
         let start = location
         do {
