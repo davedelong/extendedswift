@@ -49,6 +49,18 @@ void _JSONX_Write(_JSONSerializationContext *ctx, uint8_t byte) {
     }
 }
 
+void _JSONX_WriteString(_JSONSerializationContext *ctx, const char *str, BOOL quoted) {
+    if (quoted) { _JSONX_Write(ctx, '"'); }
+    
+    size_t len = strlen(str);
+    for (size_t i = 0; i < len; i++) {
+        if (quoted && str[i] == '"') { _JSONX_Write(ctx, '\\'); }
+        _JSONX_Write(ctx, str[i]);
+    }
+    
+    if (quoted) { _JSONX_Write(ctx, '"'); }
+}
+
 void _JSONX_Push(_JSONSerializationContext *ctx, bool isObject) {
     if (ctx->containerCount == ctx->containerSize) {
         // need to alloc/realloc the containers buffer
@@ -115,42 +127,26 @@ void _JSONX_NextField(_JSONSerializationContext *ctx) {
     last->written += 1;
 }
 
-void _JSONX_Null(void * _Nullable context) {
+void _JSONX_VisitNull(void * _Nullable context) {
     _JSONSerializationContext *ctx = (_JSONSerializationContext *)context;
     _JSONX_NextField(ctx);
-    _JSONX_Write(ctx, 'n');
-    _JSONX_Write(ctx, 'u');
-    _JSONX_Write(ctx, 'l');
-    _JSONX_Write(ctx, 'l');
+    _JSONX_WriteString(ctx, "null", false);
 }
 
-void _JSONX_Bool(bool boolean, void * _Nullable context) {
+void _JSONX_VisitBool(bool boolean, void * _Nullable context) {
     _JSONSerializationContext *ctx = (_JSONSerializationContext *)context;
     _JSONX_NextField(ctx);
     if (boolean == true) {
-        _JSONX_Write(ctx, 't');
-        _JSONX_Write(ctx, 'r');
-        _JSONX_Write(ctx, 'u');
-        _JSONX_Write(ctx, 'e');
+        _JSONX_WriteString(ctx, "true", false);
     } else {
-        _JSONX_Write(ctx, 'f');
-        _JSONX_Write(ctx, 'a');
-        _JSONX_Write(ctx, 'l');
-        _JSONX_Write(ctx, 's');
-        _JSONX_Write(ctx, 'e');
+        _JSONX_WriteString(ctx, "false", false);
     }
 }
 
-void  _JSONX_String(const char * _Nonnull string, void * _Nullable context) {
+void  _JSONX_VisitString(const char * _Nonnull string, void * _Nullable context) {
     _JSONSerializationContext *ctx = (_JSONSerializationContext *)context;
     _JSONX_NextField(ctx);
-    size_t len = strlen(string);
-    _JSONX_Write(ctx, '"');
-    for (size_t i = 0; i < len; i++) {
-        if (string[i] == '"') { _JSONX_Write(ctx, '\\'); }
-        _JSONX_Write(ctx, string[i]);
-    }
-    _JSONX_Write(ctx, '"');
+    _JSONX_WriteString(ctx, string, true);
 }
 
 void _JSONX_WriteInt(int64_t integer, _JSONSerializationContext *ctx) {
@@ -182,13 +178,13 @@ void _JSONX_WriteInt(int64_t integer, _JSONSerializationContext *ctx) {
     }
 }
 
-void _JSONX_Int(int64_t integer, void * _Nullable context) {
+void _JSONX_VisitInt(int64_t integer, void * _Nullable context) {
     _JSONSerializationContext *ctx = (_JSONSerializationContext *)context;
     _JSONX_NextField(ctx);
     _JSONX_WriteInt(integer, ctx);
 }
 
-void _JSONX_Double(double number, void * _Nullable context) {
+void _JSONX_VisitDouble(double number, void * _Nullable context) {
     _JSONSerializationContext *ctx = (_JSONSerializationContext *)context;
     _JSONX_NextField(ctx);
     int64_t integerPortion = (int64_t)floor(number);
@@ -207,14 +203,14 @@ void _JSONX_Double(double number, void * _Nullable context) {
     if (writeCount == 0) { _JSONX_Write(ctx, '0'); }
 }
 
-void _JSONX_ArrayStart(void * _Nullable context) {
+void _JSONX_VisitArrayStart(void * _Nullable context) {
     _JSONSerializationContext *ctx = (_JSONSerializationContext *)context;
     _JSONX_NextField(ctx);
     _JSONX_Write(ctx, '[');
     _JSONX_Push(ctx, false);
 }
 
-void _JSONX_ArrayEnd(void * _Nullable context) {
+void _JSONX_VisitArrayEnd(void * _Nullable context) {
     _JSONSerializationContext *ctx = (_JSONSerializationContext *)context;
     
     int64_t fieldsInContainer = _JSONX_Last(ctx)->written;
@@ -223,14 +219,14 @@ void _JSONX_ArrayEnd(void * _Nullable context) {
     _JSONX_Write(ctx, ']');
 }
 
-void _JSONX_ObjectStart(void * _Nullable context) {
+void _JSONX_VisitObjectStart(void * _Nullable context) {
     _JSONSerializationContext *ctx = (_JSONSerializationContext *)context;
     _JSONX_NextField(ctx);
     _JSONX_Write(ctx, '{');
     _JSONX_Push(ctx, true);
 }
 
-void _JSONX_Key(const char * _Nonnull key, void * _Nullable context) {
+void _JSONX_VisitKey(const char * _Nonnull key, void * _Nullable context) {
     _JSONSerializationContext *ctx = (_JSONSerializationContext *)context;
     // don't use _JSONX_NextField here because the Key isn't the field; the Value is the field
     if (_JSONX_WrittenCount(ctx) > 0) {
@@ -238,18 +234,12 @@ void _JSONX_Key(const char * _Nonnull key, void * _Nullable context) {
     }
     
     _JSONX_Indent(ctx);
-    size_t len = strlen(key);
-    _JSONX_Write(ctx, '"');
-    for (size_t i = 0; i < len; i++) {
-        if (key[i] == '"') { _JSONX_Write(ctx, '\\'); }
-        _JSONX_Write(ctx, key[i]);
-    }
-    _JSONX_Write(ctx, '"');
+    _JSONX_WriteString(ctx, key, true);
     _JSONX_Write(ctx, ':');
     if (ctx->opts.prettyPrint) { _JSONX_Write(ctx, ' '); }
 }
 
-void _JSONX_ObjectEnd(void * _Nullable context) {
+void _JSONX_VisitObjectEnd(void * _Nullable context) {
     _JSONSerializationContext *ctx = (_JSONSerializationContext *)context;
     
     int64_t fieldsInContainer = _JSONX_Last(ctx)->written;
@@ -260,16 +250,16 @@ void _JSONX_ObjectEnd(void * _Nullable context) {
 
 void *_JSONSerialize(JSON *json, _JSONSerializationContext *ctx) {
     JSONVisitor v;
-    v.visitNull = _JSONX_Null;
-    v.visitBool = _JSONX_Bool;
-    v.visitString = _JSONX_String;
-    v.visitInt = _JSONX_Int;
-    v.visitDouble = _JSONX_Double;
-    v.enterArray = _JSONX_ArrayStart;
-    v.leaveArray = _JSONX_ArrayEnd;
-    v.enterObject = _JSONX_ObjectStart;
-    v.visitKey = _JSONX_Key;
-    v.leaveObject = _JSONX_ObjectEnd;
+    v.visitNull = _JSONX_VisitNull;
+    v.visitBool = _JSONX_VisitBool;
+    v.visitString = _JSONX_VisitString;
+    v.visitInt = _JSONX_VisitInt;
+    v.visitDouble = _JSONX_VisitDouble;
+    v.enterArray = _JSONX_VisitArrayStart;
+    v.leaveArray = _JSONX_VisitArrayEnd;
+    v.enterObject = _JSONX_VisitObjectStart;
+    v.visitKey = _JSONX_VisitKey;
+    v.leaveObject = _JSONX_VisitObjectEnd;
     
     JSONVisit(json, v, ctx);
     
