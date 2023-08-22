@@ -13,5 +13,13 @@ extension View {
         disabled(!isEnabled)
     }
     
+    public func frame(_ rect: CGRect) -> some View {
+        self.frame(width: rect.size.width, height: rect.height)
+            .position(rect.center)
+    }
+    
+    public func frame(size: CGSize) -> some View {
+        self.frame(width: size.width, height: size.height)
+    }
 }
 
