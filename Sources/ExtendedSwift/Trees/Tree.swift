@@ -7,8 +7,11 @@
 
 import Foundation
 
-public protocol Tree {
-    var children: Array<Self> { get }
+public protocol Tree<Value> {
+    associatedtype Value = Self
+    
+    var value: Value { get }
+    var children: Array<any Tree<Value>> { get }
     var isLeaf: Bool { get }
 }
 
@@ -18,24 +21,30 @@ extension Tree {
     
 }
 
-public protocol BinaryTree: Tree {
+extension Tree where Value == Self {
     
-    var left: Self? { get }
-    var right: Self? { get }
+    public var value: Value { self }
     
 }
 
-public extension BinaryTree {
+public protocol BinaryTree<Value>: Tree {
     
-    var isLeaf: Bool { return left == nil && right == nil }
+    var left: (any BinaryTree<Value>)? { get }
+    var right: (any BinaryTree<Value>)? { get }
     
-    var children: Array<Self> {
+}
+
+extension BinaryTree {
+    
+    public var isLeaf: Bool { return left == nil && right == nil }
+    
+    public var children: Array<any BinaryTree<Value>> {
         if let l = left, let r = right { return [l, r] }
         if let l = left { return [l] }
         if let r = right { return [r] }
         return []
     }
     
-    var inOrder: Array<Self> { flatten(in: InOrderTraversal()) }
+    public var inOrderValues: Array<Value> { flattenValues(in: InOrderTraversal()) }
     
 }

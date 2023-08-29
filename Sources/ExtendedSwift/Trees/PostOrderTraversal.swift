@@ -7,8 +7,7 @@
 
 import Foundation
 
-public struct PostOrderTraversal<T: Tree>: TreeTraversing {
-    public typealias Tree = T
+public struct PostOrderTraversal: TreeTraversing {
     
     public enum Disposition: TreeTraversingDisposition {
         public static var keepGoing: Disposition { return .continue }
@@ -21,7 +20,7 @@ public struct PostOrderTraversal<T: Tree>: TreeTraversing {
     
     public init() { }
     
-    public func traverse(tree: Tree, level: Int, visitor: (Tree, Int) throws -> Disposition) rethrows -> Disposition {
+    public func traverse<Value>(tree: any Tree<Value>, level: Int, visitor: (any Tree<Value>, Int) throws -> Disposition) rethrows -> Disposition {
         for child in tree.children {
             let nodeD = try traverse(tree: child, level: level+1, visitor: visitor)
             if nodeD.halts { return nodeD }

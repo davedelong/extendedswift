@@ -18,7 +18,7 @@
     
     const char *t1 = "v@:";
     __block int count = 0;
-    typeEncoding_enumerateTypes(t1, ^(const char * _Nonnull type, BOOL * _Nonnull keepGoing) {
+    typeEncoding_enumerateTypes(t1, ^(const char * _Nonnull type, size_t size, BOOL * _Nonnull keepGoing) {
         count += 1;
         if (count == 1) {
             XCTAssertTrue(strcmp(type, "v") == 0);
@@ -38,13 +38,13 @@
 - (void)testInvalidTypeIteration {
     const char *t1 = "hello, world!";
     __block int count = 0;
-    typeEncoding_enumerateTypes(t1, ^(const char * _Nonnull type, BOOL * _Nonnull keepGoing) {
+    typeEncoding_enumerateTypes(t1, ^(const char * _Nonnull type, size_t size, BOOL * _Nonnull keepGoing) {
         count += 1;
     });
     XCTAssertEqual(count, 0);
     
     count = 0;
-    typeEncoding_enumerateTypes("void", ^(const char * _Nonnull type, BOOL * _Nonnull keepGoing) {
+    typeEncoding_enumerateTypes("void", ^(const char * _Nonnull type, size_t size, BOOL * _Nonnull keepGoing) {
         count += 1;
     });
     XCTAssertEqual(count, 3);
@@ -55,7 +55,7 @@
         const char *name = ivar_getName(i);
         
         printf("%s - %s\n", name, typeEncoding);
-        typeEncoding_enumerateTypes(typeEncoding, ^(const char * _Nonnull type, BOOL * _Nonnull keepGoing) {
+        typeEncoding_enumerateTypes(typeEncoding, ^(const char * _Nonnull type, size_t size, BOOL * _Nonnull keepGoing) {
             printf("  %s\n", type);
         });
     });
@@ -64,7 +64,7 @@
         const char *name = sel_getName(method_getName(m));
         
         printf("%s - %s\n", name, typeEncoding);
-        typeEncoding_enumerateTypes(typeEncoding, ^(const char * _Nonnull type, BOOL * _Nonnull keepGoing) {
+        typeEncoding_enumerateTypes(typeEncoding, ^(const char * _Nonnull type, size_t size, BOOL * _Nonnull keepGoing) {
             printf("  %s\n", type);
         });
     });
