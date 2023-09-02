@@ -106,6 +106,26 @@ _Nullable IMP class_getClassMethodIMP(Class c, SEL s) {
     return method_getImplementation(m);
 }
 
+void object_enumerateIvars(id obj, void(^iterator)(Ivar i, BOOL *keepGoing)) {
+    if (obj == NULL) { return; }
+    if (object_isClass(obj)) { return; }
+    
+    Class currentClass = object_getClass(obj);
+    
+    BOOL keepGoing = YES;
+    while (currentClass != NULL && keepGoing == YES) {
+        unsigned int ivarCount = 0;
+        Ivar *list = class_copyIvarList(currentClass, &ivarCount);
+        if (list != NULL) {
+            for (unsigned int i = 0; i < ivarCount && keepGoing; i++) {
+                iterator(list[i], &keepGoing);
+            }
+            free(list);
+        }
+        currentClass = class_getSuperclass(currentClass);
+    }
+}
+
 void typeEncoding_enumerateTypes(const char *encoding, void(^iterator)(const char *, size_t, BOOL *)) {
     @try {
         // https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtTypeEncodings.html#//apple_ref/doc/uid/TP40008048-CH100

@@ -28,6 +28,8 @@ BOOL method_matchesTypeEncoding(Method m, const char *encoding);
 _Nullable IMP class_getInstanceMethodIMP(Class c, SEL s);
 _Nullable IMP class_getClassMethodIMP(Class c, SEL s);
 
+void object_enumerateIvars(id obj, void(^iterator)(Ivar i, BOOL *keepGoing));
+
 void typeEncoding_enumerateTypes(const char *encoding, void(^iterator)(const char *type, size_t size, BOOL *keepGoing));
 
 /// Enumerate the potentially-swizzled methods of a class
