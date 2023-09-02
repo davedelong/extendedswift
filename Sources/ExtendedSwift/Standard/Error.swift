@@ -24,3 +24,21 @@ public struct UnimplementedError: Error, CustomStringConvertible {
     }
     
 }
+
+public struct Unreachable: Error, CustomStringConvertible {
+    
+    public let function: StaticString
+    public let fileID: StaticString
+    public let line: UInt
+    
+    public init(function: StaticString = #function, file: StaticString = #fileID, line: UInt = #line) {
+        self.function = function
+        self.fileID = file
+        self.line = line
+    }
+    
+    public var description: String {
+        "The function \(function) in \(fileID):\(line) should be unreachable. This is a developer error."
+    }
+    
+}
