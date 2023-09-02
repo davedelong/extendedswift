@@ -17,6 +17,27 @@ extension Dictionary {
         return f
     }
     
+    public func compactMapKeys<NewKey: Hashable>(_ mapper: (Key) -> NewKey?) -> Dictionary<NewKey, Value> {
+        var f = Dictionary<NewKey, Value>()
+        for (key, value) in self {
+            if let newKey = mapper(key) {
+                f[newKey] = value
+            }
+        }
+        return f
+    }
+    
+    public func flatMapKeys<Keys: Sequence>(_ mapper: (Key) -> Keys) -> Dictionary<Keys.Element, Value> where Keys.Element: Hashable {
+        var f = Dictionary<Keys.Element, Value>()
+        for (key, value) in self {
+            let newKeys = mapper(key)
+            for newKey in newKeys {
+                f[newKey] = value
+            }
+        }
+        return f
+    }
+    
     @discardableResult
     public mutating func removeValues<C: Collection>(forKeys keysToRemove: C) -> Dictionary<Key, Value> where C.Element == Key {
         var final = Dictionary<Key, Value>()
