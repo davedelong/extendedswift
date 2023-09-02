@@ -13,4 +13,9 @@ extension Optional {
         return self !! "Cannot unwrap nil \(Self.self)"
     }
     
+    public func apply(_ closure: (Wrapped) throws -> Void) rethrows {
+        if let value = self {
+            try closure(value)
+        }
+    }
 }
