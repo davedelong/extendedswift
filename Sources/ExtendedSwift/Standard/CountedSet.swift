@@ -9,7 +9,12 @@ import Foundation
 
 extension Collection where Element: Hashable {
     
+    @available(*, deprecated, renamed: "elementCounts()")
     public func frequencies() -> CountedSet<Element> {
+        return CountedSet(self)
+    }
+    
+    public func elementCounts() -> CountedSet<Element> {
         return CountedSet(self)
     }
     
