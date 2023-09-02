@@ -20,12 +20,13 @@ extension RangeReplaceableCollection {
     }
     
     public mutating func mutatingForEach(_ iterator: (inout Element) throws -> Void) rethrows {
-        var copy = Self.init()
-        for var item in self {
+        for index in self.indices {
+            var item = self[index]
             try iterator(&item)
-            copy.append(item)
+            
+            let after = self.index(after: index)
+            self.replaceSubrange(index ..< after, with: [item])
         }
-        self = copy
     }
     
     public mutating func mapInPlace(_ mapper: (Element) throws -> Element) rethrows {
