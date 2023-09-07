@@ -35,42 +35,6 @@ extension CGRect {
         }
     }
     
-    public var x: CGFloat {
-        get {
-            return self.origin.x
-        }
-        set {
-            self.origin = CGPoint(x: newValue, y: self.y)
-        }
-    }
-    
-    public var y: CGFloat {
-        get {
-            return self.origin.y
-        }
-        set {
-            self.origin = CGPoint(x: self.x, y: newValue)
-        }
-    }
-    
-    public var width: CGFloat {
-        get {
-            return self.size.width
-        }
-        set {
-            self.size = CGSize(width: newValue, height: self.height)
-        }
-    }
-    
-    public var height: CGFloat {
-        get {
-            return self.size.height
-        }
-        set {
-            self.size = CGSize(width: self.width, height: newValue)
-        }
-    }
-    
     public init(center: CGPoint, size: CGSize) {
         let origin = CGPoint(x: center.x - size.width / 2,
                              y: center.y - size.height / 2)
