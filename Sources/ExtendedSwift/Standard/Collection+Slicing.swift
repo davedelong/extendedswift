@@ -9,6 +9,10 @@ import Foundation
 
 extension Collection {
     
+    public var entireSlice: SubSequence {
+        return self[...]
+    }
+    
     /// Slice a collection into multiple sub-collections
     ///
     /// Example: given `[0, 1, 2, 3, 4, 5]` and the indices `[1, 3]`, this returns

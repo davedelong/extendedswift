@@ -12,6 +12,15 @@ import SwiftUI
 import AppKit
 #endif
 
+/*
+ Jake’s SwiftUI Gotchas
+ - Always define an SF Symbol with the SwiftUI.Image initializer, do not use a UIImage or NSImage with symbol configurations as those will not be honored.
+ - Always use font (size and weight) and imageScale modifiers when attempting to adjust the size of the symbol in relation to other text
+ - Never use the resizable() modifier on SF Symbols. Basically ever.
+ - And also do not use .scaleToFit() / .aspectRatio() on them either.
+ Bonus
+ - If using an icon-only button, still declare the title of the button’s label and use .labelStyle(.iconOnly) for some great accessibility wins
+ */
 public struct Symbol {
     
     public enum SymbolSource {

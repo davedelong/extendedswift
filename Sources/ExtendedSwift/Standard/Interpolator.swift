@@ -8,8 +8,8 @@
 import Foundation
 
 public protocol Interpolator {
-    func interpolate(_ number: Double) -> Double
-    func reverseInterpolate(_ number: Double) -> Double
+    func interpolate(_ number: Double) -> Normalized
+    func reverseInterpolate(_ number: Normalized) -> Double
 }
 
 extension Interpolator where Self == LinearInterpolator {
@@ -38,14 +38,12 @@ public struct LinearInterpolator: Interpolator {
         self.span = range.upperBound - range.lowerBound
     }
     
-    public func interpolate(_ number: Double) -> Double {
-        let clamped = number.clamped(to: range)
-        return (clamped - range.lowerBound) / span
+    public func interpolate(_ number: Double) -> Normalized {
+        return Normalized(number, in: range)
     }
     
-    public func reverseInterpolate(_ number: Double) -> Double {
-        let clamped = number.clamped(to: 0 ... 1)
-        return (clamped * span) + range.lowerBound
+    public func reverseInterpolate(_ number: Normalized) -> Double {
+        return (number.rawValue * span) + range.lowerBound
     }
     
 }
@@ -62,23 +60,25 @@ public struct LogarithmicInterpolator: Interpolator {
         self.scale = scale
     }
     
-    public func interpolate(_ number: Double) -> Double {
+    public func interpolate(_ number: Double) -> Normalized {
         let clamped = number.clamped(to: range)
         let logMin = log1p(range.lowerBound)
         let logRange = log1p(range.upperBound) - log1p(range.lowerBound)
         
         let interpolated = (log1p(clamped) - logMin) / logRange
-        if scale <= 0 || scale == 1 { return interpolated }
-        return pow(interpolated, 1.0 / scale)
+        if scale <= 0 || scale == 1 {
+            return Normalized(rawValue: interpolated)
+        } else {
+            return Normalized(rawValue: pow(interpolated, 1.0 / scale))
+        }
     }
     
-    public func reverseInterpolate(_ number: Double) -> Double {
-        let clamped = number.clamped(to: 0 ... 1)
+    public func reverseInterpolate(_ number: Normalized) -> Double {
         let logMin = log1p(range.lowerBound)
         let logRange = log1p(range.upperBound) - log1p(range.lowerBound)
         
-        var input = clamped
-        if scale > 0 && scale != 1 { input = pow(clamped, scale) }
+        var input = number.rawValue
+        if scale > 0 && scale != 1 { input = pow(number.rawValue, scale) }
         return expm1((input * logRange) + logMin)
     }
     
