@@ -13,4 +13,7 @@ extension Clock {
         return MutableClock(clock: self)
     }
     
+    public func manualClock() -> ManualClock<Self> {
+        return ManualClock(base: self)
+    }
 }

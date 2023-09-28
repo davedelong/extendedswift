@@ -7,7 +7,7 @@
 
 import Foundation
 
-public class MutableClock<C: Clock>: Clock, @unchecked Sendable {
+public final class MutableClock<C: Clock>: Clock, @unchecked Sendable {
     public typealias Instant = C.Instant
     public typealias Duration = C.Duration
     
@@ -23,21 +23,22 @@ public class MutableClock<C: Clock>: Clock, @unchecked Sendable {
     }
     
     public var now: Instant {
-        let innerNow = inner.now
-        return innerNow.advanced(by: offsetFromInner)
+        get {
+            let innerNow = inner.now
+            return innerNow.advanced(by: offsetFromInner)
+        }
+        set {
+            let innerNow = inner.now
+            self.offsetFromInner = innerNow.duration(to: newValue)
+        }
     }
     
     public var minimumResolution: C.Duration {
         inner.minimumResolution
     }
     
-    public func resetToNow() {
+    public func reset() {
         self.offsetFromInner = .zero
-    }
-    
-    public func setNow(_ newNow: Instant) {
-        let innerNow = inner.now
-        self.offsetFromInner = innerNow.duration(to: newNow)
     }
     
     public func sleep(until deadline: Instant, tolerance: Duration?) async throws {

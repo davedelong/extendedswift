@@ -11,6 +11,8 @@ extension Clock where Self == UserClock {
     
     public static var user: UserClock { UserClock() }
     
+    public static var wall: UserClock { UserClock() }
+    
 }
 
 public struct UserClock: Clock {
