@@ -11,7 +11,6 @@
 #import "SignalSafe.h"
 #import "GregorianDate.h"
 #import "GregorianDate+Format.h"
-#import "MachO.h"
 #import "NSUUID+Time.h"
 #import "ExtendedObjC.h"
 
@@ -216,6 +215,24 @@ void app_session_exception_handler(NSException *exception) {
 
 // MARK: - Images
 
+#define ReadInt32(_x, _s) ((_s) ? ntohl(_x): (_x))
+const struct uuid_command*_findUUIDCommand(const struct mach_header *mh) {
+    BOOL needsSwap = (mh->magic == MH_CIGAM || mh->magic == MH_CIGAM_64);
+    BOOL is64Bit = (mh->magic == MH_MAGIC_64 || mh->magic == MH_CIGAM_64);
+    
+    uint32_t ncmds = ReadInt32(mh->ncmds, needsSwap);
+    
+    struct load_command *nextCommand = (uintptr_t)mh + (is64Bit ? sizeof(struct mach_header_64) : sizeof(struct mach_header));
+    for (uint32_t i = 0; i < ncmds; i++) {
+        uint32_t cmd = ReadInt32(nextCommand->cmd, needsSwap);
+        if (cmd == LC_UUID) { return (const struct uuid_command *)nextCommand; }
+        uint32_t cmdsize = ReadInt32(nextCommand->cmdsize, needsSwap);
+        nextCommand = nextCommand + cmdsize;
+    }
+    
+    return NULL;
+}
+
 void _app_session_track_loaded_image(const struct mach_header* mh, intptr_t vmaddr_slide) {
     Dl_info info;
     dladdr(mh, &info);
@@ -223,9 +240,8 @@ void _app_session_track_loaded_image(const struct mach_header* mh, intptr_t vmad
     JSON *imageObject = JSONCreateObject();
     JSONObjectAppend(imageObject, "path", JSONCreateString(info.dli_fname));
     
-    const struct segment_command *uuidSegment = mach_findSegmentByCommand(mh, LC_UUID);
-    if (uuidSegment != NULL) {
-        const struct uuid_command *uuidCommand = (const struct uuid_command *)uuidSegment;
+    const struct uuid_command *uuidCommand = _findUUIDCommand(mh);
+    if (uuidCommand != NULL) {
         JSONObjectAppend(imageObject, "uuid", JSONCreateUUID((unsigned char *)uuidCommand->uuid));
     }
     
