@@ -53,6 +53,17 @@ extension String {
         self = s
     }
     
+    public init?(cString: UnsafePointer<CChar>, maxLength: Int) {
+        var characters = Array<CChar>()
+        let buffer = UnsafeBufferPointer(start: cString, count: maxLength)
+        for character in buffer {
+            if character == 0 { break }
+            characters.append(character)
+        }
+        characters.append(0)
+        self.init(utf8String: characters)
+    }
+    
 }
 
 extension String: RawRepresentable {
@@ -138,14 +149,6 @@ extension String {
             }
         }
         return result == 0
-    }
-    
-}
-
-extension String.StringInterpolation {
-    
-    public mutating func appendInterpolation<Value>(describing value: Value?) {
-        self.appendInterpolation(String(describing: value))
     }
     
 }

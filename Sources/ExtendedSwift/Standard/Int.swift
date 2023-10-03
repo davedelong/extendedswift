@@ -34,4 +34,9 @@ extension FixedWidthInteger {
         return b
     }
     
+    public func swapping(_ shouldSwap: Bool) -> Self {
+        guard shouldSwap else { return self }
+        return self.byteSwapped
+    }
+    
 }

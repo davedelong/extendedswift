@@ -19,3 +19,21 @@ extension Optional {
         }
     }
 }
+
+extension Optional: Sequence where Wrapped: Sequence {
+    public typealias Element = Wrapped.Element
+    public typealias Iterator = OptionalIterator<Wrapped>
+    
+    public func makeIterator() -> OptionalIterator<Wrapped> {
+        return OptionalIterator(inner: self?.makeIterator())
+    }
+    
+}
+
+public struct OptionalIterator<Wrapped: Sequence>: IteratorProtocol {
+    var inner: Wrapped.Iterator?
+    
+    public mutating func next() -> Wrapped.Element? {
+        return inner?.next()
+    }
+}
