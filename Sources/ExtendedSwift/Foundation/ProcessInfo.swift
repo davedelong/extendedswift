@@ -32,13 +32,14 @@ extension ProcessInfo {
     
     public static func entitlementsDictionary(for path: Path) -> Dictionary<String, Any>? {
         autoreleasepool {
-            guard let data = try? Data(contentsOf: path) else { return nil }
-            return EntitlementsPlistForBinary(data)
+            let fat = FAT(contentsOf: path)
+            return fat?.headers.firstMap(\.entitlements)
         }
     }
     
 }
 
 private let _entitlementsDict: Dictionary<String, Any> = {
-    EntitlementsPlistForCurrentProcess() ?? [:]
+    let exe = Dyld.executable
+    return exe.header.entitlements ?? [:]
 }()
