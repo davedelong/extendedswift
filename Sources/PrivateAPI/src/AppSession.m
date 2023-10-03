@@ -11,6 +11,7 @@
 #import "SignalSafe.h"
 #import "GregorianDate.h"
 #import "GregorianDate+Format.h"
+#import "MachO.h"
 #import "NSUUID+Time.h"
 #import "ExtendedObjC.h"
 

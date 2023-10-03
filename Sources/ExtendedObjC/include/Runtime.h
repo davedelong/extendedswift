@@ -44,6 +44,6 @@ void typeEncoding_enumerateTypes(const char *encoding, void(^iterator)(const cha
 ///     - Parameter image: the path of the image where the method's implementation exists. This value may be `NULL` if the source image cannot be determined, such as with dynamically-created method implementations
 ///     - Parameter keepGoing: a Bool pointer that can be used to halt enumeration
 /// - Returns: the count of potentially-swizzled methods that were located before enumeration was halted, or `NSNotFound` if an internal error occurred.
-unsigned int class_enumerateSwizzledMethods(Class c, void(^iterator)(BOOL isClassMethod, Method m, const char * _Nullable image, BOOL *keepGoing));
+//unsigned int class_enumerateSwizzledMethods(Class c, void(^iterator)(BOOL isClassMethod, Method m, const char * _Nullable image, BOOL *keepGoing));
 
 NS_ASSUME_NONNULL_END

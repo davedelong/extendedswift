@@ -7,7 +7,6 @@
 //
 
 #import "Runtime.h"
-#import "MachO.h"
 
 void objc_enumerateImages(void(^iterator)(const char *imageName, BOOL *keepGoing)) {
     unsigned int count = 0;
@@ -194,7 +193,7 @@ void typeEncoding_enumerateTypes(const char *encoding, void(^iterator)(const cha
 @implementation _EXSwiftLoadedImage
 
 @end
-
+/*
 unsigned int class_enumerateSwizzledMethods(Class c, void(^iterator)(BOOL isClassMethod, Method m, const char * _Nullable image, BOOL *keepGoing)) {
     NSMutableArray *images = [NSMutableArray array];
     dyld_enumerateImages(^(const char * _Nonnull name, intptr_t slide, const struct mach_header * _Nonnull mh, BOOL * _Nonnull keepGoing) {
@@ -301,3 +300,4 @@ unsigned int class_enumerateSwizzledMethods(Class c, void(^iterator)(BOOL isClas
     
     return swizzledCount;
 }
+*/
