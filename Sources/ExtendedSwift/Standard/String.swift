@@ -47,6 +47,12 @@ extension String {
         return String(trimmingPrefix(where: { $0 == "0" }))
     }
     
+    public init?(base64String: String) {
+        guard let data = Data(base64Encoded: base64String) else { return nil }
+        guard let s = String(data: data, encoding: .utf8) else { return nil }
+        self = s
+    }
+    
 }
 
 extension String: RawRepresentable {

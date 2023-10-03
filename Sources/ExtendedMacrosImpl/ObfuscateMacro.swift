@@ -31,7 +31,7 @@ struct ObfuscateMacro: ExpressionMacro {
         
         let encodedString = Data(string.utf8).base64EncodedString()
         
-        return "String(data: Data(base64Encoded: \"\(raw: encodedString)\")!, encoding: .utf8)!"
+        return "String(base64String: \"\(raw: encodedString)\")!"
     }
     
 }
