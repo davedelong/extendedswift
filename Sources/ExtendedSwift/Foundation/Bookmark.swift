@@ -9,21 +9,25 @@ import Foundation
 
 public struct Bookmark: Codable {
     
-    public enum SecureAccessError: Error {
+    public enum BookmarkError: Error {
         case staleBookmark
         case cannotResolve(Error)
         case cannotSecurelyAccess
     }
     
-    public final class SecureAccessToken: Sendable {
-        private let url: URL
+    public final class AccessToken: Sendable {
+        fileprivate let url: URL
+        private let isAccessingSecurityScopedResource: Bool
         
-        fileprivate init(url: URL) {
+        fileprivate init(url: URL, isAccessing: Bool) {
             self.url = url
+            self.isAccessingSecurityScopedResource = isAccessing
         }
         
         deinit {
-            url.stopAccessingSecurityScopedResource()
+            if isAccessingSecurityScopedResource {
+                url.stopAccessingSecurityScopedResource()
+            }
         }
     }
     
@@ -47,8 +51,8 @@ public struct Bookmark: Codable {
         try container.encode(self.data)
     }
     
-    private func _accessSecurely(options: URL.BookmarkResolutionOptions) -> Result<URL, SecureAccessError> {
-        let result: Result<URL, SecureAccessError>
+    private func _access(options: URL.BookmarkResolutionOptions) -> Result<AccessToken, BookmarkError> {
+        let result: Result<AccessToken, BookmarkError>
         do {
             var isStale = false
             let u = try URL(resolvingBookmarkData: data,
@@ -58,10 +62,16 @@ public struct Bookmark: Codable {
             
             if isStale {
                 result = .failure(.staleBookmark)
-            } else if u.startAccessingSecurityScopedResource() {
-                result = .success(u)
             } else {
-                result = .failure(.cannotSecurelyAccess)
+                if options.contains(.withSecurityScope) {
+                    if u.startAccessingSecurityScopedResource() {
+                        result = .success(AccessToken(url: u, isAccessing: true))
+                    } else {
+                        result = .failure(.cannotSecurelyAccess)
+                    }
+                } else {
+                    result = .success(AccessToken(url: u, isAccessing: false))
+                }
             }
         } catch {
             result = .failure(.cannotResolve(error))
@@ -69,20 +79,20 @@ public struct Bookmark: Codable {
         return result
     }
     
-    public func accessSecurely(options: URL.BookmarkResolutionOptions = [.withSecurityScope]) throws -> SecureAccessToken {
-        let u = try self._accessSecurely(options: options).get()
-        return SecureAccessToken(url: u)
+    public func accessResource(options: URL.BookmarkResolutionOptions = [.withSecurityScope]) throws -> AccessToken {
+        return try _access(options: options).get()
     }
     
     @discardableResult
     public func withResolvedURL<T>(options: URL.BookmarkResolutionOptions = [.withSecurityScope],
-                                  perform work: (Result<URL, SecureAccessError>) async throws -> T) async rethrows -> T {
+                                   perform work: (Result<URL, BookmarkError>) async throws -> T) async rethrows -> T {
         
-        let result = self._accessSecurely(options: options)
+        let result = _access(options: options)
         switch result {
-            case .success(let url):
-                defer { url.stopAccessingSecurityScopedResource() }
-                return try await work(.success(url))
+            case .success(let token):
+                return try await withExtendedLifetime(token) {
+                    return try await work(.success($0.url))
+                }
             case .failure(let error):
                 return try await work(.failure(error))
         }
@@ -90,13 +100,14 @@ public struct Bookmark: Codable {
     
     @discardableResult
     public func withResolvedURL<T>(options: URL.BookmarkResolutionOptions = [.withSecurityScope], 
-                                   perform work: (Result<URL, SecureAccessError>) throws -> T) rethrows -> T {
+                                   perform work: (Result<URL, BookmarkError>) throws -> T) rethrows -> T {
         
-        let result = self._accessSecurely(options: options)
+        let result = _access(options: options)
         switch result {
-            case .success(let url):
-                defer { url.stopAccessingSecurityScopedResource() }
-                return try work(.success(url))
+            case .success(let token):
+                return try withExtendedLifetime(token) {
+                    return try work(.success($0.url))
+                }
             case .failure(let error):
                 return try work(.failure(error))
         }

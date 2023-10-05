@@ -7,6 +7,18 @@
 
 import Foundation
 
+@discardableResult
+public func withExtendedLifetime<X, R>(_ x: X, _ body: () async throws -> R) async rethrows -> R {
+    defer { _fixLifetime(x) }
+    return try await body()
+}
+
+@discardableResult
+public func withExtendedLifetime<X, R>(_ x: X, _ body: (X) async throws -> R) async rethrows -> R {
+    defer { _fixLifetime(x) }
+    return try await body(x)
+}
+
 extension AsyncSequence {
     
     public func eraseToAnySequence() -> AnyAsyncSequence<Element> {
