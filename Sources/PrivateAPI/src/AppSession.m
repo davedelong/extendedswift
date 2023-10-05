@@ -47,7 +47,7 @@ typedef struct AppSession {
     NSURL *logFolder;
     time_t launchTime;
     
-    char *crashFilePath;
+    char *crashFilePathTemplate;
     JSON *crashLogRoot;
     JSON *metadata;
     JSON *images;
@@ -81,7 +81,7 @@ NSUUID *_Nonnull app_session_initialize(NSURL * _Nonnull logFolder) {
         
         // Locate the crash file
         NSURL *crashFileURL = [session.logFolder URLByAppendingPathComponent:@"crash-yyyy-MM-dd-HH-mm-ss.json"];
-        session.crashFilePath = strdup(crashFileURL.fileSystemRepresentation);
+        session.crashFilePathTemplate = strdup(crashFileURL.fileSystemRepresentation);
         
         // track initial metadata
         session.launchTime = time(NULL);
@@ -387,10 +387,10 @@ void _app_session_provide_issue(JSONCustom *custom) {
 }
 
 void app_session_write_log() {
-    if (session.crashFilePath == NULL) { return; }
+    if (session.crashFilePathTemplate == NULL) { return; }
     
-    // modify current.crashFilePath to format the current timestamp
-    char *path = session.crashFilePath;
+    // modify current.crashFilePathTemplate to format the current timestamp
+    char *path = session.crashFilePathTemplate;
     size_t length = strlen(path);
     size_t nameOffset = length - 5 - 19;
     char *timeStart = path + nameOffset;

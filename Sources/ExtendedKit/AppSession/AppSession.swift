@@ -43,7 +43,7 @@ public class AppSession {
         // first, read the entitlements
         self.entitlements = ProcessInfo.processInfo.entitlements
         
-        // with the entilements, we can discern the app's group, if there is one
+        // with the entitlements, we can discern the app's group, if there is one
         let actualGroup: String?
         switch group {
             case .none: actualGroup = nil
