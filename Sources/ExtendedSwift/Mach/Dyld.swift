@@ -36,11 +36,46 @@ public struct Dyld {
     
     public struct Image: CustomStringConvertible {
         
+        public struct ImageError: Error, CustomStringConvertible {
+            
+            public enum Kind {
+                case cannotLoadImage
+                case cannotLocateSymbol(String)
+            }
+            
+            public let kind: Kind
+            public let description: String
+        }
+        
+        private static let dlopenHandleLock = NSLock()
+        private static var dlopenHandles = Dictionary<String, UnsafeMutableRawPointer>()
+        
         public let name: String
         public let header: Mach.Header
         
         public var description: String {
             return "\(header): \(name)"
+        }
+        
+        public func symbol(named: String) throws -> UnsafeRawPointer {
+            let handle: UnsafeMutableRawPointer = try Self.dlopenHandleLock.withLock {
+                if let existing = Self.dlopenHandles[name] { return existing }
+                
+                if let h = dlopen(name, RTLD_LAZY | RTLD_NOLOAD) {
+                    Self.dlopenHandles[name] = h
+                    return h
+                } else {
+                    let err = String(cString: dlerror())
+                    throw ImageError(kind: .cannotLoadImage, description: err)
+                }
+            }
+            
+            guard let symbol = dlsym(handle, named) else {
+                throw ImageError(kind: .cannotLocateSymbol(named),
+                                 description: "Cannot locate symbol '\(named)' in \(self)")
+            }
+            
+            return UnsafeRawPointer(symbol)
         }
         
     }
