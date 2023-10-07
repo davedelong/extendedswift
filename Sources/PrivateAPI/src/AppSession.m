@@ -227,7 +227,7 @@ const struct uuid_command*_findUUIDCommand(const struct mach_header *mh) {
         uint32_t cmd = ReadInt32(nextCommand->cmd, needsSwap);
         if (cmd == LC_UUID) { return (const struct uuid_command *)nextCommand; }
         uint32_t cmdsize = ReadInt32(nextCommand->cmdsize, needsSwap);
-        nextCommand = nextCommand + cmdsize;
+        nextCommand = (uintptr_t)nextCommand + cmdsize;
     }
     
     return NULL;
