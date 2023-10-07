@@ -70,13 +70,14 @@ extension String {
     
 }
 
-extension String: RawRepresentable {
-    
-    public var rawValue: String { self }
-    
-    public init(rawValue: String) { self = rawValue }
-    
-}
+// Sadly, this causes too may problems
+//extension String: RawRepresentable {
+//    
+//    public var rawValue: String { self }
+//    
+//    public init(rawValue: String) { self = rawValue }
+//    
+//}
 
 extension String {
     
