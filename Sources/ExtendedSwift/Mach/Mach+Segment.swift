@@ -13,9 +13,10 @@ extension Mach {
         public let header: Mach.Header
         public let pointer: UnsafePointer<load_command>
         
-        public init(header: Mach.Header, pointer: UnsafePointer<load_command>) {
+        public init?(header: Mach.Header, pointer: UnsafePointer<load_command>) {
             self.header = header
             self.pointer = pointer
+            guard self.commandType == .segment || self.commandType == .segment64 else { return nil }
         }
         
         public var name: String? {

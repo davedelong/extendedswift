@@ -60,12 +60,12 @@ public enum Mach {
             return sequence(state: state, next: { state -> Mach.LoadCommand? in
                 if state.offset >= numberOfSegments { return nil }
                 
-                let segment = LoadCommand(header: self, rawPointer: state.next)!
+                let command = LoadCommand(header: self, rawPointer: state.next)!
                 
-                state.next = state.next.advanced(by: Int(segment.commandSize))
+                state.next = state.next.advanced(by: Int(command.commandSize))
                 state.offset += 1
                 
-                return segment
+                return command
             })
             
         }
