@@ -18,6 +18,10 @@ extension String {
         return trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
+    public func trimming(_ string: String) -> String {
+        return self.removingPrefix(string).removingSuffix(string)
+    }
+    
     public mutating func removePrefix(_ prefix: String) {
         self = self.removingPrefix(prefix)
     }
@@ -109,7 +113,8 @@ extension String {
     
     public static func longestCommonSuffix<C: Collection>(of strings: C) -> String? where C.Element == Self {
         let reversed: Array<ReversedCollection<Self>> = strings.map { $0.reversed() }
-        return longestCommonPrefix(of: reversed)
+        guard let prefix = longestCommonPrefix(of: reversed) else { return nil }
+        return String(prefix.reversed())
     }
 }
 
