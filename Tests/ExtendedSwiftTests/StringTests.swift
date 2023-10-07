@@ -24,4 +24,18 @@ class StringTests: XCTestCase {
         XCTAssertEqual("é".encodingHTMLEntities(options: [.padNumericEntitiesToFourDigits]), "&#0233;")
     }
     
+    func testCommonPrefix() {
+        var prefix = String.longestCommonPrefix(of: ["ABC", "ABD"])
+        XCTAssertEqual(prefix, "AB")
+        
+        prefix = String.longestCommonPrefix(of: ["A", "B"])
+        XCTAssertEqual(prefix, "")
+        
+        var suffix = String.longestCommonSuffix(of: ["CBA", "DBA"])
+        XCTAssertEqual(suffix, "BA")
+        
+        suffix = String.longestCommonSuffix(of: ["A", "B"])
+        XCTAssertEqual(suffix, "")
+    }
+    
 }
