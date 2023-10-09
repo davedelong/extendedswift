@@ -28,3 +28,5 @@ public func !! <T>(lhs: T?, rhs: @autoclosure () -> String) -> T {
     
     fatalError("Error unwrapping value of type \(T.self): \(rhs())")
 }
+
+// public typealias None = Never

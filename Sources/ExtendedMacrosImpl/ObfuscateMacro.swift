@@ -21,13 +21,9 @@ struct ObfuscateMacro: ExpressionMacro {
         
         let stringArg = node.argumentList.first!
         
-        print(stringArg)
-        
         guard let string = Expr(stringArg.expression).asStringLiteral?.value else {
             throw MacroError("Argument is not a string literal")
         }
-        
-        print(string)
         
         let encodedString = Data(string.utf8).base64EncodedString()
         

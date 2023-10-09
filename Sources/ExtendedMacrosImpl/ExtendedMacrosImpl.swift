@@ -13,5 +13,6 @@ import SwiftSyntaxMacros
 struct ExtendedMacrosImplPlugin: CompilerPlugin {
     let providingMacros: [Macro.Type] = [
         ObfuscateMacro.self,
+        DiagnosticMacro.self,
     ]
 }
