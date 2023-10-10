@@ -34,6 +34,21 @@ extension URL {
         return (r == .contains || r == .same)
     }
     
+    public func value(forQueryItem item: String) -> String? {
+        guard let c = URLComponents(url: self, resolvingAgainstBaseURL: true) else {
+            return nil
+        }
+        return c.queryItems?.first(where: { $0.name == item })?.value
+    }
+    
+    public func deletingQueryItem(_ name: String) -> URL {
+        guard var c = URLComponents(url: self, resolvingAgainstBaseURL: true) else {
+            return self
+        }
+        c.queryItems = c.queryItems?.filter { $0.name != name }
+        return c.url ?? self
+    }
+    
 }
 
 extension URL {
