@@ -29,10 +29,10 @@ public enum Mach {
         internal var needsSwapping: Bool { magic == MH_CIGAM || magic == MH_CIGAM_64 }
         internal var isValid: Bool { is32Bit || is64Bit }
         
-        internal let rawValue: UnsafePointer<mach_header>
+        public let rawValue: UnsafePointer<mach_header>
         internal let slide: Int
         
-        internal var pointer: UnsafeRawPointer { .init(rawValue) }
+        public var pointer: UnsafeRawPointer { .init(rawValue) }
         internal var size: Int { is64Bit ? MemoryLayout<mach_header_64>.size : MemoryLayout<mach_header>.size }
         
         public var fileType: FileType {
