@@ -37,7 +37,7 @@ class ClockTests: XCTestCase {
         let manual = user.manualClock()
         
         var userNow = user.now
-        var manualNow = manual.now
+        let manualNow = manual.now
         XCTAssertEqual(userNow.timeIntervalSinceReferenceDate, manualNow.timeIntervalSinceReferenceDate, accuracy: 0.1)
         
         try await user.sleep(for: .seconds(1))
@@ -46,6 +46,11 @@ class ClockTests: XCTestCase {
         var newManualNow = manual.now
         XCTAssertNotEqual(userNow.timeIntervalSinceReferenceDate, newManualNow.timeIntervalSinceReferenceDate, accuracy: 0.1)
         XCTAssertEqual(manualNow, newManualNow)
+        
+        manual.advance(by: .seconds(1))
+        newManualNow = manual.now
+        
+        XCTAssertEqual(userNow.timeIntervalSinceReferenceDate, newManualNow.timeIntervalSinceReferenceDate, accuracy: 0.1)
     }
     
 }
