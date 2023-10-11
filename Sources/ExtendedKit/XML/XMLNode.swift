@@ -24,13 +24,70 @@ extension XMLNode {
 
 extension XMLElement {
     
-    public func string(forAttribute attribute: String) -> String? {
-        return self.attribute(forName: attribute)?.stringValue
+    public subscript(attribute: String) -> XMLNode? {
+        get {
+            return self.attribute(forName: attribute)
+        }
+        set {
+            if let newValue {
+                if let existing = self.attribute(forName: attribute), existing != newValue {
+                    self.removeAttribute(forName: attribute)
+                    self.addAttribute(newValue)
+                }
+            } else {
+                self.removeAttribute(forName: attribute)
+            }
+        }
     }
     
-    public func url(forAttribute attribute: String, resolvingAgainst: URL?) -> URL? {
-        guard let string = self.string(forAttribute: attribute) else { return nil }
-        return URL(string: string, relativeTo: resolvingAgainst)?.absoluteURL
+    public subscript(string attribute: String) -> String? {
+        get {
+            return self[attribute]?.stringValue
+        }
+        set {
+            if let newValue {
+                if let existing = self[attribute] {
+                    existing.stringValue = newValue
+                } else {
+                    self.addAttribute(attribute, value: newValue)
+                }
+            } else {
+                self.removeAttribute(forName: attribute)
+            }
+        }
+    }
+    
+    public subscript(url attribute: String, relativeTo base: URL? = nil) -> URL? {
+        get {
+            guard let string = self[string: attribute] else { return nil }
+            return URL(string: string, relativeTo: base)?.absoluteURL
+        }
+        set {
+            if let newValue {
+                if let existing = self[attribute] {
+                    existing.stringValue = newValue.absoluteString
+                } else {
+                    self.addAttribute(attribute, value: newValue.absoluteString)
+                }
+            } else {
+                self.removeAttribute(forName: attribute)
+            }
+        }
+    }
+    
+    public func string(forAttribute attribute: String) -> String? {
+        return self[string: attribute]
+    }
+    
+    public func url(forAttribute attribute: String, relativeTo base: URL?) -> URL? {
+        return self[url: attribute, relativeTo: base]
+    }
+    
+    @discardableResult
+    public func addAttribute(_ name: String, value: String) -> XMLNode {
+        let attr = XMLNode.attribute(withName: name, stringValue: value) as! XMLNode
+        self.addAttribute(attr)
+        return attr
     }
     
 }
