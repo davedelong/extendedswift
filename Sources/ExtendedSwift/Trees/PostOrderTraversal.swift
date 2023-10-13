@@ -7,10 +7,10 @@
 
 import Foundation
 
-public struct PostOrderTraversal: TreeTraversing {
+public struct PostOrderTraversal: TreeTraversal {
     
-    public enum Disposition: TreeTraversingDisposition {
-        public static var keepGoing: Disposition { return .continue }
+    public enum Action: TreeTraversalAction {
+        public static var keepGoing: Action { return .continue }
         
         case halt
         case `continue`
@@ -20,12 +20,18 @@ public struct PostOrderTraversal: TreeTraversing {
     
     public init() { }
     
-    public func traverse<Value>(tree: any Tree<Value>, level: Int, visitor: (any Tree<Value>, Int) throws -> Disposition) rethrows -> Disposition {
+    @discardableResult
+    public func traverse<Value>(tree: any Tree<Value>, visitor: (any Tree<Value>, Context) throws -> Action) rethrows -> Action {
+        return try traverse(tree: tree, context: .init(), visitor: visitor)
+    }
+    
+    private func traverse<Value>(tree: any Tree<Value>, context: Context, visitor: (any Tree<Value>, Context) throws -> Action) rethrows -> Action {
         for child in tree.children {
-            let nodeD = try traverse(tree: child, level: level+1, visitor: visitor)
+            let nodeD = try traverse(tree: child, context: context.increment(), visitor: visitor)
             if nodeD.halts { return nodeD }
         }
         
-        return try visitor(tree, level)
+        return try visitor(tree, context)
     }
+    
 }

@@ -10,7 +10,7 @@ import Foundation
 public protocol Tree<Value> {
     associatedtype Value = Self
     
-    var value: Value { get }
+    var treeValue: Value { get }
     var children: Array<any Tree<Value>> { get }
     var isLeaf: Bool { get }
 }
