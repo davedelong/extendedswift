@@ -7,6 +7,14 @@
 
 import Foundation
 
+extension NSPredicate {
+    
+    public static var `true`: NSPredicate { NSPredicate(value: true) }
+    
+    public static var `false`: NSPredicate { NSPredicate(value: false) }
+    
+}
+
 extension NSPredicate: Tree {
     
     public typealias Value = NSPredicate
