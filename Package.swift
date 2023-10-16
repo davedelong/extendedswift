@@ -4,6 +4,9 @@
 import PackageDescription
 import CompilerPluginSupport
 
+let includeMacros = false
+let includeDebugTarget = true
+
 let package = Package(
     name: "ExtendedSwift",
     platforms: [.macOS(.v13), .iOS(.v16), .watchOS(.v9), .tvOS(.v16), .macCatalyst(.v16)],
@@ -12,13 +15,10 @@ let package = Package(
         .library(name: "ExtendedObjC", targets: ["ExtendedObjC"]),
         .library(name: "ExtendedSwift", targets: ["ExtendedSwift"]),
         .library(name: "ExtendedKit", targets: ["ExtendedKit"]),
-        .library(name: "ExtendedMacros", targets: ["ExtendedMacros"]),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-algorithms.git", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-log.git", from: "1.5.0"),
-        .package(url: "https://github.com/apple/swift-syntax.git", exact: "509.0.0-swift-DEVELOPMENT-SNAPSHOT-2023-08-15-a"),
-        .package(url: "https://github.com/stackotter/swift-macro-toolkit.git", from: "0.2.0")
     ],
     targets: [
         .target(name: "ExtendedObjC", dependencies: []),
@@ -47,19 +47,6 @@ let package = Package(
                     .unsafeFlags(["-enable-bare-slash-regex"])
                 ]),
         
-        .macro(
-            name: "ExtendedMacrosImpl",
-            dependencies: [
-                .product(name: "SwiftSyntax", package: "swift-syntax"),
-                .product(name: "SwiftSyntaxBuilder", package: "swift-syntax"),
-                .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
-                .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
-                .product(name: "MacroToolkit", package: "swift-macro-toolkit")
-            ]
-        ),
-
-        .target(name: "ExtendedMacros", dependencies: ["ExtendedMacrosImpl"]),
-        
         // TEST TARGETS
         
         .testTarget(name: "ExtendedSwiftTests",
@@ -73,14 +60,51 @@ let package = Package(
     ]
 )
 
-//#if DEBUG
-package.targets.append(
-    .executableTarget(name: "debug",
-                      dependencies: ["ExtendedObjC", "ExtendedSwift", "ExtendedKit", "ExtendedMacros"],
-                      swiftSettings: [
-                          .unsafeFlags(["-enable-bare-slash-regex"])
-                      ])
-)
 
-package.products.append(.executable(name: "debug", targets: ["debug"]))
-//#endif
+if includeDebugTarget == true {
+    package.targets.append(
+        .executableTarget(name: "debug",
+                          dependencies: [
+                            "ExtendedObjC",
+                            "ExtendedSwift",
+                            "ExtendedKit",
+                          ],
+                          swiftSettings: [
+                            .unsafeFlags(["-enable-bare-slash-regex"])
+                          ])
+    )
+    
+    package.products.append(
+        .executable(name: "debug", targets: ["debug"])
+    )
+}
+
+if includeMacros == true {
+    package.products.append(contentsOf: [
+        .library(name: "ExtendedMacros", targets: ["ExtendedMacros"])
+    ])
+    package.dependencies.append(contentsOf: [
+        .package(url: "https://github.com/apple/swift-syntax.git", exact: "509.0.0-swift-DEVELOPMENT-SNAPSHOT-2023-08-15-a"),
+        .package(url: "https://github.com/stackotter/swift-macro-toolkit.git", from: "0.2.0")
+    ])
+    package.targets.append(contentsOf: [
+        .macro(
+            name: "ExtendedMacrosImpl",
+            dependencies: [
+                .product(name: "SwiftSyntax", package: "swift-syntax"),
+                .product(name: "SwiftSyntaxBuilder", package: "swift-syntax"),
+                .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
+                .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
+                .product(name: "MacroToolkit", package: "swift-macro-toolkit")
+            ]
+        ),
+
+        .target(name: "ExtendedMacros", dependencies: ["ExtendedMacrosImpl"]),
+    ])
+    
+    if includeDebugTarget == true {
+        if let target = package.targets.first(where: { $0.type == .executable && $0.name == "debug" }) {
+            target.dependencies.append("ExtendedMacros")
+        }
+    }
+}
