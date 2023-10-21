@@ -76,6 +76,32 @@ extension Result {
         }
     }
     
+    public func flatMap<NewSuccess>(_ perform: (Success) throws -> NewSuccess) -> Result<NewSuccess, Error> {
+        switch self {
+            case .success(let s):
+                do {
+                    return .success(try perform(s))
+                } catch {
+                    return .failure(error)
+                }
+            case .failure(let e):
+                return .failure(e)
+        }
+    }
+    
+    public func flatMap<NewSuccess>(_ perform: (Success) async throws -> NewSuccess) async -> Result<NewSuccess, Error> {
+        switch self {
+            case .success(let s):
+                do {
+                    return .success(try await perform(s))
+                } catch {
+                    return .failure(error)
+                }
+            case .failure(let e):
+                return .failure(e)
+        }
+    }
+    
     public func withFlatMap<NewSuccess>(_ perform: (Success) -> Result<NewSuccess, Failure>) async -> Result<(Success, NewSuccess), Failure> {
         switch self {
             case .success(let s):
