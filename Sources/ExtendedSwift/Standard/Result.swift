@@ -36,6 +36,13 @@ extension Result {
         }
     }
     
+    public func eraseToAnyError() -> Result<Success, Error> {
+        switch self {
+            case .success(let s): return .success(s)
+            case .failure(let e): return .failure(e)
+        }
+    }
+    
 }
 
 extension Result where Success == Void {
