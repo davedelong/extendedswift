@@ -136,7 +136,7 @@ public class ActionScheduler<C: Clock>: @unchecked Sendable {
                         do {
                             try? await clock.sleep(until: nextFireTime, tolerance: tolerance)
                             try Task.checkCancellation()
-                            await MainActor.run { [weak self] in self?.fire() }
+                            DispatchQueue.main.async { [weak self] in self?.fire() }
                         } catch {
                             // ignore the error; the task was cancelled
                         }
