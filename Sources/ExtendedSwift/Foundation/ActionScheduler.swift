@@ -91,7 +91,7 @@ public class ActionScheduler<C: Clock>: @unchecked Sendable {
             var remainingActions = Dictionary<C.Instant, [Action]>()
             var actionsToExecute = Array<Action>()
             for time in allActions.keys.sorted(by: <) {
-                let actions = scheduledActions[time] ?? []
+                let actions = allActions[time] ?? []
                 if time <= now {
                     actionsToExecute.append(contentsOf: actions)
                 } else {
