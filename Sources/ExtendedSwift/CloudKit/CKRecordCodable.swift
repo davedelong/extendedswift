@@ -26,17 +26,17 @@ public typealias CKRecordCodable = CKRecordDecodable & CKRecordEncodable
 
 // MARK: - CKRecordValue
 
-protocol CKRecordValueDecodable {
+public protocol CKRecordValueDecodable {
     associatedtype RecordValue: CKRecordValueProtocol & Equatable
     init(recordValue value: RecordValue) throws
 }
 
-protocol CKRecordValueEncodable {
+public protocol CKRecordValueEncodable {
     associatedtype RecordValue: CKRecordValueProtocol & Equatable
     func encodeToRecordValue() throws -> RecordValue
 }
 
-typealias CKRecordValueCodable = CKRecordValueDecodable & CKRecordValueEncodable
+public typealias CKRecordValueCodable = CKRecordValueDecodable & CKRecordValueEncodable
 
 public enum CKDecodingError: Error {
     case keyNotFound(String, CKRecord)
@@ -45,17 +45,17 @@ public enum CKDecodingError: Error {
 
 extension CKRecord {
     
-    func decode<V: CKRecordValueDecodable>(_ key: String) throws -> V {
+    public func decode<V: CKRecordValueDecodable>(_ key: String) throws -> V {
         guard let raw: V.RecordValue = self[key] else { throw CKDecodingError.keyNotFound(key, self) }
         return try V(recordValue: raw)
     }
     
-    func decodeIfPresent<V: CKRecordValueDecodable>(_ key: String) throws -> V? {
+    public func decodeIfPresent<V: CKRecordValueDecodable>(_ key: String) throws -> V? {
         guard let raw: V.RecordValue = self[key] else { return nil }
         return try V(recordValue: raw)
     }
     
-    func encode<V: CKRecordValueEncodable>(_ value: V?, forKey key: String) throws {
+    public func encode<V: CKRecordValueEncodable>(_ value: V?, forKey key: String) throws {
         guard let unwrapped = value else { return }
         let raw: V.RecordValue = try unwrapped.encodeToRecordValue()
         
@@ -75,22 +75,22 @@ extension CKRecord: CKRecordEncodable {
 }
 
 extension Array: CKRecordValueCodable where Element: CKRecordValueCodable {
-    init(recordValue value: Array<Element.RecordValue>) throws {
+    public init(recordValue value: Array<Element.RecordValue>) throws {
         self = try value.map { try Element(recordValue: $0) }
     }
-    func encodeToRecordValue() throws -> Array<Element.RecordValue> {
+    public func encodeToRecordValue() throws -> Array<Element.RecordValue> {
         try map { try $0.encodeToRecordValue() }
     }
 }
 
 extension CKRecordValueDecodable where RecordValue == Self {
-    init(recordValue value: Self) throws {
+    public init(recordValue value: Self) throws {
         self = value
     }
 }
 
 extension CKRecordValueDecodable where Self: RawRepresentable, RecordValue == RawValue, Self.RawValue: CKRecordValueEncodable {
-    init(recordValue value: RawValue) throws {
+    public init(recordValue value: RawValue) throws {
         if let v = Self(rawValue: value) {
             self = v
         } else {
@@ -100,84 +100,84 @@ extension CKRecordValueDecodable where Self: RawRepresentable, RecordValue == Ra
 }
 
 extension CKRecordValueEncodable where RecordValue == Self {
-    func encodeToRecordValue() throws -> Self { self }
+    public func encodeToRecordValue() throws -> Self { self }
 }
 
 extension CKRecordValueEncodable where Self: RawRepresentable, RecordValue == RawValue, Self.RawValue: CKRecordValueEncodable {
-    func encodeToRecordValue() throws -> RecordValue { rawValue }
+    public func encodeToRecordValue() throws -> RecordValue { rawValue }
 }
 
 extension Bool: CKRecordValueCodable {
-    typealias RecordValue = Self
+    public typealias RecordValue = Self
 }
 extension CKAsset: CKRecordValueCodable {
-    typealias RecordValue = CKAsset
+    public typealias RecordValue = CKAsset
 }
 extension CKRecord.Reference: CKRecordValueCodable {
-    typealias RecordValue = CKRecord.Reference
+    public typealias RecordValue = CKRecord.Reference
 }
 extension CLLocation: CKRecordValueCodable {
-    typealias RecordValue = CLLocation
+    public typealias RecordValue = CLLocation
 }
 extension Data: CKRecordValueCodable {
-    typealias RecordValue = Self
+    public typealias RecordValue = Self
 }
 extension Date: CKRecordValueCodable {
-    typealias RecordValue = Self
+    public typealias RecordValue = Self
 }
 extension Double: CKRecordValueCodable {
-    typealias RecordValue = Self
+    public typealias RecordValue = Self
 }
 extension Float: CKRecordValueCodable {
-    typealias RecordValue = Self
+    public typealias RecordValue = Self
 }
 extension Int: CKRecordValueCodable {
-    typealias RecordValue = Self
+    public typealias RecordValue = Self
 }
 extension Int16: CKRecordValueCodable {
-    typealias RecordValue = Self
+    public typealias RecordValue = Self
 }
 extension Int32: CKRecordValueCodable {
-    typealias RecordValue = Self
+    public typealias RecordValue = Self
 }
 extension Int64: CKRecordValueCodable {
-    typealias RecordValue = Self
+    public typealias RecordValue = Self
 }
 extension Int8: CKRecordValueCodable {
-    typealias RecordValue = Self
+    public typealias RecordValue = Self
 }
 extension NSArray: CKRecordValueCodable {
-    typealias RecordValue = NSArray
+    public typealias RecordValue = NSArray
 }
 extension NSData: CKRecordValueCodable {
-    typealias RecordValue = NSData
+    public typealias RecordValue = NSData
 }
 extension NSDate: CKRecordValueCodable {
-    typealias RecordValue = NSDate
+    public typealias RecordValue = NSDate
 }
 extension NSNumber: CKRecordValueCodable {
-    typealias RecordValue = NSNumber
+    public typealias RecordValue = NSNumber
 }
 extension NSString: CKRecordValueCodable {
-    typealias RecordValue = NSString
+    public typealias RecordValue = NSString
 }
 extension String: CKRecordValueCodable {
-    typealias RecordValue = Self
+    public typealias RecordValue = Self
 }
 extension UInt: CKRecordValueCodable {
-    typealias RecordValue = Self
+    public typealias RecordValue = Self
 }
 extension UInt16: CKRecordValueCodable {
-    typealias RecordValue = Self
+    public typealias RecordValue = Self
 }
 extension UInt32: CKRecordValueCodable {
-    typealias RecordValue = Self
+    public typealias RecordValue = Self
 }
 extension UInt64: CKRecordValueCodable {
-    typealias RecordValue = Self
+    public typealias RecordValue = Self
 }
 extension UInt8: CKRecordValueCodable {
-    typealias RecordValue = Self
+    public typealias RecordValue = Self
 }
 
 // CUSTOM
@@ -187,25 +187,25 @@ extension UInt8: CKRecordValueCodable {
 //}
 
 extension URL: CKRecordValueCodable {
-    typealias RecordValue = String
-    init(recordValue value: String) throws {
+    public typealias RecordValue = String
+    public init(recordValue value: String) throws {
         guard let u = URL(string: value) else {
             throw CKDecodingError.valueCorrupted(value, nil)
         }
         self = u
     }
     
-    func encodeToRecordValue() throws -> String {
+    public func encodeToRecordValue() throws -> String {
         return self.absoluteString
     }
 }
 
 extension RawRepresentable where Self: CKRecordValueEncodable, RawValue: CKRecordValueEncodable {
-    func encodeToRecordValue() throws -> RawValue.RecordValue { try rawValue.encodeToRecordValue() }
+    public func encodeToRecordValue() throws -> RawValue.RecordValue { try rawValue.encodeToRecordValue() }
 }
 
 extension RawRepresentable where Self: CKRecordValueDecodable, RawValue: CKRecordValueDecodable {
-    init(from value: RawValue.RecordValue) throws {
+    public init(from value: RawValue.RecordValue) throws {
         let rawValue = try RawValue(recordValue: value)
         guard let v = Self(rawValue: rawValue) else {
             throw CKDecodingError.valueCorrupted(value, nil)
