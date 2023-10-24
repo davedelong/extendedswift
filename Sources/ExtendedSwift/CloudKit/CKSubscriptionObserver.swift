@@ -17,10 +17,10 @@ public class CKSubscriptionObserver: ObservableObject {
     private let timerInterval: TimeInterval
     private var sink: AnyCancellable?
     
-    @Published public private(set) var isSearching = false
-    
-    @Published public private(set) var results = Array<CKSubscription>()
-    @Published public private(set) var mostRecentError: Error?
+    public let objectDidChange = ObservableObjectPublisher()
+    public private(set) var isSearching = false
+    public private(set) var results = Array<CKSubscription>()
+    public private(set) var mostRecentError: Error?
     
     public init(database: CKDatabase, refreshInterval: TimeInterval = 60) {
         self.database = database
@@ -36,26 +36,37 @@ public class CKSubscriptionObserver: ObservableObject {
             })
     }
     
+    private func performChange(_ action: () -> Void) {
+        self.objectWillChange.send()
+        action()
+        self.objectDidChange.send()
+    }
+    
     @MainActor
     public func refresh() async {
         if self.isSearching == true { return }
         
-        self.isSearching = true
-        self.sink?.cancel()
-        self.sink = nil
-        
-        do {
-            let all = try await self.database.allSubscriptions()
-            self.mostRecentError = nil
-            if all != self.results {
-                self.results = all
-            }
-        } catch {
-            print("Error refreshing: \(error)")
-            self.mostRecentError = error
+        self.performChange {
+            self.isSearching = true
+            self.sink?.cancel()
+            self.sink = nil
         }
         
-        self.isSearching = false
+        let result = await Result { try await self.database.allSubscriptions() }
+        
+        self.performChange {
+            switch result {
+                case .success(let subs):
+                    self.mostRecentError = nil
+                    if subs != self.results {
+                        self.results = subs
+                    }
+                case .failure(let error):
+                    self.mostRecentError = error
+            }
+            self.isSearching = false
+        }
+        
         self.rescheduleTimer()
     }
     

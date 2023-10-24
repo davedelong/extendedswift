@@ -40,10 +40,11 @@ public class CKQueryObserver<Value: Equatable>: ObservableObject {
     private let timerInterval: TimeInterval
     private var sink: AnyCancellable?
     
-    @Published public private(set) var isSearching = false
+    public let objectDidChange = ObservableObjectPublisher()
     
-    @Published public private(set) var results = Array<Value>()
-    @Published public private(set) var mostRecentError: Error?
+    public private(set) var isSearching = false
+    public private(set) var results = Array<Value>()
+    public private(set) var mostRecentError: Error?
     
     public convenience init(configuration: Configuration, refreshInterval: TimeInterval = 60) where Value == CKRecord {
         self.init(configuration: configuration, refreshInterval: refreshInterval, decoder: { $0 })
@@ -69,26 +70,37 @@ public class CKQueryObserver<Value: Equatable>: ObservableObject {
             })
     }
     
+    private func performChange(_ action: () -> Void) {
+        self.objectWillChange.send()
+        action()
+        self.objectDidChange.send()
+    }
+    
     @MainActor
     public func refresh() async {
         if self.isSearching == true { return }
         
-        self.isSearching = true
-        self.sink?.cancel()
-        self.sink = nil
-        
-        do {
-            let all = try await self.fetchAllRecords()
-            self.mostRecentError = nil
-            if all != self.results {
-                self.results = all
-            }
-        } catch {
-            print("Error refreshing: \(error)")
-            self.mostRecentError = error
+        self.performChange {
+            self.isSearching = true
+            self.sink?.cancel()
+            self.sink = nil
         }
         
-        self.isSearching = false
+        let result = await Result { try await self.fetchAllRecords() }
+        
+        self.performChange {
+            switch result {
+                case .success(let values):
+                    if values != self.results {
+                        self.results = values
+                    }
+                    self.mostRecentError = nil
+                case .failure(let error):
+                    print("Error refreshing: \(error)")
+                    self.mostRecentError = error
+            }
+            self.isSearching = false
+        }
         self.rescheduleTimer()
     }
     
