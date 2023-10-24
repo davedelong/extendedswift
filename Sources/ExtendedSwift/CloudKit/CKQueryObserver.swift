@@ -11,7 +11,7 @@ import Foundation
 import CloudKit
 import Combine
 
-public class CKQueryObserver: ObservableObject {
+public class CKQueryObserver<Value: Equatable>: ObservableObject {
     
     public struct Configuration {
         public var database: CKDatabase
@@ -35,18 +35,29 @@ public class CKQueryObserver: ObservableObject {
     }
     
     public let configuration: Configuration
+    private let decode: (CKRecord) throws -> Value
     
     private let timerInterval: TimeInterval
     private var sink: AnyCancellable?
     
     @Published public private(set) var isSearching = false
     
-    @Published public private(set) var results = Array<CKRecord>()
+    @Published public private(set) var results = Array<Value>()
     @Published public private(set) var mostRecentError: Error?
     
-    public init(configuration: Configuration, refreshInterval: TimeInterval = 60) {
+    public convenience init(configuration: Configuration, refreshInterval: TimeInterval = 60) where Value == CKRecord {
+        self.init(configuration: configuration, refreshInterval: refreshInterval, decoder: { $0 })
+    }
+    
+    @_disfavoredOverload
+    public convenience init(configuration: Configuration, refreshInterval: TimeInterval = 60) where Value: CKRecordDecodable {
+        self.init(configuration: configuration, refreshInterval: refreshInterval, decoder: Value.init(from:))
+    }
+    
+    public init(configuration: Configuration, refreshInterval: TimeInterval, decoder: @escaping (CKRecord) throws -> Value) {
         self.configuration = configuration
         self.timerInterval = refreshInterval
+        self.decode = decoder
         self.triggerRefresh()
     }
     
@@ -68,12 +79,9 @@ public class CKQueryObserver: ObservableObject {
         
         do {
             let all = try await self.fetchAllRecords()
-            
             self.mostRecentError = nil
-            let newResults = all.compactMap(\.success)
-            
-            if newResults != self.results {
-                self.results = newResults
+            if all != self.results {
+                self.results = all
             }
         } catch {
             print("Error refreshing: \(error)")
@@ -88,8 +96,8 @@ public class CKQueryObserver: ObservableObject {
         Task { await refresh() }
     }
     
-    private func fetchAllRecords() async throws -> Array<Result<CKRecord, Error>> {
-        var results = Array<Result<CKRecord, Error>>()
+    private func fetchAllRecords() async throws -> Array<Value> {
+        var results = Array<Value>()
         
         let db = configuration.database
         let q = configuration.query
@@ -105,7 +113,11 @@ public class CKQueryObserver: ObservableObject {
                 intermediate = try await db.records(matching: q, inZoneWith: zoneID, desiredKeys: keys, resultsLimit: configuration.fetchLimit)
             }
             
-            results.append(contentsOf: intermediate.matchResults.map(\.1))
+            let values = try intermediate.matchResults.compactMap { _, result -> Value? in
+                guard let record = result.success else { return nil }
+                return try self.decode(record)
+            }
+            results.append(contentsOf: values)
             
             if results.count >= configuration.fetchLimit && configuration.fetchLimit > 0 {
                 cursor = nil
