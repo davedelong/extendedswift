@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@available(iOS 16.1, macOS 13.0, tvOS 16.1, watchOS 9.1, *)
 public protocol ProxyTransferable: Transferable where Representation == ProxyRepresentation<Self, Proxy> {
     associatedtype Proxy: Transferable
     
