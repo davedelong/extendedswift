@@ -9,7 +9,13 @@ let includeDebugTarget = true
 
 let package = Package(
     name: "ExtendedSwift",
-    platforms: [.macOS(.v13), .iOS(.v16), .watchOS(.v9), .tvOS(.v16), .macCatalyst(.v16)],
+    platforms: [
+        .macOS(.v13),
+        .iOS("16.1"),
+        .watchOS("9.1"),
+        .tvOS("16.1"),
+        .macCatalyst("16.1")
+    ],
     products: [
         // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(name: "ExtendedObjC", targets: ["ExtendedObjC"]),
