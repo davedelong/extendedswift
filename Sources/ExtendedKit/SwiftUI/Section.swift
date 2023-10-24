@@ -15,19 +15,6 @@ extension Section where Content: View, Footer: View, Parent == Text {
     
 }
 
-extension Section where Content: View, Parent == Text, Footer == EmptyView {
-    
-    public init(_ header: LocalizedStringKey, @ViewBuilder content: () -> Content) {
-        self.init(content: content, header: { Text(header) }, footer: { EmptyView() })
-    }
-    
-    @_disfavoredOverload
-    public init(_ header: String, @ViewBuilder content: () -> Content) {
-        self.init(content: content, header: { Text(header) }, footer: { EmptyView() })
-    }
-    
-}
-
 extension Section where Content: View, Parent == Text, Footer == Text {
     
     public init(header: LocalizedStringKey, footer: LocalizedStringKey, @ViewBuilder content: () -> Content) {
