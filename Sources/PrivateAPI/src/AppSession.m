@@ -97,11 +97,11 @@ NSUUID *_Nonnull app_session_initialize(NSURL * _Nonnull logFolder) {
         session.tzoffset = [NSTimeZone defaultTimeZone].secondsFromGMT;
         
 #if TARGET_OS_IOS
-        JSONObjectAppend(current.metadata, "device", JSONCreateNSString([UIDevice currentDevice].model));
-        JSONObjectAppend(current.metadata, "device", JSONCreateNSString([UIDevice currentDevice].model));
-        JSONObjectAppend(current.metadata, "device_name", JSONCreateNSString([UIDevice currentDevice].name));
-        JSONObjectAppend(current.metadata, "os", JSONCreateNSString([UIDevice currentDevice].systemVersion));
-        JSONObjectAppend(current.metadata, "os_name", JSONCreateNSString([UIDevice currentDevice].systemName));
+        JSONObjectAppend(session.metadata, "device", JSONCreateNSString([UIDevice currentDevice].model));
+        JSONObjectAppend(session.metadata, "device", JSONCreateNSString([UIDevice currentDevice].model));
+        JSONObjectAppend(session.metadata, "device_name", JSONCreateNSString([UIDevice currentDevice].name));
+        JSONObjectAppend(session.metadata, "os", JSONCreateNSString([UIDevice currentDevice].systemVersion));
+        JSONObjectAppend(session.metadata, "os_name", JSONCreateNSString([UIDevice currentDevice].systemName));
 #endif
         
         // install signal+exception handlers

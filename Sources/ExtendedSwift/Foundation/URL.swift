@@ -53,53 +53,6 @@ extension URL {
 
 extension URL {
     
-    public init?(bookmarkData: Data) {
-        var stale = false
-        let u = try? URL(resolvingBookmarkData: bookmarkData,
-                         options: [.withSecurityScope],
-                         bookmarkDataIsStale: &stale)
-        
-        if stale == true { return nil }
-        guard let u = u else { return nil }
-        self = u
-    }
-    
-    public func bookmarkData(options: BookmarkCreationOptions = [.withSecurityScope]) -> Data? {
-        return try? self.bookmarkData(options: options,
-                                      includingResourceValuesForKeys: nil,
-                                      relativeTo: nil)
-    }
-    
-    public func withSecurityScopedResource<T>(perform task: (URL) throws -> T) throws -> T {
-        guard self.startAccessingSecurityScopedResource() else {
-            throw URLError(.secureConnectionFailed)
-        }
-        
-        let result: Result<T, Error>
-        do {
-            result = .success(try task(self))
-        } catch {
-            result = .failure(error)
-        }
-        self.stopAccessingSecurityScopedResource()
-        return try result.get()
-    }
-    
-    public func withSecurityScopedResource<T>(perform task: (URL) async throws -> T) async throws -> T {
-        guard self.startAccessingSecurityScopedResource() else {
-            throw URLError(.secureConnectionFailed)
-        }
-        
-        let result: Result<T, Error>
-        do {
-            result = .success(try await task(self))
-        } catch {
-            result = .failure(error)
-        }
-        self.stopAccessingSecurityScopedResource()
-        return try result.get()
-    }
-    
     public var isIncludedInBackup: Bool {
         get {
             let values = try? resourceValues(forKeys: [.isExcludedFromBackupKey])

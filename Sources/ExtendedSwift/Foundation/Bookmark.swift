@@ -63,7 +63,12 @@ public struct Bookmark: Codable {
             if isStale {
                 result = .failure(.staleBookmark)
             } else {
-                let shouldStartAccessing = options.contains(.withSecurityScope) && options.contains(.withoutImplicitStartAccessing) == false
+                let shouldStartAccessing: Bool
+                #if os(macOS)
+                shouldStartAccessing = options.contains(.withSecurityScope) && options.contains(.withoutImplicitStartAccessing) == false
+                #else
+                shouldStartAccessing = options.contains(.withoutImplicitStartAccessing) == false
+                #endif
                 
                 if shouldStartAccessing {
                     if u.startAccessingSecurityScopedResource() {
@@ -136,12 +141,20 @@ extension Bookmark.AccessToken {
 
 extension Bookmark {
     
-    public func accessResource(options: URL.BookmarkResolutionOptions = [.withSecurityScope]) throws -> AccessToken {
+    public static var defaultResolutionOptions: URL.BookmarkResolutionOptions {
+        #if os(macOS)
+        return [.withSecurityScope]
+        #else
+        return []
+        #endif
+    }
+    
+    public func accessResource(options: URL.BookmarkResolutionOptions = Self.defaultResolutionOptions) throws -> AccessToken {
         return try access(options: options).get()
     }
     
     @discardableResult
-    public func withResolvedURL<T>(options: URL.BookmarkResolutionOptions = [.withSecurityScope],
+    public func withResolvedURL<T>(options: URL.BookmarkResolutionOptions = Self.defaultResolutionOptions,
                                    perform work: (Result<URL, BookmarkError>) async throws -> T) async rethrows -> T {
         
         let result = access(options: options)
@@ -156,7 +169,7 @@ extension Bookmark {
     }
     
     @discardableResult
-    public func withResolvedURL<T>(options: URL.BookmarkResolutionOptions = [.withSecurityScope], 
+    public func withResolvedURL<T>(options: URL.BookmarkResolutionOptions = Self.defaultResolutionOptions,
                                    perform work: (Result<URL, BookmarkError>) throws -> T) rethrows -> T {
         
         let result = access(options: options)
@@ -171,7 +184,7 @@ extension Bookmark {
     }
     
     @discardableResult
-    public func withResolvedPath<T>(options: URL.BookmarkResolutionOptions = [.withSecurityScope],
+    public func withResolvedPath<T>(options: URL.BookmarkResolutionOptions = Self.defaultResolutionOptions,
                                     perform work: (Result<Path, BookmarkError>) async throws -> T) async rethrows -> T {
         
         return try await self.withResolvedURL(options: options, perform: { result in
@@ -182,7 +195,7 @@ extension Bookmark {
     }
     
     @discardableResult
-    public func withResolvedPath<T>(options: URL.BookmarkResolutionOptions = [.withSecurityScope],
+    public func withResolvedPath<T>(options: URL.BookmarkResolutionOptions = Self.defaultResolutionOptions,
                                     perform work: (Result<Path, BookmarkError>) throws -> T) rethrows -> T {
         
         return try self.withResolvedURL(options: options, perform: { result in

@@ -11,11 +11,13 @@ public typealias Spotlight = NSMetadataQuery
 
 extension Spotlight {
     public struct SearchScope: RawRepresentable {
+        #if os(macOS)
         public static let homeDirectory = SearchScope(rawValue: NSMetadataQueryUserHomeScope)
         public static let local = SearchScope(rawValue: NSMetadataQueryLocalComputerScope)
         public static let network = SearchScope(rawValue: NSMetadataQueryNetworkScope)
         public static let localIndexed = SearchScope(rawValue: NSMetadataQueryIndexedLocalComputerScope)
         public static let networkIndexed = SearchScope(rawValue: NSMetadataQueryIndexedNetworkScope)
+        #endif
         public static let iCloudDocuments = SearchScope(rawValue: NSMetadataQueryUbiquitousDocumentsScope)
         public static let iCloudData = SearchScope(rawValue: NSMetadataQueryUbiquitousDataScope)
         public static let externalICloudDocuments = SearchScope(rawValue: NSMetadataQueryAccessibleUbiquitousExternalDocumentsScope)
