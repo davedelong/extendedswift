@@ -143,3 +143,11 @@ extension Collection where Element: Equatable {
     }
     
 }
+
+extension Array {
+    
+    public mutating func filterInPlace(_ including: (Element) -> Bool) {
+        self = self.filter(including)
+    }
+    
+}
