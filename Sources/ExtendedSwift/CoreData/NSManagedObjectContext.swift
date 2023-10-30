@@ -20,6 +20,14 @@ public class ReadOnlyManagedObjectContext: NSManagedObjectContext {
 
 extension NSManagedObjectContext {
     
+    public func fetch<E: NSManagedObject>(_ type: E.Type = E.self, ids: Array<String>) throws -> Array<E> {
+        let fr = NSFetchRequest<E>()
+        fr.entity = E.entity()
+        fr.predicate = NSPredicate(format: "id IN %@", ids)
+        fr.sortDescriptors = []
+        return try self.fetch(fr)
+    }
+    
     @discardableResult
     public func perform<T>(_ work: (NSManagedObjectContext) throws -> T) async throws -> T {
         return try await withCheckedThrowingContinuation { continuation in
