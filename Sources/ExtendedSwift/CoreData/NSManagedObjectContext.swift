@@ -8,9 +8,9 @@
 import Foundation
 import CoreData
 
-internal class ReadOnlyManagedObjectContext: NSManagedObjectContext {
+public class ReadOnlyManagedObjectContext: NSManagedObjectContext {
     
-    override func save() throws {
+    override public func save() throws {
         throw CocoaError(.persistentStoreSave, userInfo: [
             NSLocalizedDescriptionKey: "This context is read-only"
         ])
@@ -19,6 +19,26 @@ internal class ReadOnlyManagedObjectContext: NSManagedObjectContext {
 }
 
 extension NSManagedObjectContext {
+    
+    @discardableResult
+    public func perform<T>(_ work: (NSManagedObjectContext) throws -> T) async throws -> T {
+        return try await withCheckedThrowingContinuation { continuation in
+            do {
+                let result = try work(self)
+                continuation.resume(returning: result)
+            } catch {
+                continuation.resume(throwing: error)
+            }
+        }
+    }
+    
+    @discardableResult
+    public func perform<T>(_ work: (NSManagedObjectContext) -> T) async -> T {
+        return await withCheckedContinuation { continuation in
+            let result = work(self)
+            continuation.resume(returning: result)
+        }
+    }
     
     public struct SaveResult {
         
