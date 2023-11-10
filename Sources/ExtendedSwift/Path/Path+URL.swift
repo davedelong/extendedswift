@@ -11,6 +11,10 @@ extension URL {
     
     public var absolutePath: Path { Path(fileSystemPath: self.path(percentEncoded: false)) }
     
+    public init(fileURL path: Path) {
+        self = path.fileURL
+    }
+    
 }
 
 extension URLComponents {
