@@ -50,7 +50,9 @@ public struct Fetch<T: Fetchable>: DynamicProperty {
     }
     
     public mutating func update() {
-        observer.managedObjectContext = self.context
+        observer.withoutPublishingChanges {
+            $0.managedObjectContext = self.context
+        }
         _ = observer.results // trigger a fetch (if necessary) by calling .results
     }
 }

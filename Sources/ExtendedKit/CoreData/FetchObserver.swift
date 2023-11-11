@@ -45,6 +45,12 @@ public class FetchObserver<T: Fetchable>: ObservableObject {
         self.core.context = context
     }
     
+    public func withoutPublishingChanges(perform changes: (FetchObserver<T>) -> Void) {
+        core.shouldPublishChanges = false
+        changes(self)
+        core.shouldPublishChanges = true
+    }
+    
 }
 
 private class _QueryCore<T: Fetchable>: NSObject, NSFetchedResultsControllerDelegate {
@@ -55,6 +61,8 @@ private class _QueryCore<T: Fetchable>: NSObject, NSFetchedResultsControllerDele
     private var _frc: NSFetchedResultsController<T.Filter.ResultType>?
     
     private var _results: FetchResults<T>?
+    
+    var shouldPublishChanges = true
     
     var results: FetchResults<T> {
         fetchIfNecessary()
@@ -100,7 +108,7 @@ private class _QueryCore<T: Fetchable>: NSObject, NSFetchedResultsControllerDele
         if autoupdates == false {
             hasPendingUpdates = true
         } else {
-            willChange.send()
+            sendWillChange()
             _results = nil
         }
         
@@ -139,16 +147,26 @@ private class _QueryCore<T: Fetchable>: NSObject, NSFetchedResultsControllerDele
             try! _frc?.performFetch()
             let resultsArray: NSArray = (_frc?.fetchedObjects as NSArray?) ?? NSArray()
             _results = FetchResults(results: resultsArray, context: context)
-            didChange.send()
+            sendDidChange()
         }
         
+    }
+    
+    private func sendWillChange() {
+        guard shouldPublishChanges else { return }
+        self.willChange.send()
+    }
+    
+    private func sendDidChange() {
+        guard shouldPublishChanges else { return }
+        self.didChange.send()
     }
     
     // live updates
     
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         if autoupdates == true {
-            willChange.send()
+            sendWillChange()
         } else {
             hasPendingUpdates = true
         }
@@ -159,6 +177,6 @@ private class _QueryCore<T: Fetchable>: NSObject, NSFetchedResultsControllerDele
         
         let objects = (controller.fetchedObjects as NSArray?) ?? NSArray()
         _results = FetchResults<T>(results: objects, context: controller.managedObjectContext)
-        didChange.send()
+        sendDidChange()
     }
 }
