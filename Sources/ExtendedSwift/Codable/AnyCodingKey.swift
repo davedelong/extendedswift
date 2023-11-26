@@ -23,6 +23,11 @@ public struct AnyCodingKey: CodingKey {
         self.stringValue = "\(intValue)"
     }
     
+    public init<Other: CodingKey>(_ other: Other) {
+        self.stringValue = other.stringValue
+        self.intValue = other.intValue
+    }
+    
 }
 
 extension AnyCodingKey: ExpressibleByIntegerLiteral, ExpressibleByStringLiteral {

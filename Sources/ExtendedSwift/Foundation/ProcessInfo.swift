@@ -12,7 +12,7 @@ extension ProcessInfo {
     
     public var isDebuggerAttached: Bool {
     #if DEBUG
-        var name: [Int32] = [CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid()]
+        var name = [CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid()]
         let nameSize = UInt32(name.count)
         var info: kinfo_proc = kinfo_proc()
         var info_size = MemoryLayout<kinfo_proc>.size

@@ -78,7 +78,7 @@ extension FileManager {
         return children.map { RelativePath($0) }
     }
     
-    public func contentsOfDirectory(at path: Path, includingPropertiesForKeys keys: [URLResourceKey]? = nil, options mask: FileManager.DirectoryEnumerationOptions = []) -> Array<Path> {
+    public func contentsOfDirectory(at path: Path, includingPropertiesForKeys keys: Array<URLResourceKey>? = nil, options mask: FileManager.DirectoryEnumerationOptions = []) -> Array<Path> {
         let contents = (try? contentsOfDirectory(at: path.fileURL, includingPropertiesForKeys: keys, options: mask)) ?? []
         return contents.map { Path($0) }
     }

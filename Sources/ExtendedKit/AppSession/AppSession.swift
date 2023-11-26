@@ -18,7 +18,7 @@ public class AppSession {
         case explicit(String)
     }
     
-    public typealias LogHandlers = (String, Sandbox) -> [LogHandler]
+    public typealias LogHandlers = (String, Sandbox) -> Array<LogHandler>
     
     @discardableResult
     public static func initialize(groupContainer: GroupContainer = .default, logHandlers: LogHandlers? = nil) -> AppSession {
