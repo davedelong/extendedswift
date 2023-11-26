@@ -13,17 +13,15 @@ internal let LogSchema: NSManagedObjectModel = {
     
     let m = NSManagedObjectModel()
     
-    let entryEntity = NSEntityDescription()
-    entryEntity.name = "LogEntry"
-    entryEntity.properties = [
-        NSAttributeDescription(name: "timestamp", optional: false, type: .dateAttributeType),
-        NSAttributeDescription(name: "level", optional: false, type: .stringAttributeType),
-        NSAttributeDescription(name: "category", optional: false, type: .stringAttributeType),
-        NSAttributeDescription(name: "message", optional: false, type: .stringAttributeType),
-        NSAttributeDescription(name: "source", optional: false, type: .stringAttributeType),
-        NSAttributeDescription(name: "location", optional: false, type: .stringAttributeType),
-        NSAttributeDescription(name: "metadata", optional: true, type: .stringAttributeType),
-    ]
+    let entryEntity = NSEntityDescription("LogEntry", properties: [
+        NSAttributeDescription.date("timestamp"),
+        NSAttributeDescription.string("level"),
+        NSAttributeDescription.string("category"),
+        NSAttributeDescription.string("message"),
+        NSAttributeDescription.string("source"),
+        NSAttributeDescription.string("location"),
+        NSAttributeDescription.string("metadata")
+    ])
     
     m.entities = [entryEntity]
     

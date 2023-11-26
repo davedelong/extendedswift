@@ -11,7 +11,7 @@ import SwiftSyntaxMacros
 
 @main
 struct ExtendedMacrosImplPlugin: CompilerPlugin {
-    let providingMacros: [Macro.Type] = [
+    let providingMacros: Array<Macro.Type> = [
         ObfuscateMacro.self,
         DiagnosticMacro.self,
     ]

@@ -158,3 +158,18 @@ extension String {
     }
     
 }
+
+extension String.Encoding {
+    
+    public var byteOrderMark: Data? {
+        guard let aData = "a".data(using: self) else { return nil }
+        guard let aaData = "aa".data(using: self) else { return nil }
+        
+        let singleALength = aaData.count - aData.count
+        let bomLength = aData.count - singleALength
+        if bomLength == 0 { return nil }
+        
+        return Data(aData.prefix(bomLength))
+    }
+    
+}
