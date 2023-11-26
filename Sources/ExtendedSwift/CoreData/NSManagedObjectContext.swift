@@ -29,22 +29,26 @@ extension NSManagedObjectContext {
     }
     
     @discardableResult
-    public func perform<T>(_ work: (NSManagedObjectContext) throws -> T) async throws -> T {
+    public func perform<T>(_ work: @escaping (NSManagedObjectContext) throws -> T) async throws -> T {
         return try await withCheckedThrowingContinuation { continuation in
-            do {
-                let result = try work(self)
-                continuation.resume(returning: result)
-            } catch {
-                continuation.resume(throwing: error)
+            self.perform {
+                do {
+                    let result = try work(self)
+                    continuation.resume(returning: result)
+                } catch {
+                    continuation.resume(throwing: error)
+                }
             }
         }
     }
     
     @discardableResult
-    public func perform<T>(_ work: (NSManagedObjectContext) -> T) async -> T {
+    public func perform<T>(_ work: @escaping (NSManagedObjectContext) -> T) async -> T {
         return await withCheckedContinuation { continuation in
-            let result = work(self)
-            continuation.resume(returning: result)
+            self.perform {
+                let result = work(self)
+                continuation.resume(returning: result)
+            }
         }
     }
     

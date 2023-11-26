@@ -11,13 +11,13 @@ import CoreData
 extension NSPersistentContainer {
     
     @discardableResult
-    public func withBackgroundContext<T>(perform work: (NSManagedObjectContext) -> T) async -> T {
+    public func withBackgroundContext<T>(perform work: @escaping (NSManagedObjectContext) -> T) async -> T {
         let moc = self.newBackgroundContext()
         return await moc.perform(work)
     }
     
     @discardableResult
-    public func withBackgroundContext<T>(perform work: (NSManagedObjectContext) throws -> T) async throws -> T {
+    public func withBackgroundContext<T>(perform work: @escaping (NSManagedObjectContext) throws -> T) async throws -> T {
         let moc = self.newBackgroundContext()
         return try await moc.perform(work)
     }
