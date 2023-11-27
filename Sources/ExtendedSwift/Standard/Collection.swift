@@ -34,6 +34,10 @@ extension Collection {
         return compactMap { $0 is T ? nil : $0 }
     }
     
+    public func filter(id: Element.ID) -> Array<Element> where Element: Identifiable {
+        return filter { $0.id == id }
+    }
+    
     public func keyed<Key: Hashable>(by keyer: (Element) -> Key) -> Dictionary<Key, Element> {
         var final = Dictionary<Key, Element>()
         for item in self {

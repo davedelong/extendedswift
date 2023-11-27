@@ -21,4 +21,11 @@ extension UserDefaults {
         }
         return try PlistDecoder().decode(from: value)
     }
+    
+    public func decodeIfPresent<V: Decodable>(_ type: V.Type = V.self, forKey key: String) throws -> V? {
+        guard let value = self.object(forKey: key) else {
+            return nil
+        }
+        return try PlistDecoder().decode(from: value)
+    }
 }
