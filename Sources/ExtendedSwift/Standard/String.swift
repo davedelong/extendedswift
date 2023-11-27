@@ -9,10 +9,11 @@ import Foundation
 
 extension String {
     
-    public func nilIfEmpty() -> String? {
-        if isEmpty { return nil }
-        return self
-    }
+    public static var newline: String { "\n" }
+    public static var empty: String { "" }
+    public static var space: String { " " }
+    public static var hyphen: String { "-" }
+    public static var comma: String { "," }
     
     public func trimmed() -> String {
         return trimmingCharacters(in: .whitespacesAndNewlines)

@@ -14,6 +14,11 @@ extension Collection {
     
     public var firstIndex: Index? { self.indices.first }
     
+    public func nilIfEmpty() -> Self? {
+        if isEmpty { return nil }
+        return self
+    }
+    
     public func allPrefixes() -> Array<SubSequence> {
         return indices.map { self[startIndex ... $0] }
     }
