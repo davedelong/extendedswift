@@ -33,4 +33,12 @@ extension Entitlements {
     public var applicationGroups: Array<String>? {
         self["com.apple.security.application-groups"] as? Array<String>
     }
+    
+    public var isSandboxed: Bool {
+        #if os(macOS)
+        (self["com.apple.security.app-sandbox"] as? Bool) == true
+        #else
+        return true
+        #endif
+    }
 }

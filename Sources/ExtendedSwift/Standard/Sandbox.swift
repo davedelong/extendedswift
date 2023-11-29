@@ -130,7 +130,17 @@ private struct SupportProperty: SandboxProperty {
             try? FileManager.default.createDirectory(at: path, withIntermediateDirectories: true)
             return path
         } else {
-            return try! FileManager.default.path(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+            // in non-sandboxed apps, the .applicationSupportDirectory is just ~/Library/Application Support
+            // and we still need to make a namespaced folder
+            let appSupportFolder = try! FileManager.default.path(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+            if ProcessInfo.processInfo.entitlements.isSandboxed == false {
+                let processName = Bundle.main.name
+                let folder = appSupportFolder.appending(component: processName)
+                try? FileManager.default.createDirectory(at: folder)
+                return folder
+            } else {
+                return appSupportFolder
+            }
         }
     }
     
