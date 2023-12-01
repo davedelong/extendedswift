@@ -26,7 +26,15 @@ extension Collection {
         })
     }
     
-    public func max<C: Comparable>(of property: (Element) -> C) -> Element? {
+    public func max<C: Comparable>(of property: (Element) -> C) -> C? {
+        return self.lazy.map(property).max()
+    }
+    
+    public func min<C: Comparable>(of property: (Element) -> C) -> C? {
+        return self.lazy.map(property).min()
+    }
+    
+    public func max<C: Comparable>(by property: (Element) -> C) -> Element? {
         return self.max(by: { (l, r) -> Bool in
             let lValue = property(l)
             let rValue = property(r)
@@ -34,7 +42,7 @@ extension Collection {
         })
     }
     
-    public func min<C: Comparable>(of property: (Element) -> C) -> Element? {
+    public func min<C: Comparable>(by property: (Element) -> C) -> Element? {
         return self.min(by: { (l, r) -> Bool in
             let lValue = property(l)
             let rValue = property(r)
@@ -61,11 +69,11 @@ extension Collection {
 extension Collection where Element: Comparable {
     
     public func max() -> Element? {
-        return self.max(of: { $0 })
+        return self.max(by: { $0 })
     }
     
     public func min() -> Element? {
-        return self.min(of: { $0 })
+        return self.min(by: { $0 })
     }
     
     public func range() -> ClosedRange<Element>? {
