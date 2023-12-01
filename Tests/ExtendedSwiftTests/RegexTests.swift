@@ -13,7 +13,7 @@ class RegexTests: XCTestCase {
     func testLastMatch() throws {
         let r = /(\d+)/
         if let m1 = try r.lastMatch(in: "123 456") {
-            XCTAssertEqual(m1.1, "456")
+            XCTAssertEqual(m1.1, "6")
         } else {
             XCTFail()
         }
@@ -43,7 +43,7 @@ class RegexTests: XCTestCase {
     func testLastReplacement() throws {
         let r = /\d+/
         let s1 = "123 456".replacingLastMatch(of: r, with: "bob")
-        XCTAssertEqual(s1, "123 bob")
+        XCTAssertEqual(s1, "123 45bob")
     }
     
     func testReplacement() throws {

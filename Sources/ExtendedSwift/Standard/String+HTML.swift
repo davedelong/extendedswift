@@ -10,29 +10,24 @@ import Foundation
 extension String {
     
     public func decodingHTMLEntities() -> String {
-        var mutable = self
-        let allMatches = (try? EntityRegex.allMatches(in: self)) ?? []
-        
-        for match in allMatches.reversed() {
+        return self.replacingAllMatches(of: EntityRegex, using: { match in
             
             if let numericEntity = match.output.2 {
                 if let int = Int(numericEntity), let scalar = Unicode.Scalar(int) {
-                    mutable = mutable.replacingCharacters(in: match.range, with: String(scalar))
+                    return String(scalar)
                 }
             } else if let hexEntity = match.output.3 {
                 if let int = Int(hexEntity, radix: 16), let scalar = Unicode.Scalar(int) {
-                    mutable = mutable.replacingCharacters(in: match.range, with: String(scalar))
+                    return String(scalar)
                 }
             } else if let namedEntity = match.output.4 {
                 let name = EntityName(rawValue: String(namedEntity))
                 if let replacement = EntityLookup[name] {
-                    mutable = mutable.replacingCharacters(in: match.range, with: replacement.rawValue)
+                    return replacement.rawValue
                 }
             }
-            
-        }
-        
-        return mutable
+            return String(match.0)
+        })
     }
     
     public struct HTMLEncodingOptions: OptionSet {
