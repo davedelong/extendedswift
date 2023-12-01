@@ -19,6 +19,15 @@ extension RangeReplaceableCollection {
         lhs.append(rhs)
     }
     
+    public mutating func mutatingMap<V>(_ iterator: (inout Element) throws -> V) rethrows -> Array<V> {
+        var final = Array<V>()
+        for index in self.indices {
+            var item = self[index]
+            final.append(try iterator(&item))
+        }
+        return final
+    }
+    
     public mutating func mutatingForEach(_ iterator: (inout Element) throws -> Void) rethrows {
         for index in self.indices {
             var item = self[index]
