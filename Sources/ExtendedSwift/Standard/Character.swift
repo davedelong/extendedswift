@@ -9,6 +9,11 @@ import Foundation
 
 extension Character {
     
+    public static var newline: Self { "\n" }
+    public static var space: Self { " " }
+    public static var hyphen: Self { "-" }
+    public static var comma: Self { "," }
+    
     public var isASCIIDigit: Bool { isASCII && isWholeNumber }
     
     public var isAlphanumeric: Bool { isLetter || isNumber }
