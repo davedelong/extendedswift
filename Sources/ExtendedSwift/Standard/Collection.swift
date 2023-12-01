@@ -154,11 +154,11 @@ extension Collection {
 
 extension Collection where Element: Numeric {
     
-    public func sum() -> Element? {
+    public var sum: Element? {
         return self.sum(of: { $0 })
     }
     
-    public func product() -> Element? {
+    public var product: Element? {
         return self.product(of: { $0 })
     }
     

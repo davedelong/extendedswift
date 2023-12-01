@@ -68,15 +68,15 @@ extension Collection {
 
 extension Collection where Element: Comparable {
     
-    public func max() -> Element? {
+    public var max: Element? {
         return self.max(by: { $0 })
     }
     
-    public func min() -> Element? {
+    public var min: Element? {
         return self.min(by: { $0 })
     }
     
-    public func range() -> ClosedRange<Element>? {
+    public var range: ClosedRange<Element>? {
         return self.range(of: { $0 })
     }
     
