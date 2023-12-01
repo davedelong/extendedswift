@@ -50,7 +50,7 @@ public struct CountedSet<Element: Hashable> {
     /// The total number of elements in the set
     ///
     /// - Complexity: O(*n*), where *n* is the number of unique elements.
-    public var count: Int { storage.values.sum() ?? 0 }
+    public var count: Int { storage.values.sum ?? 0 }
     
     /// Whether an element exists in the set
     /// - Parameter element: The element to be located
