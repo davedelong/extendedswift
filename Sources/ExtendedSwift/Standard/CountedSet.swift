@@ -70,24 +70,36 @@ public struct CountedSet<Element: Hashable> {
     
     @discardableResult
     public mutating func insert(_ newMember: Element) -> (inserted: Bool, memberAfterInsert: Element) {
+        self.insert(newMember, times: 1)
+    }
+    
+    @discardableResult
+    public mutating func remove(_ member: Element) -> Element? {
+        self.remove(member, times: 1)
+    }
+    
+    @discardableResult
+    public mutating func insert(_ newMember: Element, times: Int) -> (inserted: Bool, memberAfterInsert: Element) {
+        precondition(times > 0)
         let key: Element
         if let keyIndex = storage.keys.firstIndex(of: newMember) {
             key = storage.keys[keyIndex]
         } else {
             key = newMember
         }
-        let count = storage[key, default: 0] + 1
+        let count = storage[key, default: 0] + times
         storage[key] = count
         return (true, key)
     }
     
     @discardableResult
-    public mutating func remove(_ member: Element) -> Element? {
+    public mutating func remove(_ member: Element, times: Int) -> Element? {
+        precondition(times > 0)
         guard let keyIndex = storage.keys.firstIndex(of: member) else {
             return nil
         }
         let key = storage.keys[keyIndex]
-        let count = storage[key, default: 1] - 1
+        let count = storage[key, default: 1] - times
         if count <= 0 {
             storage[key] = nil
         } else {
