@@ -58,13 +58,13 @@ extension Regex {
         
     }
     
-    public func lastMatch(in s: String, allowOverlaps: Bool = false) throws -> Match? {
-        return try self.lastMatch(in: s[...], allowOverlaps: allowOverlaps)
+    public func lastMatch(in s: String) throws -> Match? {
+        return try self.lastMatch(in: s[...])
     }
     
-    public func lastMatch(in s: Substring, allowOverlaps: Bool = false) throws -> Match? {
+    public func lastMatch(in s: Substring) throws -> Match? {
         var previous: Match?
-        for match in self.matches(in: s, allowOverlaps: allowOverlaps) {
+        for match in self.matches(in: s, allowOverlaps: true) {
             previous = match
         }
         return previous
@@ -85,10 +85,5 @@ extension Regex {
     public func matches(in s: Substring, allowOverlaps: Bool = false) -> MatchSequence {
         return MatchSequence(regex: self, source: s, allowOverlaps: allowOverlaps)
     }
-    
-}
-
-extension BidirectionalCollection {
-    
     
 }
