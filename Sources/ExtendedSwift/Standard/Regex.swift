@@ -14,9 +14,10 @@ extension Regex {
         
         internal let regex: Regex
         internal let source: Substring
+        internal let allowOverlaps: Bool
         
         public func makeIterator() -> MatchIterator {
-            return MatchIterator(regex: regex, source: source)
+            return MatchIterator(regex: regex, source: source, allowOverlaps: allowOverlaps)
         }
         
     }
@@ -26,18 +27,30 @@ extension Regex {
         
         internal let regex: Regex
         internal var source: Substring
+        internal let allowOverlaps: Bool
         
         public mutating func next() -> Match? {
             guard let next = try? regex.firstMatch(in: source) else {
                 return nil
             }
             
-            let endOfMatch = next.range.upperBound
-            
-            if endOfMatch < source.endIndex {
-                source = source[endOfMatch ..< source.endIndex]
+            if allowOverlaps {
+                let startOfMatch = next.range.lowerBound
+                let startOfElementAfter = source.index(after: startOfMatch)
+                
+                if startOfElementAfter < source.endIndex {
+                    source = source[startOfElementAfter ..< source.endIndex]
+                } else {
+                    source = source[source.endIndex...]
+                }
             } else {
-                source = source[source.endIndex...]
+                let endOfMatch = next.range.upperBound
+                
+                if endOfMatch < source.endIndex {
+                    source = source[endOfMatch ..< source.endIndex]
+                } else {
+                    source = source[source.endIndex...]
+                }
             }
             
             return next
@@ -45,32 +58,37 @@ extension Regex {
         
     }
     
-    public func lastMatch(in s: String) throws -> Match? {
-        return try self.lastMatch(in: s[...])
+    public func lastMatch(in s: String, allowOverlaps: Bool = false) throws -> Match? {
+        return try self.lastMatch(in: s[...], allowOverlaps: allowOverlaps)
     }
     
-    public func lastMatch(in s: Substring) throws -> Match? {
+    public func lastMatch(in s: Substring, allowOverlaps: Bool = false) throws -> Match? {
         var previous: Match?
-        for match in self.matches(in: s) {
+        for match in self.matches(in: s, allowOverlaps: allowOverlaps) {
             previous = match
         }
         return previous
     }
     
-    public func allMatches(in s: String) throws -> Array<Match> {
-        return Array(self.matches(in: s))
+    public func allMatches(in s: String, allowOverlaps: Bool = false) throws -> Array<Match> {
+        return Array(self.matches(in: s, allowOverlaps: allowOverlaps))
     }
     
-    public func allMatches(in s: Substring) throws -> Array<Match> {
-        return Array(self.matches(in: s))
+    public func allMatches(in s: Substring, allowOverlaps: Bool = false) throws -> Array<Match> {
+        return Array(self.matches(in: s, allowOverlaps: allowOverlaps))
     }
     
-    public func matches(in s: String) -> MatchSequence {
-        return MatchSequence(regex: self, source: s[...])
+    public func matches(in s: String, allowOverlaps: Bool = false) -> MatchSequence {
+        return MatchSequence(regex: self, source: s[...], allowOverlaps: allowOverlaps)
     }
     
-    public func matches(in s: Substring) -> MatchSequence {
-        return MatchSequence(regex: self, source: s)
+    public func matches(in s: Substring, allowOverlaps: Bool = false) -> MatchSequence {
+        return MatchSequence(regex: self, source: s, allowOverlaps: allowOverlaps)
     }
+    
+}
+
+extension BidirectionalCollection {
+    
     
 }

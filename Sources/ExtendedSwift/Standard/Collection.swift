@@ -14,6 +14,8 @@ extension Collection {
     
     public var firstIndex: Index? { self.indices.first }
     
+    public var indexRange: Range<Index> { self.startIndex ..< self.endIndex }
+    
     public func nilIfEmpty() -> Self? {
         if isEmpty { return nil }
         return self
