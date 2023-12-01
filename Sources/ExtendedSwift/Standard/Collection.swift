@@ -118,6 +118,13 @@ extension Collection {
         return self[position]
     }
     
+    public subscript(offset value: Int) -> Element? {
+        let i = self.index(self.startIndex, offsetBy: value)
+        if i >= self.endIndex { return nil }
+        if i < self.startIndex { return nil }
+        return self[i]
+    }
+    
     public func paddingPrefix(toLength: Int, with element: Element) -> Array<Element> {
         let neededLength = toLength - self.count
         if neededLength <= 0 { return Array(self) }
