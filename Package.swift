@@ -34,7 +34,8 @@ let package = Package(
         .target(name: "ExtendedSwift",
                 dependencies: [
                     "PrivateAPI",
-                    .product(name: "Algorithms", package: "swift-algorithms")
+                    .product(name: "Algorithms", package: "swift-algorithms"),
+                    .product(name: "Logging", package: "swift-log")
                 ],
                 resources: [
                     .copy("Resources/entities.json")
