@@ -117,6 +117,18 @@ extension Collection {
         guard position < endIndex else { return nil }
         return self[position]
     }
+    
+    public func paddingPrefix(toLength: Int, with element: Element) -> Array<Element> {
+        let neededLength = toLength - self.count
+        if neededLength <= 0 { return Array(self) }
+        return Array(repeating: element, count: neededLength) + Array(self)
+    }
+    
+    public func paddingSuffix(toLength: Int, with element: Element) -> Array<Element> {
+        let neededLength = toLength - self.count
+        if neededLength <= 0 { return Array(self) }
+        return Array(self) + Array(repeating: element, count: neededLength)
+    }
 }
 
 extension Collection {
