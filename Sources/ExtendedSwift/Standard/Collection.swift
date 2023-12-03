@@ -138,6 +138,29 @@ extension Collection {
         if neededLength <= 0 { return Array(self) }
         return Array(self) + Array(repeating: element, count: neededLength)
     }
+    
+    public func offset(of index: Index) -> Int {
+        if index < startIndex {
+            var offset = -1
+            var next = self.index(startIndex, offsetBy: offset)
+            while next != index {
+                offset -= 1
+                next = self.index(next, offsetBy: -1)
+            }
+            return offset
+        } else if index > startIndex {
+            var offset = 1
+            var next = self.index(startIndex, offsetBy: offset)
+            while next != index {
+                offset += 1
+                next = self.index(next, offsetBy: 1)
+            }
+            return offset
+        } else {
+            // index == startIndex
+            return 0
+        }
+    }
 }
 
 extension Collection {
