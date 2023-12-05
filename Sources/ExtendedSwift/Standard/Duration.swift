@@ -17,7 +17,7 @@ extension Duration {
         return try await ContinuousClock().measure(work)
     }
     
-    public var formatted: String {
+    public var formattedDescription: String {
         var time = Double(components.seconds) + (Double(components.attoseconds) / 1.0e18)
         let unit: String
         if time > 1.0 {

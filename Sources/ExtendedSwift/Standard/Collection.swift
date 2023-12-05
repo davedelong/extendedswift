@@ -140,26 +140,7 @@ extension Collection {
     }
     
     public func offset(of index: Index) -> Int {
-        if index < startIndex {
-            var offset = -1
-            var next = self.index(startIndex, offsetBy: offset)
-            while next != index {
-                offset -= 1
-                next = self.index(next, offsetBy: -1)
-            }
-            return offset
-        } else if index > startIndex {
-            var offset = 1
-            var next = self.index(startIndex, offsetBy: offset)
-            while next != index {
-                offset += 1
-                next = self.index(next, offsetBy: 1)
-            }
-            return offset
-        } else {
-            // index == startIndex
-            return 0
-        }
+        return self.distance(from: startIndex, to: index)
     }
 }
 

@@ -40,6 +40,7 @@ public class AppSession {
     public var allCrashFiles: Array<URL> { app_session_all_crash_files() }
     
     private init(group: GroupContainer, logHandlers: LogHandlers?) {
+        let start = ContinuousClock().now
         // first, read the entitlements
         self.entitlements = ProcessInfo.processInfo.entitlements
         
@@ -76,6 +77,10 @@ public class AppSession {
         self.log = Logger.named("AppSession")
         log.trace("Session \(self.uuid)")
         log.trace("Log folder: \(self.sandbox.logsPath.fileSystemPath)")
+        let end = ContinuousClock().now
+        
+        let elapsed = end - start
+        log.trace("Startup: \(elapsed.formattedDescription))")
     }
     
     public func addCrashMetadata(key: String, value: Bool) { app_session_crash_metadata_add_bool(key, value) }
