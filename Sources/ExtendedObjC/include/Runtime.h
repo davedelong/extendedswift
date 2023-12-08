@@ -34,7 +34,7 @@ void typeEncoding_enumerateTypes(const char *encoding, void(^iterator)(const cha
 
 /// Enumerate the potentially-swizzled methods of a class
 ///
-/// This method does not *definitively* identifiy swizzled methods. It works by locating method implementations that come from a loaded binary that is different from
+/// This method does not *definitively* identify swizzled methods. It works by locating method implementations that come from a loaded binary that is different from
 /// the binary that declares the class. That could indicate a swizzled method, or it could indicate a method that was *added* to the class via an extension from another image.
 ///
 /// - Parameter c: The `Class` whose methods will be inspected

@@ -21,5 +21,9 @@ extension View {
     public func frame(size: CGSize) -> some View {
         self.frame(width: size.width, height: size.height)
     }
+    
+    public func alignment(_ alignment: Alignment) -> some View {
+        self.frame(alignment: alignment)
+    }
 }
 

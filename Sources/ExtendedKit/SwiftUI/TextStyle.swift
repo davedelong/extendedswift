@@ -87,15 +87,9 @@ private struct TextStyleModifier: ViewModifier {
     let style: TextStyle
     
     func body(content: Content) -> some View {
-        let inner = content.font(style.apply(to: font ?? .body))
-            
-        return Group {
-            if let c = style.color {
-                inner.foregroundColor(c)
-            } else {
-                inner
-            }
-        }
+        content
+            .font(style.apply(to: font ?? .body))
+            .foregroundColor(style.color)
     }
     
 }
