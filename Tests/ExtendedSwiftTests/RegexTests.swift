@@ -12,7 +12,7 @@ class RegexTests: XCTestCase {
     
     func testLastMatch() throws {
         let r = /(\d+)/
-        if let m1 = try r.lastMatch(in: "123 456") {
+        if let m1 = r.lastMatch(in: "123 456") {
             XCTAssertEqual(m1.1, "6")
         } else {
             XCTFail()
@@ -22,14 +22,14 @@ class RegexTests: XCTestCase {
     func testAllMatches() throws {
         let r = /\d+/
         
-        let m1 = try r.allMatches(in: "123 456")
+        let m1 = r.allMatches(in: "123 456")
         XCTAssertEqual(m1.count, 2)
         
-        let m2 = try r.allMatches(in: "hello, world")
+        let m2 = r.allMatches(in: "hello, world")
         XCTAssertEqual(m2.count, 0)
         
         let r2 = /^ab/
-        let m3 = try r2.allMatches(in: "abab")
+        let m3 = r2.allMatches(in: "abab")
         XCTExpectFailure("All matches for anchored regexes do not work properly")
         XCTAssertEqual(m3.count, 1)
     }

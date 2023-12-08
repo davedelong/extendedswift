@@ -58,11 +58,11 @@ extension Regex {
         
     }
     
-    public func lastMatch(in s: String) throws -> Match? {
-        return try self.lastMatch(in: s[...])
+    public func lastMatch(in s: String) -> Match? {
+        return self.lastMatch(in: s[...])
     }
     
-    public func lastMatch(in s: Substring) throws -> Match? {
+    public func lastMatch(in s: Substring) -> Match? {
         var previous: Match?
         for match in self.matches(in: s, allowOverlaps: true) {
             previous = match
@@ -70,11 +70,11 @@ extension Regex {
         return previous
     }
     
-    public func allMatches(in s: String, allowOverlaps: Bool = false) throws -> Array<Match> {
+    public func allMatches(in s: String, allowOverlaps: Bool = false) -> Array<Match> {
         return Array(self.matches(in: s, allowOverlaps: allowOverlaps))
     }
     
-    public func allMatches(in s: Substring, allowOverlaps: Bool = false) throws -> Array<Match> {
+    public func allMatches(in s: Substring, allowOverlaps: Bool = false) -> Array<Match> {
         return Array(self.matches(in: s, allowOverlaps: allowOverlaps))
     }
     

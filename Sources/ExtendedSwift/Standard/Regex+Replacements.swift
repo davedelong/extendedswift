@@ -36,7 +36,7 @@ extension String {
     // MARK: - Last
     
     public func replacingLastMatch<Output>(of regex: Regex<Output>, using replacement: (Regex<Output>.Match) -> String) -> String {
-        guard let match = try? regex.lastMatch(in: self) else { return self }
+        guard let match = regex.lastMatch(in: self) else { return self }
         let newValue = replacement(match)
         var copy = self
         copy.replaceSubrange(match.range, with: newValue)

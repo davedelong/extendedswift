@@ -52,6 +52,14 @@ public struct CountedSet<Element: Hashable> {
     /// - Complexity: O(*n*), where *n* is the number of unique elements.
     public var count: Int { storage.values.sum ?? 0 }
     
+    public var uniqueElements: some Collection<Element> {
+        return storage.keys
+    }
+    
+    public var elementsAndCounts: some Collection<(Element, Int)> {
+        return storage.map { $0 }
+    }
+    
     /// Whether an element exists in the set
     /// - Parameter element: The element to be located
     /// - Returns: `true` if the element exists in the set; `false` otherwise.
@@ -66,6 +74,19 @@ public struct CountedSet<Element: Hashable> {
     /// - Complexity: O(1)
     public func count(for element: Element) -> Int {
         return storage[element, default: 0]
+    }
+    
+    public mutating func setCount(_ count: Int, for element: Element) {
+        if count <= 0 {
+            storage[element] = nil
+        } else {
+            storage[element] = count
+        }
+    }
+    
+    public subscript(element: Element) -> Int {
+        get { return count(for: element) }
+        set { setCount(newValue, for: element) }
     }
     
     @discardableResult
