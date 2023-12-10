@@ -23,4 +23,8 @@ extension EdgeInsets {
         self.init(top: vertical, leading: horizontal, bottom: vertical, trailing: horizontal)
     }
     
+    public var inverted: Self {
+        return .init(top: -top, leading: -leading, bottom: -bottom, trailing: -trailing)
+    }
+    
 }
