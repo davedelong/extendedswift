@@ -14,6 +14,7 @@ extension FixedWidthInteger {
     }
     
     public static func leastCommonMultiple(of values: some Collection<Self>) -> Self {
+        if values.isEmpty { return .zero }
         let v = values.first!
         let r = values.dropFirst()
         if r.isEmpty { return v }

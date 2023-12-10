@@ -22,6 +22,10 @@ extension View {
         self.frame(width: size.width, height: size.height)
     }
     
+    public func frame(size: CGSize, alignment: Alignment) -> some View {
+        self.frame(width: size.width, height: size.height, alignment: alignment)
+    }
+    
     public func alignment(_ alignment: Alignment) -> some View {
         self.frame(alignment: alignment)
     }
