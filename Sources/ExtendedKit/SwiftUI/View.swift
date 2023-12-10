@@ -27,7 +27,7 @@ extension View {
     }
     
     public func alignment(_ alignment: Alignment) -> some View {
-        self.frame(alignment: alignment)
+        self.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment)
     }
 }
 
