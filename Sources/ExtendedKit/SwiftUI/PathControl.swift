@@ -81,7 +81,7 @@ public struct PathControl<Actions: View>: View {
 
 private struct PathSegment {
     static func segments(from path: ExtendedSwift.Path) -> Array<PathSegment> {
-        let home = ExtendedSwift.Path(fileSystemPath: NSHomeDirectory()).components
+        let home = FileManager.userHomeDirectory.components
 
         var components = Array<ExtendedSwift.PathComponent>()
         
