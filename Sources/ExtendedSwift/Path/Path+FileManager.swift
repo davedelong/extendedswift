@@ -9,7 +9,6 @@ import Foundation
 
 extension FileManager {
 
-    public static var userHomeDirectory: Path { return userHome }
     public static var applicationCacheDirectory: Path { return appCacheDirectory }
     public static var applicationSupportDirectory: Path { return appSupportDirectory }
     
@@ -151,16 +150,6 @@ private func appSpecificDirectory(directory: FileManager.SearchPathDirectory) ->
     return appFolder
 }
 
-private let userHome: Path = {
-    var p = Path(fileSystemPath: NSHomeDirectory())
-    if ProcessInfo.processInfo.entitlements.isSandboxed == false {
-        return p
-    } else {
-        // ~/Library/Containers/{bundle id}/Data
-        let homeComponents = p.components.dropLast(4)
-        return Path(Array(homeComponents))
-    }
-}()
 private let appCacheDirectory: Path = { return appSpecificDirectory(directory: .cachesDirectory) }()
 private let appSupportDirectory: Path = { return appSpecificDirectory(directory: .applicationSupportDirectory) }()
 
