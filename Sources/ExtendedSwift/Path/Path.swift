@@ -9,8 +9,6 @@ import Foundation
 
 prefix operator /
 
-infix operator /: AdditionPrecedence
-
 public prefix func / (rhs: String) -> Path {
     return Path(RelativePath(path: rhs).components)
 }
