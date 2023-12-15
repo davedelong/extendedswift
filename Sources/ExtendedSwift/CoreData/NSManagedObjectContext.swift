@@ -20,6 +20,13 @@ public class ReadOnlyManagedObjectContext: NSManagedObjectContext {
 
 extension NSManagedObjectContext {
     
+    public func fullObject<T: NSManagedObject>(with id: NSManagedObjectID) -> T? {
+        let e = try? self.existingObject(with: id)
+        guard let typed = e as? T else { return nil }
+        self.refresh(typed, mergeChanges: true)
+        return typed
+    }
+    
     public func fetch<E: NSManagedObject>(_ type: E.Type = E.self, ids: Array<String>) throws -> Array<E> {
         let fr = NSFetchRequest<E>()
         fr.entity = E.entity()
