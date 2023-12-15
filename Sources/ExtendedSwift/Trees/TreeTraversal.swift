@@ -107,7 +107,7 @@ extension Tree {
             lines.append(String(repeating: "  ", count: ctx.level) + symbol + " " + describer(node))
             return .continue
         })
-        return lines.joined(separator: "\n")
+        return lines.joined(separator: .newline)
     }
     
 }

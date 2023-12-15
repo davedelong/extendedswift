@@ -13,6 +13,8 @@ extension Character {
     public static var space: Self { " " }
     public static var hyphen: Self { "-" }
     public static var comma: Self { "," }
+    public static var backslash: Self { "\\" }
+    public static var doubleQuote: Self { "\"" }
     
     public var isASCIIDigit: Bool { isASCII && isWholeNumber }
     

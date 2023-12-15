@@ -69,6 +69,43 @@ extension String {
         self.init(utf8String: characters)
     }
     
+    public func tokenize() -> Array<String> {
+        var terms = Array<String>()
+        var current = ""
+        
+        var isCurrentlyEscaping = false
+        var isInsideQuote = false
+        
+        for character in self {
+            if isCurrentlyEscaping {
+                isCurrentlyEscaping = false
+                current.append(character)
+            } else if character == .backslash {
+                isCurrentlyEscaping = true
+            } else if character == .doubleQuote {
+                if isInsideQuote {
+                    terms.append(current)
+                    current = ""
+                }
+                isInsideQuote.toggle()
+            } else if isInsideQuote {
+                current.append(character)
+            } else if character.isWhitespace == false {
+                current.append(character)
+            } else {
+                // it's whitespace
+                if current.isEmpty == false {
+                    terms.append(current)
+                }
+                current = ""
+            }
+        }
+        if current.isEmpty == false {
+            terms.append(current)
+        }
+        return terms
+    }
+    
 }
 
 // Sadly, this causes too may problems
