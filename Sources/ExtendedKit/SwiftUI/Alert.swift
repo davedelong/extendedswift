@@ -12,11 +12,11 @@ extension View {
     public func alert<V, Message: View, Actions: View>(_ titleKey: LocalizedStringKey, item: Binding<V?>, @ViewBuilder message: (V) -> Message, @ViewBuilder actions: (V) -> Actions) -> some View {
         self.alert(titleKey, isPresented: item.isNotNull(), actions: {
             if let value = item.wrappedValue {
-                actions(item.wrappedValue!)
+                actions(value)
             }
         }, message: {
             if let value = item.wrappedValue {
-                message(item.wrappedValue!)
+                message(value)
             }
         })
     }

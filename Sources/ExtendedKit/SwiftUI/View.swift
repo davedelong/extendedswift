@@ -29,5 +29,18 @@ extension View {
     public func alignment(_ alignment: Alignment) -> some View {
         self.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment)
     }
+    
+    public func whenAligned(to verticalAlignment: VerticalAlignment, use guide: VerticalAlignment, offset: CGFloat = 0) -> some View {
+        self.alignmentGuide(verticalAlignment, computeValue: { $0[guide] + offset })
+    }
+    
+    public func whenAligned(to horizontalAlignment: HorizontalAlignment, use guide: HorizontalAlignment, offset: CGFloat = 0) -> some View {
+        self.alignmentGuide(horizontalAlignment, computeValue: { $0[guide] + offset })
+    }
+    
+    public func whenAligned(to alignment: Alignment, use guide: Alignment, offset: CGSize = .zero) -> some View {
+        self.alignmentGuide(alignment.horizontal, computeValue: { $0[guide.horizontal] + offset.width })
+            .alignmentGuide(alignment.vertical, computeValue: { $0[guide.vertical] + offset.height })
+    }
 }
 
