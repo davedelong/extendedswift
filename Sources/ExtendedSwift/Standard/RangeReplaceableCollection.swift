@@ -73,4 +73,18 @@ extension RangeReplaceableCollection where Self: MutableCollection {
         }
     }
     
+    public mutating func extractAll(where matches: (Element) throws -> Bool) rethrows -> Array<Element> {
+        var extracted = Array<Element>()
+        var new = Self()
+        
+        for item in self {
+            if try matches(item) {
+                extracted.append(item)
+            } else {
+                new.append(item)
+            }
+        }
+        self = new
+        return extracted
+    }
 }
