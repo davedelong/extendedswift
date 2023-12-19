@@ -47,6 +47,7 @@ let package = Package(
         .target(name: "ExtendedKit",
                 dependencies: [
                     "ExtendedSwift",
+                    "ExtendedObjC",
                     "PrivateAPI",
                     .product(name: "Logging", package: "swift-log")
                 ],
