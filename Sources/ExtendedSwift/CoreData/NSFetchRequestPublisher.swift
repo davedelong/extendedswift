@@ -42,35 +42,16 @@ private class NSFetchRequestSubscription<T: NSFetchRequestResult>: NSObject, Sub
     private var context: NSManagedObjectContext
     private var observer: NSFetchedResultsController<T>?
     
-    private var send: (Result<Array<T>, Error>) -> Subscribers.Demand
-    private var totalDemand = Subscribers.Demand.none {
-        didSet { updateBasedOnNewDemand() }
-    }
+    private var send: (Result<Array<T>, Error>) -> Void
     
     init<S: Subscriber>(fetchRequest: NSFetchRequest<T>, context: NSManagedObjectContext, subscriber: S) where S.Input == Array<T>, S.Failure == Error {
         self.fetchRequest = fetchRequest
         self.context = context
-        self.send = { subscriber.receive($0) }
+        self.send = { _ = subscriber.receive($0) }
     }
     
     func request(_ demand: Subscribers.Demand) {
-        totalDemand += demand
-    }
-    
-    func cancel() {
-        totalDemand = .none
-    }
-    
-    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        guard controller == self.observer else { return }
-        guard totalDemand > 0 else { return }
-        self.processFetchedObjects()
-    }
-    
-    private func updateBasedOnNewDemand() {
-        if totalDemand > 0  && observer == nil {
-            // create the observer if necessary
-            
+        if demand > .none && observer == nil {
             self.observer = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
             self.observer?.delegate = self
             
@@ -80,22 +61,28 @@ private class NSFetchRequestSubscription<T: NSFetchRequestResult>: NSObject, Sub
                 }
                 self.processFetchedObjects()
             } catch {
-                totalDemand = self.send(.failure(error))
+                // an error fetching data fails the subscription
+                // and by changing the "send" block, we will never use this subscription again
+                self.send(.failure(error))
+                self.observer = nil
+                self.send = { _ in } //
             }
-            
         }
-        
-        // this is a separate if statement, because setting up the observer and sending initial values
-        // might cause the demand to drop back to zero, which should reset the observer
-        if totalDemand == .none {
-            observer?.delegate = nil
-            observer = nil
-        }
+    }
+    
+    func cancel() {
+        observer?.delegate = nil
+        observer = nil
+    }
+    
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        guard controller == self.observer else { return }
+        self.processFetchedObjects()
     }
     
     private func processFetchedObjects() {
         let objects = self.observer?.fetchedObjects
-        totalDemand = self.send(.success(objects ?? []))
+        self.send(.success(objects ?? []))
     }
     
 }
