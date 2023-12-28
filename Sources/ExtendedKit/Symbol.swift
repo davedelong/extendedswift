@@ -67,7 +67,7 @@ extension Symbol {
         })
     }
     
-    public static func fileIcon(_ path: Path) -> Self {
+    public static func fileIcon(_ path: ExtendedSwift.Path) -> Self {
         self.init(sourceProvider: {
             let img = NSWorkspace.shared.icon(forFile: path.fileSystemPath)
             return .image(img)
