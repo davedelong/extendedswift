@@ -60,6 +60,20 @@ extension Symbol {
         })
     }
     
+    public static func fileIcon(_ url: URL) -> Self {
+        self.init(sourceProvider: {
+            let img = NSWorkspace.shared.icon(forFile: url.path())
+            return .image(img)
+        })
+    }
+    
+    public static func fileIcon(_ path: Path) -> Self {
+        self.init(sourceProvider: {
+            let img = NSWorkspace.shared.icon(forFile: path.fileSystemPath)
+            return .image(img)
+        })
+    }
+    
     public static func application(_ bundleID: String) -> Self {
         self.init(sourceProvider: {
             if let u = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) {

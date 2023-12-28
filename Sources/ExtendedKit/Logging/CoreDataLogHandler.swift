@@ -11,19 +11,17 @@ import CoreData
 
 internal let LogSchema: NSManagedObjectModel = {
     
-    let m = NSManagedObjectModel()
-    
-    let entryEntity = NSEntityDescription("LogEntry", properties: [
-        NSAttributeDescription.date("timestamp"),
-        NSAttributeDescription.string("level"),
-        NSAttributeDescription.string("category"),
-        NSAttributeDescription.string("message"),
-        NSAttributeDescription.string("source"),
-        NSAttributeDescription.string("location"),
-        NSAttributeDescription.string("metadata")
-    ])
-    
-    m.entities = [entryEntity]
+    let m = NSManagedObjectModel {
+        NSEntityDescription("LogEntry", properties: {
+            NSAttributeDescription.date("timestamp")
+            NSAttributeDescription.string("level")
+            NSAttributeDescription.string("category")
+            NSAttributeDescription.string("message")
+            NSAttributeDescription.string("source")
+            NSAttributeDescription.string("location")
+            NSAttributeDescription.string("metadata")
+        })
+    }
     
     return m
 }()

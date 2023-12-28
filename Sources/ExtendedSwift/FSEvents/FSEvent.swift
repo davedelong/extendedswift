@@ -45,6 +45,12 @@ public struct FSFlags: OptionSet, CustomStringConvertible {
     public static let itemIsLastHardlink = FSFlags(rawValue: kFSEventStreamEventFlagItemIsLastHardlink)
     public static let itemCloned = FSFlags(rawValue: kFSEventStreamEventFlagItemCloned)
 
+    
+    private static let itemMetadataFlags: FSFlags = [.itemInodeMetaMod, .itemFinderInfoMod, .itemChangeOwner, .itemXattrMod]
+
+    private static let itemFlags: FSFlags = [.itemCreated, .itemRemoved, .itemRenamed, .itemModified,
+                                             .itemInodeMetaMod, .itemFinderInfoMod, .itemChangeOwner, .itemXattrMod]
+    
     public let rawValue: Int
     
     public init(rawValue: Int) {
@@ -81,14 +87,11 @@ public struct FSFlags: OptionSet, CustomStringConvertible {
         return "FSFlags(\(hex: rawValue): " + pieces.joined(separator: ", ") + ")"
     }
     
-    public var isItemEvent: Bool { self.intersects(itemFlags) }
+    public var isItemEvent: Bool { self.intersects(Self.itemFlags) }
     
-    public var isItemMetadataEvent: Bool { self.intersects(itemMetadataFlags) }
+    public var isItemMetadataEvent: Bool { self.intersects(Self.itemMetadataFlags) }
+    
+    public var originatesFromCurrentProcess: Bool { self.contains(.ownEvent) }
 }
-
-private let itemMetadataFlags: FSFlags = [.itemInodeMetaMod, .itemFinderInfoMod, .itemChangeOwner, .itemXattrMod]
-
-private let itemFlags: FSFlags = [.itemCreated, .itemRemoved, .itemRenamed, .itemModified,
-                                  .itemInodeMetaMod, .itemFinderInfoMod, .itemChangeOwner, .itemXattrMod]
 
 #endif

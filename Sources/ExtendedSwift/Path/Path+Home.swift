@@ -5,8 +5,9 @@
 //  Created by Dave DeLong on 12/10/23.
 //
 
-#if os(macOS)
 import Foundation
+
+#if os(macOS)
 
 /*
 import Collaboration

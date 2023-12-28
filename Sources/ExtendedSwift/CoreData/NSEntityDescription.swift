@@ -16,4 +16,10 @@ extension NSEntityDescription {
         self.properties = properties
     }
     
+    public convenience init(_ name: String, @ArrayBuilder<NSPropertyDescription> properties: () -> Array<NSPropertyDescription>) {
+        self.init()
+        self.name = name
+        self.properties = properties()
+    }
+    
 }

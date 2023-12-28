@@ -9,6 +9,7 @@ import Foundation
 import Combine
 
 // internal while i still work on this
+#warning("TODO: FileObserver")
 
 struct Item: Identifiable, Hashable {
     let id: URL

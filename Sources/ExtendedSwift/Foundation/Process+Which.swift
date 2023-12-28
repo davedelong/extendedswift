@@ -86,7 +86,7 @@ private func odShell(for user: uid_t) throws -> URL? {
                             matchType: ODMatchType(kODMatchEqualTo),
                             queryValues: "\(user)",
                             returnAttributes: [kODAttributeTypeUserShell],
-                            maximumResults: 0)
+                            maximumResults: 1)
     
     let results = try query.resultsAllowingPartial(false)
 

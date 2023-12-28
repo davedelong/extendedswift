@@ -65,4 +65,35 @@ extension NSAttributeDescription {
         self.attributeType = type
     }
     
+    public convenience init<T: NSPersistedAttributeType>(name: String, type: T.Type = T.self, defaultValue: T? = nil) {
+        self.init()
+        self.name = name
+        self.isOptional = false
+        if let valueTransformerName = T.transformer {
+            self.attributeType = .transformableAttributeType
+            self.valueTransformerName = valueTransformerName.rawValue
+        } else {
+            self.attributeType = T.attributeType
+        }
+        
+        if let defaultValue {
+            self.defaultValue = defaultValue
+        }
+    }
+    
+    public convenience init<T: NSPersistedAttributeType>(name: String, type: Optional<T>.Type = Optional<T>.self, defaultValue: T? = nil) {
+        self.init()
+        self.name = name
+        self.isOptional = true
+        if let valueTransformerName = T.transformer {
+            self.attributeType = .transformableAttributeType
+            self.valueTransformerName = valueTransformerName.rawValue
+        } else {
+            self.attributeType = T.attributeType
+        }
+        
+        if let defaultValue {
+            self.defaultValue = defaultValue
+        }
+    }
 }
