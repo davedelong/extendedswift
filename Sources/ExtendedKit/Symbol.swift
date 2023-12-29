@@ -36,6 +36,18 @@ public struct Symbol {
         self.sourceProvider = sourceProvider
     }
     
+    public init(image: PlatformImage) {
+        self.sourceProvider = { .image(image) }
+    }
+    
+    public init(systemName: String) {
+        self.sourceProvider = { .systemName(systemName) }
+    }
+    
+    public init(named: String, bundle: Bundle? = nil) {
+        self.sourceProvider = { .named(named, bundle) }
+    }
+    
 }
 
 extension Symbol {
