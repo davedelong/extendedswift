@@ -44,3 +44,56 @@ extension View {
     }
 }
 
+extension View {
+    
+    public func readFrame(in coordinateSpace: CoordinateSpace = .local, onChange: @escaping (CGRect) -> Void) -> some View {
+        let deduper = Deduper<CGRect>(action: onChange)
+        return self.overlay(GeometryReader { proxy in
+            Color.clear.id(UUID()).onAppear { deduper.report(proxy.frame(in: coordinateSpace)) }
+        })
+    }
+    
+    public func readOrigin(in coordinateSpace: CoordinateSpace = .local, onChange: @escaping (CGPoint) -> Void) -> some View {
+        return self.readFrame(in: coordinateSpace, onChange: { onChange($0.origin) })
+    }
+    
+    public func readPosition(in coordinateSpace: CoordinateSpace = .local, onChange: @escaping (CGPoint) -> Void) -> some View {
+        return self.readFrame(in: coordinateSpace, onChange: { onChange($0.center) })
+    }
+    
+    public func readSize(in coordinateSpace: CoordinateSpace = .local, onChange: @escaping (CGSize) -> Void) -> some View {
+        return self.readFrame(in: coordinateSpace, onChange: { onChange($0.size) })
+    }
+    
+    public func readFrame(_ binding: Binding<CGRect>, in coordinateSpace: CoordinateSpace = .local) -> some View {
+        self.readFrame(in: coordinateSpace, onChange: { binding.wrappedValue = $0 })
+    }
+    
+    public func readSize(_ binding: Binding<CGSize>, in coordinateSpace: CoordinateSpace = .local) -> some View {
+        self.readFrame(in: coordinateSpace, onChange: { binding.wrappedValue = $0.size })
+    }
+    
+    public func readOrigin(_ binding: Binding<CGPoint>, in coordinateSpace: CoordinateSpace = .local) -> some View {
+        self.readFrame(in: coordinateSpace, onChange: { binding.wrappedValue = $0.origin })
+    }
+    
+    public func readPosition(_ binding: Binding<CGPoint>, in coordinateSpace: CoordinateSpace = .local) -> some View {
+        self.readFrame(in: coordinateSpace, onChange: { binding.wrappedValue = $0.center })
+    }
+    
+}
+
+private class Deduper<T: Equatable> {
+    private var previous: T?
+    private var action: (T) -> Void
+    
+    init(action: @escaping (T) -> Void) {
+        self.action = action
+    }
+    
+    func report(_ value: T) -> Void {
+        guard value != previous else { return }
+        previous = value
+        action(value)
+    }
+}
