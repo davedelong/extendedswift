@@ -9,7 +9,7 @@ import Foundation
 
 #if os(macOS)
 
-import Cocoa
+import AppKit
 
 extension NSControl {
     
