@@ -21,6 +21,8 @@ let package = Package(
         .library(name: "ExtendedObjC", targets: ["ExtendedObjC"]),
         .library(name: "ExtendedSwift", targets: ["ExtendedSwift"]),
         .library(name: "ExtendedKit", targets: ["ExtendedKit"]),
+        
+        .library(name: "HTTP", targets: ["HTTP"]),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-algorithms.git", from: "1.0.0"),
@@ -55,6 +57,13 @@ let package = Package(
                     .unsafeFlags(["-enable-bare-slash-regex"])
                 ]),
         
+        .target(name: "ExtendedTest", dependencies: []),
+        
+        .target(name: "HTTP", 
+                dependencies: [
+                    "ExtendedSwift"
+                ]),
+        
         // TEST TARGETS
         
         .testTarget(name: "ExtendedSwiftTests",
@@ -65,6 +74,7 @@ let package = Package(
         
         .testTarget(name: "PrivateAPITests", dependencies: ["PrivateAPI"]),
         .testTarget(name: "ExtendedObjCTests", dependencies: ["ExtendedObjC"]),
+        .testTarget(name: "HTTPTests", dependencies: ["HTTP", "ExtendedTest"]),
     ]
 )
 
