@@ -31,7 +31,7 @@ public struct Bookmark: Codable {
         }
     }
     
-    private let data: Data
+    public let data: Data
     
     public init(referencing url: URL, options: URL.BookmarkCreationOptions = []) throws {
         self.data = try url.bookmarkData(options: options)
