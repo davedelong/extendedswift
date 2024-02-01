@@ -14,8 +14,8 @@ import Foundation
 public struct ProcessOutput {
     public let exitCode: Int
     public let reason: Process.TerminationReason
-    public let standardOutput: Data
-    public let standardError: Data
+    public let standardOutput: Path
+    public let standardError: Path
 }
 
 extension Process {
@@ -33,25 +33,25 @@ extension Process {
         p.qualityOfService = .userInitiated
         
         return try await withUnsafeThrowingContinuation { c in
-            let aggregator = ProcessIO()
-            p.standardOutput = aggregator.outputPipe
-            p.standardError = aggregator.errorPipe
-            
-            p.terminationHandler = { proc in
-                let status = proc.terminationStatus
-                let reason = proc.terminationReason
+            do {
+                let name = command.lastPathComponent + "-" + UUID.timestampedUUID.uuidString
                 
-                aggregator.withStdoutAndStderr { stdout, stderr in
+                let aggregator = try ProcessIO(name: name)
+                p.standardOutput = aggregator.outputHandle
+                p.standardError = aggregator.errorHandle
+                
+                p.terminationHandler = { proc in
+                    let status = proc.terminationStatus
+                    let reason = proc.terminationReason
+                    
                     let output = ProcessOutput(exitCode: Int(status),
                                                reason: reason,
-                                               standardOutput: stdout,
-                                               standardError: stderr)
+                                               standardOutput: aggregator.outputPath,
+                                               standardError: aggregator.errorPath)
                     
                     c.resume(returning: output)
                 }
-            }
             
-            do {
                 try p.run()
             } catch {
                 c.resume(throwing: error)
@@ -62,29 +62,22 @@ extension Process {
 }
 
 private class ProcessIO {
+    let outputPath: Path
+    let errorPath: Path
     
-    let outputPipe = Pipe()
-    let errorPipe = Pipe()
+    let outputHandle: FileHandle
+    let errorHandle: FileHandle
     
-    private let queue = DispatchQueue(label: "ProcessIO", qos: .userInitiated)
-    private(set) var outputData = Data()
-    private(set) var errorData = Data()
-    
-    init() {
-        outputPipe.fileHandleForReading.readabilityHandler = { [weak self] h in
-            self?.queue.async { self?.outputData.append(h.availableData) }
-        }
-        errorPipe.fileHandleForReading.readabilityHandler = { [weak self] h in
-            self?.queue.async { self?.errorData.append(h.availableData) }
-        }
+    init(name: String) throws {
+        self.outputPath = Path.temporaryDirectory.appending(component: "tmp-\(name).out")
+        self.errorPath = Path.temporaryDirectory.appending(component: "tmp-\(name).err")
+        
+        FileManager.default.createFile(atPath: outputPath)
+        FileManager.default.createFile(atPath: errorPath)
+        
+        self.outputHandle = try FileHandle(forUpdating: outputPath)
+        self.errorHandle = try FileHandle(forUpdating: errorPath)
     }
-    
-    func withStdoutAndStderr(_ task: @escaping (Data, Data) -> Void) {
-        self.queue.async {
-            task(self.outputData, self.errorData)
-        }
-    }
-    
 }
 
 #endif

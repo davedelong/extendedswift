@@ -30,7 +30,9 @@ extension Process {
         
         let output = try await Process.execute(resolvedShell, arguments: ["--login", "-c", "which \(command)"], environment: environment)
         
-        if output.exitCode == 0, let path = String(bytes: output.standardOutput, encoding: .utf8) {
+        let stdOut = try FileManager.default.contentsOfFile(at: output.standardOutput)
+        
+        if output.exitCode == 0, let path = String(bytes: stdOut, encoding: .utf8) {
             let trimmed = path.trimmed()
             if trimmed.isEmpty || trimmed.hasPrefix("/") == false { return nil }
             
@@ -45,8 +47,8 @@ extension Process {
         
         throw NSError(domain: "NSTask", code: output.exitCode, userInfo: [
             "command": command,
-            "standardError": String(bytes: output.standardError, encoding: .utf8) ?? "",
-            "standardOutput": String(bytes: output.standardOutput, encoding: .utf8) ?? "",
+            "standardError": output.standardError.fileSystemPath,
+            "standardOutput": output.standardOutput.fileSystemPath,
         ])
     }
     

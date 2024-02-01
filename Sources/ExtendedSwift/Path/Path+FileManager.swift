@@ -83,6 +83,13 @@ extension FileManager {
         return contents.map { Path($0) }
     }
     
+    public func contentsOfFile(at path: Path) throws -> Data {
+        guard self.fileExists(at: path) else {
+            throw CocoaError(.fileNoSuchFile)
+        }
+        return self.contents(atPath: path.fileSystemPath) ?? Data()
+    }
+    
     public func removeItem(at path: Path) throws {
         try removeItem(atPath: path.fileSystemPath)
     }
