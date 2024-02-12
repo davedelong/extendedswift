@@ -8,9 +8,9 @@
 import Foundation
 
 extension KeyPath {
-    
-    public static prefix func !(rhs: KeyPath<Root, Value>) -> KeyPath<Root, Value> where Value == Bool {
-        return rhs.appending(path: \.negated) as! KeyPath<Root, Value>
+
+    public static prefix func !(rhs: KeyPath<Root, Bool>) -> KeyPath<Root, Bool> {
+        rhs.appending(path: \.negated)
     }
-    
+
 }
