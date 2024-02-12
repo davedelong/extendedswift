@@ -12,4 +12,4 @@ You should not include this project in your own code. Instead, use it as an exam
 
 ---
 
-¹ - By "should", I mean "At some point in the past, I found this useful enough to pull out into its own thing.
+¹ - By "should", I mean "At some point in the past, I found this useful enough to pull out into its own thing."
