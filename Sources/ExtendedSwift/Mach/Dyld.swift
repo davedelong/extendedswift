@@ -7,6 +7,7 @@
 
 import Foundation
 import MachO
+import MachO.dyld.utils
 
 public struct Dyld {
     
@@ -34,8 +35,30 @@ public struct Dyld {
         })
     }
     
-    public static func `open`(_ path: Path, flags: OpenFlags) throws -> Image {
-        return try Image(load: path, flags: flags)
+    public static func loadableImage(from path: Path) throws -> Image {
+        let fat = FAT(contentsOf: path)
+        
+        var bestHeader: UnsafePointer<mach_header>?
+        var bestOffset: UInt64?
+        
+        let status = macho_best_slice(path.fileSystemPath, { header, offset, slide in
+            bestHeader = header
+            bestOffset = offset
+        })
+        
+        guard let bestHeader, let bestOffset, status == 0 else {
+            throw ImageError(kind: .cannotLocateImage, description: "Cannot locate loadable image from \(path)")
+        }
+        
+        guard let header = fat?.headers.first(where: { $0.rawValue == bestHeader }) else {
+            throw ImageError(kind: .cannotLocateImage, description: "Cannot locate best header in \(path)")
+        }
+        
+        return Image(name: path.fileSystemPath, header: header)
+    }
+    
+    public static func `open`(_ path: String, flags: OpenFlags) throws -> Image {
+        return try Image(name: path, flags: flags)
     }
     
     public struct Image: CustomStringConvertible {
@@ -55,47 +78,17 @@ public struct Dyld {
             self.header = header
         }
         
-        internal init(load: Path, flags: OpenFlags) throws {
-            self.name = load.fileSystemPath
-            self.header = try Self.dlopenHandleLock.withLock {
-                let path = load.fileSystemPath
-                
-                let handle: UnsafeMutableRawPointer
-                if let existing = Self.dlopenHandles[path] {
-                    handle = existing
-                } else if let h = dlopen(path, flags.mode) {
-                    handle = h
-                } else {
-                    throw ImageError(kind: .cannotLoadImage, 
-                                     description: String(cString: dlerror()))
-                }
-                
-                var info = Dl_info()
-                let status = dladdr(handle, &info)
-                if status == 0 {
-                    throw ImageError(kind: .cannotLoadImage, description: "Cannot locate header for dlhandle")
-                }
-                
-                let machPointer = info.dli_fbase.assumingMemoryBound(to: mach_header.self)
-                guard let header = Mach.Header(rawValue: machPointer) else {
-                    throw ImageError(kind: .cannotLoadImage, description: "Invalid dli_fbase")
-                }
-                return header
-            }
+        internal init(name: String, flags: OpenFlags) throws {
+            self.name = name
+            self.header = try Self.loadHeader(name, flags: flags)
+        }
+        
+        public func open(_ flags: OpenFlags = .init()) throws {
+            let _ = try Self.load(self.name, flags: flags)
         }
         
         public func symbol(named: String) throws -> UnsafeRawPointer {
-            let handle: UnsafeMutableRawPointer = try Self.dlopenHandleLock.withLock {
-                if let existing = Self.dlopenHandles[name] { return existing }
-                
-                if let h = dlopen(name, RTLD_LAZY | RTLD_NOLOAD) {
-                    Self.dlopenHandles[name] = h
-                    return h
-                } else {
-                    throw ImageError(kind: .cannotLoadImage, 
-                                     description: String(cString: dlerror()))
-                }
-            }
+            let handle = try Self.load(name, flags: .init())
             
             guard let symbol = dlsym(handle, named) else {
                 throw ImageError(kind: .cannotLocateSymbol(named),
@@ -103,6 +96,39 @@ public struct Dyld {
             }
             
             return UnsafeRawPointer(symbol)
+        }
+        
+        internal static func load(_ path: String, flags: OpenFlags) throws -> UnsafeMutableRawPointer {
+            return try Self.dlopenHandleLock.withLock {
+                let handle: UnsafeMutableRawPointer
+                if let existing = Self.dlopenHandles[path] {
+                    handle = existing
+                } else if let h = dlopen(path, flags.mode) {
+                    handle = h
+                    Self.dlopenHandles[path] = h
+                } else {
+                    throw ImageError(kind: .cannotLoadImage,
+                                     description: String(cString: dlerror()))
+                }
+                
+                return handle
+            }
+        }
+        
+        internal static func loadHeader(_ path: String, flags: OpenFlags) throws -> Mach.Header {
+            let dlHandle = try self.load(path, flags: flags)
+            
+            var info = Dl_info()
+            let status = dladdr(dlHandle, &info)
+            if status == 0 {
+                throw ImageError(kind: .cannotLoadImage, description: "Cannot locate header for dlhandle")
+            }
+            
+            let machPointer = info.dli_fbase.assumingMemoryBound(to: mach_header.self)
+            guard let header = Mach.Header(rawValue: machPointer) else {
+                throw ImageError(kind: .cannotLoadImage, description: "Invalid dli_fbase")
+            }
+            return header
         }
         
     }
@@ -130,6 +156,7 @@ public struct Dyld {
     public struct ImageError: Error, CustomStringConvertible {
         
         public enum Kind {
+            case cannotLocateImage
             case cannotLoadImage
             case cannotLocateSymbol(String)
         }

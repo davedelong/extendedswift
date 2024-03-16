@@ -7,6 +7,7 @@
 
 import Foundation
 import MachO
+import MachO.dyld.utils
 
 public enum Mach {
     
@@ -46,6 +47,11 @@ public enum Mach {
         
         public var cpuSubType: Int32 {
             rawValue.pointee.cpusubtype.swapping(self.needsSwapping)
+        }
+        
+        public var architectureName: String? {
+            guard let ptr = macho_arch_name_for_mach_header(rawValue) else { return nil }
+            return String(cString: ptr)
         }
         
         public var description: String {
