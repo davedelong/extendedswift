@@ -60,8 +60,9 @@ public struct Dyld {
             throw ImageError(kind: .cannotLocateImage, description: "Cannot locate loadable header from \(path)")
         }
         
-        guard let header = fat?.headers.first(where: { $0.rawValue == bestHeader }) else {
-            throw ImageError(kind: .cannotLocateImage, description: "Cannot locate best header in \(path)")
+        // construct the header; don't try to match it from the FAT file
+        guard let header = Mach.Header(rawValue: bestHeader) else {
+            throw ImageError(kind: .cannotLocateImage, description: "Best header is not a mach header?")
         }
         
         return Image(name: path.fileSystemPath, header: header)
