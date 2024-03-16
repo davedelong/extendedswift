@@ -131,6 +131,12 @@ public struct Dyld {
             var info = Dl_info()
             let status = dladdr(dlHandle, &info)
             if status == 0 {
+                // fall back
+                if let image = Dyld.images.first(where: { $0.name == path }) {
+                    return image.header
+                }
+                
+                // can't locate the header??
                 throw ImageError(kind: .cannotLoadImage, description: "Cannot locate header for dlhandle")
             }
             
@@ -144,15 +150,17 @@ public struct Dyld {
     }
     
     public struct OpenFlags {
-        public var lazy: Bool
-        public var global: Bool
-        public var withoutLoading: Bool
         
-        public init(lazy: Bool = false, global: Bool = true, withoutLoading: Bool = false) {
-            self.lazy = lazy
-            self.global = global
-            self.withoutLoading = withoutLoading
-        }
+        /// `RTLD_LAZY` or `RTLD_NOW`
+        public var lazy: Bool = false
+        
+        /// `RTLD_GLOBAL` or `RTLD_LOCAL`
+        public var global: Bool = true
+        
+        /// `RTLD_NOLOAD`?
+        public var withoutLoading: Bool = false
+        
+        public init() { }
         
         internal var mode: Int32 {
             var mode: Int32 = 0
