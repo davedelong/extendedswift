@@ -16,7 +16,8 @@ extension PathComponent {
                 case .this:
                     continue
                 case .up:
-                    if newComponents.isEmpty == false {
+                    if newComponents.last?.itemString != nil {
+                        // remove the last item
                         newComponents.removeLast()
                     } else if allowRelative == true {
                         newComponents.append(c)
