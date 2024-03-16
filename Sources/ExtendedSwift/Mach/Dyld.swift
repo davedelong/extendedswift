@@ -36,20 +36,28 @@ public struct Dyld {
     }
     
     public static func loadableImage(from path: Path) throws -> Image {
+        let exe = Dyld.executable.header
+        
         let fat = FAT(contentsOf: path)
         
+        // do a simple check first to find something that exactly matches our current process's cpu type and subtype
+        if let best = fat?.headers.first(where: { $0.cpuType == exe.cpuType && $0.cpuSubType == exe.cpuSubType }) {
+            return Image(name: path.fileSystemPath, header: best)
+        }
+        
+        // fall back to the macho_best_slice function from utils.h
         var bestHeader: UnsafePointer<mach_header>?
         var bestOffset: UInt64?
-        var bestSlide: Int?
+        var bestSize: Int?
         
-        let status = macho_best_slice(path.fileSystemPath, { header, offset, slide in
+        let status = macho_best_slice(path.fileSystemPath, { header, offset, size in
             bestHeader = header
             bestOffset = offset
-            bestSlide = slide
+            bestSize = size
         })
         
-        guard let bestHeader, let bestOffset, let bestSlide, status == 0 else {
-            throw ImageError(kind: .cannotLocateImage, description: "Cannot locate loadable image from \(path)")
+        guard let bestHeader, let bestOffset, let bestSize, status == 0 else {
+            throw ImageError(kind: .cannotLocateImage, description: "Cannot locate loadable header from \(path)")
         }
         
         guard let header = fat?.headers.first(where: { $0.rawValue == bestHeader }) else {
