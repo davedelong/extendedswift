@@ -40,13 +40,15 @@ public struct Dyld {
         
         var bestHeader: UnsafePointer<mach_header>?
         var bestOffset: UInt64?
+        var bestSlide: Int?
         
         let status = macho_best_slice(path.fileSystemPath, { header, offset, slide in
             bestHeader = header
             bestOffset = offset
+            bestSlide = slide
         })
         
-        guard let bestHeader, let bestOffset, status == 0 else {
+        guard let bestHeader, let bestOffset, let bestSlide, status == 0 else {
             throw ImageError(kind: .cannotLocateImage, description: "Cannot locate loadable image from \(path)")
         }
         
