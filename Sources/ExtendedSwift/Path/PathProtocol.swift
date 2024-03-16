@@ -59,7 +59,7 @@ public enum PathComponent: Hashable {
     }
 }
 
-public protocol PathProtocol: Hashable, CustomDebugStringConvertible {
+public protocol PathProtocol: Hashable, CustomDebugStringConvertible, Sendable {
     
     var components: Array<PathComponent> { get }
     var fileSystemPath: String { get }

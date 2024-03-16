@@ -34,18 +34,11 @@ public struct Dyld {
         })
     }
     
+    public static func `open`(_ path: Path, flags: OpenFlags) throws -> Image {
+        return try Image(load: path, flags: flags)
+    }
+    
     public struct Image: CustomStringConvertible {
-        
-        public struct ImageError: Error, CustomStringConvertible {
-            
-            public enum Kind {
-                case cannotLoadImage
-                case cannotLocateSymbol(String)
-            }
-            
-            public let kind: Kind
-            public let description: String
-        }
         
         private static let dlopenHandleLock = NSLock()
         private static var dlopenHandles = Dictionary<String, UnsafeMutableRawPointer>()
@@ -57,6 +50,40 @@ public struct Dyld {
             return "\(header): \(name)"
         }
         
+        internal init(name: String, header: Mach.Header) {
+            self.name = name
+            self.header = header
+        }
+        
+        internal init(load: Path, flags: OpenFlags) throws {
+            self.name = load.fileSystemPath
+            self.header = try Self.dlopenHandleLock.withLock {
+                let path = load.fileSystemPath
+                
+                let handle: UnsafeMutableRawPointer
+                if let existing = Self.dlopenHandles[path] {
+                    handle = existing
+                } else if let h = dlopen(path, flags.mode) {
+                    handle = h
+                } else {
+                    throw ImageError(kind: .cannotLoadImage, 
+                                     description: String(cString: dlerror()))
+                }
+                
+                var info = Dl_info()
+                let status = dladdr(handle, &info)
+                if status == 0 {
+                    throw ImageError(kind: .cannotLoadImage, description: "Cannot locate header for dlhandle")
+                }
+                
+                let machPointer = info.dli_fbase.assumingMemoryBound(to: mach_header.self)
+                guard let header = Mach.Header(rawValue: machPointer) else {
+                    throw ImageError(kind: .cannotLoadImage, description: "Invalid dli_fbase")
+                }
+                return header
+            }
+        }
+        
         public func symbol(named: String) throws -> UnsafeRawPointer {
             let handle: UnsafeMutableRawPointer = try Self.dlopenHandleLock.withLock {
                 if let existing = Self.dlopenHandles[name] { return existing }
@@ -65,8 +92,8 @@ public struct Dyld {
                     Self.dlopenHandles[name] = h
                     return h
                 } else {
-                    let err = String(cString: dlerror())
-                    throw ImageError(kind: .cannotLoadImage, description: err)
+                    throw ImageError(kind: .cannotLoadImage, 
+                                     description: String(cString: dlerror()))
                 }
             }
             
@@ -78,6 +105,37 @@ public struct Dyld {
             return UnsafeRawPointer(symbol)
         }
         
+    }
+    
+    public struct OpenFlags {
+        public var lazy: Bool
+        public var global: Bool
+        public var withoutLoading: Bool
+        
+        public init(lazy: Bool = false, global: Bool = true, withoutLoading: Bool = false) {
+            self.lazy = lazy
+            self.global = global
+            self.withoutLoading = withoutLoading
+        }
+        
+        internal var mode: Int32 {
+            var mode: Int32 = 0
+            mode |= lazy ? RTLD_LAZY : RTLD_NOW
+            mode |= global ? RTLD_GLOBAL : RTLD_LOCAL
+            if withoutLoading { mode |= RTLD_NOLOAD }
+            return mode
+        }
+    }
+    
+    public struct ImageError: Error, CustomStringConvertible {
+        
+        public enum Kind {
+            case cannotLoadImage
+            case cannotLocateSymbol(String)
+        }
+        
+        public let kind: Kind
+        public let description: String
     }
     
 }

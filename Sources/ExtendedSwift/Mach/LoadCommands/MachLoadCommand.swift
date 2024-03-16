@@ -8,7 +8,7 @@
 import Foundation
 import MachO
 
-public protocol MachLoadCommand {
+public protocol MachLoadCommand: CustomStringConvertible {
     
     var header: Mach.Header { get }
     var pointer: UnsafePointer<load_command> { get }
@@ -22,6 +22,8 @@ extension MachLoadCommand {
         let rawValue = pointer.pointee.cmd.swapping(header.needsSwapping)
         return Mach.LoadCommandType(rawValue: rawValue)
     }
+    
+    public var description: String { "\(commandType.name) @ \(pointer)" }
     
     public var is64Bit: Bool { header.is64Bit }
     
@@ -39,6 +41,21 @@ extension MachLoadCommand {
         self.init(header: header, pointer: rawPointer.assumingMemoryBound(to: load_command.self))
     }
     
+    internal func readLCString<T>(_ keyPath: KeyPath<T, lc_str>) -> String {
+        let ptr = self.rawPointer.assumingMemoryBound(to: T.self)
+        let offset = ptr.pointee[keyPath: keyPath].offset
+        let size = self.commandSize
+        let length = size - offset
+        
+        let string = rawPointer.withMemoryRebound(to: CChar.self, capacity: Int(size)) { ptr in
+            let advanced = ptr.advanced(by: Int(offset))
+            let str = String(cString: advanced, maxLength: Int(length))
+            return str
+        }
+        
+        return string ?? ""
+    }
+    
 }
 
 extension Mach {
@@ -48,6 +65,9 @@ extension Mach {
         public static let segment64 = LoadCommandType(rawValue: UInt32(LC_SEGMENT_64))
         public static let uuid = LoadCommandType(rawValue: UInt32(LC_UUID))
         public static let codeSignature = LoadCommandType(rawValue: UInt32(LC_CODE_SIGNATURE))
+        public static let loadDylib = LoadCommandType(rawValue: UInt32(LC_LOAD_DYLIB))
+        public static let loadWeakDylib = LoadCommandType(rawValue: LC_LOAD_WEAK_DYLIB)
+        public static let rpath = LoadCommandType(rawValue: LC_RPATH)
         
         public let rawValue: UInt32
         
