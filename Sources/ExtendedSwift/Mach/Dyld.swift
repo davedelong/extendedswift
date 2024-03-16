@@ -41,7 +41,7 @@ public struct Dyld {
         let fat = FAT(contentsOf: path)
         
         // do a simple check first to find something that exactly matches our current process's cpu type and subtype
-        if let best = fat?.headers.first(where: { $0.cpuType == exe.cpuType && $0.cpuSubType == exe.cpuSubType }) {
+        if let best = fat?.headers.first(where: { $0.cpuType == exe.cpuType && ($0.cpuSubType == exe.cpuSubType || $0.cpuSubType == CPU_SUBTYPE_ANY) }) {
             return Image(name: path.fileSystemPath, header: best)
         }
         
