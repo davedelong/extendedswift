@@ -42,8 +42,7 @@ public struct Fetch<T: Fetchable>: DynamicProperty {
     }
     
     public init(_ filter: T.Filter, animation: Animation? = nil) {
-        let observer = FetchObserver<T>(filter: filter, context: nil)
-        _observer = StateObject(wrappedValue: observer)
+        _observer = StateObject(wrappedValue: FetchObserver<T>(filter: filter, context: nil))
         
         self.baseFilter = filter
         self.transaction = Transaction(animation: animation)
