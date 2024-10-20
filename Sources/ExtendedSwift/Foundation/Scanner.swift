@@ -143,6 +143,22 @@ public struct Scanner<C: Collection> {
             throw error
         }
     }
+    
+    @discardableResult
+    public mutating func scan(until element: Element, using predicate: (Element, Element) -> Bool) throws -> C.SubSequence {
+        let start = self.location
+        try self.scan(upTo: element, using: predicate)
+        try self.scanElement(where: { predicate($0, element) })
+        return data[start ..< self.location]
+    }
+    
+    @discardableResult
+    public mutating func scan(until other: some Collection<Element>, using predicate: (Element, Element) -> Bool) throws -> C.SubSequence {
+        let start = self.location
+        try self.scan(upTo: other, using: predicate)
+        try self.scan(other, using: predicate)
+        return data[start ..< self.location]
+    }
 }
 
 extension Scanner where Element: Equatable {
@@ -175,6 +191,16 @@ extension Scanner where Element: Equatable {
     @discardableResult
     public mutating func scan(upTo other: some Collection<Element>) throws -> C.SubSequence {
         try self.scan(upTo: other, using: ==)
+    }
+    
+    @discardableResult
+    public mutating func scan(until element: Element) throws -> C.SubSequence {
+        try self.scan(until: element, using: ==)
+    }
+    
+    @discardableResult
+    public mutating func scan(until other: some Collection<Element>) throws -> C.SubSequence {
+        try self.scan(until: other, using: ==)
     }
     
 }

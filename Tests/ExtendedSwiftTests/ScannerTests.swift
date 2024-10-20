@@ -77,6 +77,18 @@ class ScannerTests: XCTestCase {
         XCTAssertEqual(try scanner.scan(upTo: ""), "")
     }
     
+    func testScanUntil() throws {
+        var scanner = Scanner(data: "abcABABC")
+        XCTAssertEqual(try scanner.scan(until: "A"), "abcA")
+        XCTAssertEqual(try scanner.scan(until: "C"), "BABC")
+    }
+    
+    func testScanUntilCollection() throws {
+        var scanner = Scanner(data: "abcABABC")
+        XCTAssertEqual(try scanner.scan(until: "AB"), "abcAB")
+        XCTAssertEqual(try scanner.scan(until: "BC"), "ABC")
+    }
+    
     func testScanIn() throws {
         var scanner = Scanner(data: "abcABC")
         XCTAssertEqual(try scanner.scanElement(in: "cba"), "a")
