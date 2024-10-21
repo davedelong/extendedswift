@@ -14,6 +14,7 @@ extension String {
     public static var space: String { " " }
     public static var hyphen: String { "-" }
     public static var comma: String { "," }
+    public static var doubleQuote: String { "\"" }
     
     public func trimmed() -> String {
         return trimmingCharacters(in: .whitespacesAndNewlines)
@@ -104,6 +105,30 @@ extension String {
             terms.append(current)
         }
         return terms
+    }
+    
+}
+
+extension StringProtocol {
+    
+    public func cleanedQuotedString() -> String? {
+        var characters = Array<Character>()
+        
+        guard self.hasPrefix(.doubleQuote) && self.hasSuffix(.doubleQuote) else { return nil }
+        
+        var isEscaped = false
+        for character in self.dropFirst().dropLast() {
+            if isEscaped {
+                characters.append(character)
+                isEscaped = false
+            } else if character == .backslash {
+                isEscaped = true
+            } else {
+                characters.append(character)
+            }
+        }
+        
+        return String(characters)
     }
     
 }
