@@ -10,6 +10,22 @@ import ExtendedSwift
 
 class ScannerTests: XCTestCase {
     
+    func testPeek() throws {
+        var scanner = Scanner(data: "abc")
+        XCTAssertEqual(scanner.peekElement(), "a")
+        XCTAssertEqual(scanner.peekElement(), "a")
+        XCTAssertEqual(scanner.peekElement(), "a")
+        
+        try scanner.scanElement()
+        try scanner.scanElement()
+        try scanner.scanElement()
+        
+        XCTAssertEqual(scanner.peekElement(), nil)
+        
+        scanner = Scanner(data: "")
+        XCTAssertEqual(scanner.peekElement(), nil)
+    }
+    
     func testScanElement() throws {
         var scanner = Scanner(data: "abc")
         XCTAssertEqual(try scanner.scanElement(), "a")
@@ -52,9 +68,9 @@ class ScannerTests: XCTestCase {
     
     func testScanCollection() throws {
         var scanner = Scanner(data: "abcABC")
-        XCTAssertEqual(try scanner.scan("abc"), true)
+        XCTAssertEqual(scanner.scan("abc"), true)
         XCTAssertThrowsError(try scanner.scan("abc"))
-        XCTAssertEqual(try scanner.scan("ABC"), true)
+        XCTAssertEqual(scanner.scan("ABC"), true)
     }
     
     func testScanUpTo() throws {
@@ -63,6 +79,10 @@ class ScannerTests: XCTestCase {
         XCTAssertEqual(try scanner.scanElement("A"), "A")
         
         XCTAssertThrowsError(try scanner.scan(upTo: "D" as Character))
+        
+        scanner = Scanner(data: "abcABABC")
+        XCTAssertEqual(try scanner.scan(upTo: "A", including: true), "abcA")
+        XCTAssertEqual(try scanner.scan(upTo: "C", including: true), "BABC")
     }
     
     func testScanUpToCollection() throws {
@@ -75,18 +95,10 @@ class ScannerTests: XCTestCase {
         scanner = Scanner(data: "abcABABC")
         XCTAssertEqual(try scanner.scan(upTo: "ABC"), "abcAB")
         XCTAssertEqual(try scanner.scan(upTo: ""), "")
-    }
-    
-    func testScanUntil() throws {
-        var scanner = Scanner(data: "abcABABC")
-        XCTAssertEqual(try scanner.scan(until: "A"), "abcA")
-        XCTAssertEqual(try scanner.scan(until: "C"), "BABC")
-    }
-    
-    func testScanUntilCollection() throws {
-        var scanner = Scanner(data: "abcABABC")
-        XCTAssertEqual(try scanner.scan(until: "AB"), "abcAB")
-        XCTAssertEqual(try scanner.scan(until: "BC"), "ABC")
+        
+        scanner = Scanner(data: "abcABABC")
+        XCTAssertEqual(try scanner.scan(upTo: "AB", including: true), "abcAB")
+        XCTAssertEqual(try scanner.scan(upTo: "BC", including: true), "ABC")
     }
     
     func testScanIn() throws {
