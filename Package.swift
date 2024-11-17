@@ -25,8 +25,8 @@ let package = Package(
         .library(name: "HTTP", targets: ["HTTP"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-algorithms.git", from: "1.0.0"),
-        .package(url: "https://github.com/apple/swift-log.git", from: "1.5.0"),
+        .package(url: "https://github.com/apple/swift-algorithms", from: "1.0.0"),
+        .package(url: "https://github.com/apple/swift-log", from: "1.5.0"),
     ],
     targets: [
         .target(name: "ExtendedObjC", dependencies: []),
@@ -102,8 +102,8 @@ if includeMacros == true {
         .library(name: "ExtendedMacros", targets: ["ExtendedMacros"])
     ])
     package.dependencies.append(contentsOf: [
-        .package(url: "https://github.com/apple/swift-syntax.git", exact: "509.0.0-swift-DEVELOPMENT-SNAPSHOT-2023-08-15-a"),
-        .package(url: "https://github.com/stackotter/swift-macro-toolkit.git", from: "0.2.0")
+        .package(url: "https://github.com/apple/swift-syntax", exact: "509.0.0-swift-DEVELOPMENT-SNAPSHOT-2023-08-15-a"),
+        .package(url: "https://github.com/stackotter/swift-macro-toolkit", from: "0.2.0")
     ])
     package.targets.append(contentsOf: [
         .macro(
