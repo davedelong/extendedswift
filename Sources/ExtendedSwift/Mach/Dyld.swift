@@ -27,8 +27,7 @@ public struct Dyld {
                 let slide = _dyld_get_image_vmaddr_slide(state)
                 guard let header = Mach.Header(rawValue: rawHeader, slide: slide) else { continue }
                 
-                return Dyld.Image(name: String(cString: rawName),
-                                  header: header)
+                return Dyld.Image(name: String(cString: rawName), header: header)
             }
             
             return nil

@@ -7,14 +7,14 @@
 
 import Foundation
 
-extension Data {
+extension RangeReplaceableCollection where Element == UInt8 {
     
-    public init?(hexString: String) {
-        guard hexString.allSatisfy(\.isHexDigit) else { return nil }
-        guard hexString.count.isMultiple(of: 2) else { return nil }
+    public init?(hexDescription: String) {
+        guard hexDescription.allSatisfy(\.isHexDigit) else { return nil }
+        guard hexDescription.count.isMultiple(of: 2) else { return nil }
         
-        let bytes = hexString.chunks(ofCount: 2).compactMap { UInt8($0, radix: 16) }
-        guard bytes.count == hexString.count / 2 else { return nil }
+        let bytes = hexDescription.chunks(ofCount: 2).compactMap { UInt8($0, radix: 16) }
+        guard bytes.count == hexDescription.count / 2 else { return nil }
         
         self.init(bytes)
     }
