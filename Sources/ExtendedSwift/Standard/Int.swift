@@ -9,6 +9,16 @@ import Foundation
 
 extension FixedWidthInteger {
     
+    public static func random() -> Self {
+        let range = Self.min ... Self.max
+        return Self.random(in: range)
+    }
+    
+    public static func random(using generator: inout RandomNumberGenerator) -> Self {
+        let range = Self.min ... Self.max
+        return Self.random(in: range, using: &generator)
+    }
+    
     public static func leastCommonMultiple(_ values: Self...) -> Self {
         return self.leastCommonMultiple(of: values)
     }
