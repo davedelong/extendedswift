@@ -9,7 +9,7 @@ import Foundation
 
 infix operator ?!: NilCoalescingPrecedence
 
-public func ?! <T>(lhs: T?, rhs: @autoclosure () -> Error) throws -> T {
+public func ?! <T, E: Error>(lhs: T?, rhs: @autoclosure () -> E) throws(E) -> T {
     
     if let value = lhs {
         return value
