@@ -7,7 +7,7 @@
 
 extension Collection {
     
-    public func mapAsync<T, E: Error>(_ transform: (Element) async throws(E) -> T) async throws(E) -> Array<T> {
+    public func mapAsync<T, E: Error>(_ transform: @Sendable (Element) async throws(E) -> T) async throws(E) -> Array<T> {
         var mapped = Array<T>()
         for item in self {
             mapped.append(try await transform(item))
@@ -15,7 +15,7 @@ extension Collection {
         return mapped
     }
     
-    public func compactMapAsync<T, E: Error>(_ transform: (Element) async throws(E) -> T?) async throws(E) -> Array<T> {
+    public func compactMapAsync<T, E: Error>(_ transform: @Sendable (Element) async throws(E) -> T?) async throws(E) -> Array<T> {
         var mapped = Array<T>()
         for item in self {
             if let newItem = try await transform(item) {
@@ -25,7 +25,7 @@ extension Collection {
         return mapped
     }
     
-    public func filterAsync<E: Error>(_ include: (Element) async throws(E) -> Bool) async throws(E) -> Array<Element> {
+    public func filterAsync<E: Error>(_ include: @Sendable (Element) async throws(E) -> Bool) async throws(E) -> Array<Element> {
         var filtered = Array<Element>()
         for item in self {
             if try await include(item) {
