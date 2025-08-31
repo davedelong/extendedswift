@@ -57,10 +57,6 @@ extension SetAlgebra {
         lhs.remove(rhs)
     }
     
-    public var isNotEmpty: Bool {
-        return self.isEmpty == false
-    }
-    
     public subscript(contains element: Element) -> Bool {
         get { return self.contains(element) }
         set {
@@ -99,7 +95,7 @@ extension SetAlgebra {
     
     public func intersects(_ other: Self) -> Bool {
         let i = self.intersection(other)
-        return i.isNotEmpty
+        return i.isEmpty == false
     }
     
     @_disfavoredOverload
@@ -211,7 +207,7 @@ extension SetAlgebra {
             if contains(item) == false { return false }
             temp.remove(item)
         }
-        return temp.isNotEmpty
+        return temp.isEmpty == false
     }
 }
 
