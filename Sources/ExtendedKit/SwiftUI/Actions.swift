@@ -41,8 +41,9 @@ public struct CopyToPasteboard {
     fileprivate static let `default` = Self()
     
     public func callAsFunction<O: _ObjectiveCBridgeable>(_ item: O, to pasteboard: NSPasteboard = .general) where O._ObjectiveCType: NSPasteboardWriting {
-        let writer: O._ObjectiveCType = (item as O._ObjectiveCType)
-        self.callAsFunction(item, to: pasteboard)
+        let writer = item._bridgeToObjectiveC()
+        pasteboard.clearContents()
+        pasteboard.writeObjects([writer])
     }
     
     public func callAsFunction(_ item: any NSPasteboardWriting, to pasteboard: NSPasteboard = .general) {
