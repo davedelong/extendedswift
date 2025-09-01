@@ -146,9 +146,9 @@ extension Collection {
 
 extension Collection {
     
-    public func sum<N: Numeric>(of value: (Element) -> N) -> N? {
+    public func sum<A: AdditiveArithmetic>(of value: (Element) -> A) -> A? {
         guard isNotEmpty else { return nil }
-        return reduce(into: N.zero) { $0 += value($1) }
+        return reduce(into: A.zero) { $0 += value($1) }
     }
     
     public func product<N: Numeric>(of value: (Element) -> N) -> N? {
