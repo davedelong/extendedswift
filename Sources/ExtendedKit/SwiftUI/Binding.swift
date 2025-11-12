@@ -11,6 +11,13 @@ import SwiftUI
 
 extension Binding {
     
+    public func equals(_ value: Value) -> Binding<Bool> where Value: Equatable {
+        return Binding<Bool>(get: { self.wrappedValue == value },
+                             set: { isOn in
+            if isOn { self.wrappedValue = value }
+        })
+    }
+    
     public func isNotNull<V>() -> Binding<Bool> where Value == Optional<V> {
         return Binding<Bool>(get: { self.wrappedValue != nil },
                              set: { _ in self.wrappedValue = nil })
