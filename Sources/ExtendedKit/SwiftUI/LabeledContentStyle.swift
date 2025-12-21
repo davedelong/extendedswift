@@ -7,63 +7,63 @@
 
 import SwiftUI
 
-extension LabeledContentStyle where Self == VerticalLabeledContentStyle {
+extension LabeledContentStyle where Self == StackLabeledContentStyle {
     
-    public static var vertical: Self { VerticalLabeledContentStyle() }
+    public static var stack: Self { StackLabeledContentStyle(axis: nil) }
     
-    public static func vertical(alignment: HorizontalAlignment) -> Self { VerticalLabeledContentStyle(alignment: alignment) }
+    public static var vertical: Self { StackLabeledContentStyle(axis: .vertical) }
     
-    public static func vertical(spacing: CGFloat) -> Self { VerticalLabeledContentStyle(spacing: spacing) }
+    public static func vertical(alignment: HorizontalAlignment) -> Self {
+        StackLabeledContentStyle(axis: .vertical, alignment: Alignment(horizontal: alignment, vertical: .center))
+    }
     
-    public static func vertical(alignment: HorizontalAlignment, spacing: CGFloat) -> Self { VerticalLabeledContentStyle(alignment: alignment, spacing: spacing) }
+    public static func vertical(spacing: CGFloat) -> Self {
+        StackLabeledContentStyle(axis: .vertical, spacing: spacing)
+    }
+    
+    public static func vertical(alignment: HorizontalAlignment, spacing: CGFloat) -> Self {
+        StackLabeledContentStyle(axis: .vertical, alignment: Alignment(horizontal: alignment, vertical: .center), spacing: spacing)
+    }
+    
+    public static var horizontal: Self { StackLabeledContentStyle(axis: .horizontal) }
+    
+    public static func horizontal(alignment: VerticalAlignment) -> Self {
+        StackLabeledContentStyle(axis: .horizontal, alignment: Alignment(horizontal: .center, vertical: alignment))
+    }
+    
+    public static func horizontal(spacing: CGFloat) -> Self {
+        StackLabeledContentStyle(axis: .horizontal, spacing: spacing)
+    }
+    
+    public static func horizontal(alignment: VerticalAlignment, spacing: CGFloat) -> Self {
+        StackLabeledContentStyle(axis: .horizontal, alignment: Alignment(horizontal: .center, vertical: alignment), spacing: spacing)
+    }
     
 }
 
-public struct VerticalLabeledContentStyle: LabeledContentStyle {
+public struct StackLabeledContentStyle: LabeledContentStyle {
     
-    private let alignment: HorizontalAlignment?
-    private let spacing: CGFloat?
-    
-    public init(alignment: HorizontalAlignment? = nil, spacing: CGFloat? = nil) {
-        self.alignment = alignment
-        self.spacing = spacing
-    }
+    internal var axis: Axis?
+    internal var alignment: Alignment? = nil
+    internal var spacing: CGFloat? = nil
     
     public func makeBody(configuration: Configuration) -> some View {
-        VStack(alignment: alignment ?? .center, spacing: spacing) {
-            configuration.label
-            configuration.content
-        }
-    }
-    
-}
-
-extension LabeledContentStyle where Self == HorizontalLabeledContentStyle {
-    
-    public static var horizontal: Self { HorizontalLabeledContentStyle() }
-    
-    public static func horizontal(alignment: VerticalAlignment) -> Self { HorizontalLabeledContentStyle(alignment: alignment) }
-    
-    public static func horizontal(spacing: CGFloat) -> Self { HorizontalLabeledContentStyle(spacing: spacing) }
-    
-    public static func horizontal(alignment: VerticalAlignment, spacing: CGFloat) -> Self { HorizontalLabeledContentStyle(alignment: alignment, spacing: spacing) }
-    
-}
-
-public struct HorizontalLabeledContentStyle: LabeledContentStyle {
-    
-    private let alignment: VerticalAlignment?
-    private let spacing: CGFloat?
-    
-    public init(alignment: VerticalAlignment? = nil, spacing: CGFloat? = nil) {
-        self.alignment = alignment
-        self.spacing = spacing
-    }
-    
-    public func makeBody(configuration: Configuration) -> some View {
-        HStack(alignment: alignment ?? .center, spacing: spacing) {
-            configuration.label
-            configuration.content
+        switch axis {
+            case .none:
+                configuration.label
+                configuration.content
+                
+            case .horizontal:
+                HStack(alignment: alignment?.vertical ?? .center, spacing: spacing) {
+                    configuration.label
+                    configuration.content
+                }
+                
+            case .vertical:
+                VStack(alignment: alignment?.horizontal ?? .center, spacing: spacing) {
+                    configuration.label
+                    configuration.content
+                }
         }
     }
     
