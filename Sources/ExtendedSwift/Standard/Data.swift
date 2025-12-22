@@ -18,6 +18,23 @@ extension RangeReplaceableCollection where Element == UInt8 {
         
         self.init(bytes)
     }
+        
+    public init(randomByteCount: Int) throws {
+        self = try withUnsafeTemporaryAllocation(of: UInt8.self, capacity: randomByteCount, { ptr in
+            let status = SecRandomCopyBytes(kSecRandomDefault, randomByteCount, ptr.baseAddress!)
+            guard status == errSecSuccess else {
+                var userInfo: Dictionary<String, Any>?
+                if let message = SecCopyErrorMessageString(status, nil) {
+                    userInfo = [NSLocalizedDescriptionKey: message]
+                }
+                throw NSError(domain: "OSStatus", code: Int(status), userInfo: userInfo)
+            }
+            
+            var collection = Self()
+            collection.append(contentsOf: ptr)
+            return collection
+        })
+    }
     
 }
 
