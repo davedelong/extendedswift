@@ -44,4 +44,10 @@ extension Collection where Element == UInt8 {
         return self.map { String(format: "%02X", $0) }.joined()
     }
     
+    public var uppercaseHexDescription: String { self.hexDescription }
+    
+    public var lowercaseHexDescription: String {
+        return self.map { String(format: "%02x", $0) }.joined()
+    }
+    
 }
