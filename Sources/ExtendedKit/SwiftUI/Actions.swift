@@ -30,7 +30,7 @@ public struct RevealInFinder {
         self.callAsFunction(urls)
     }
     
-    public func callAsFunction(_ urls: Array<URL>) {
+    public func callAsFunction(_ urls: any Collection<URL>) {
         let fileURLs = urls.filter({ $0.isFileURL })
         NSWorkspace.shared.activateFileViewerSelecting(fileURLs)
     }
@@ -46,7 +46,7 @@ public struct CopyToPasteboard {
         pasteboard.writeObjects([writer])
     }
     
-    public func callAsFunction<O: _ObjectiveCBridgeable>(_ items: Array<O>, to pasteboard: NSPasteboard = .general) where O._ObjectiveCType: NSPasteboardWriting {
+    public func callAsFunction<C: Collection>(_ items: C, to pasteboard: NSPasteboard = .general) where C.Element: _ObjectiveCBridgeable, C.Element._ObjectiveCType: NSPasteboardWriting {
         let writers = items.map { $0._bridgeToObjectiveC() }
         pasteboard.clearContents()
         pasteboard.writeObjects(writers)
@@ -60,9 +60,10 @@ public struct CopyToPasteboard {
         self.callAsFunction(items, to: pasteboard)
     }
     
-    public func callAsFunction(_ items: Array<any NSPasteboardWriting>, to pasteboard: NSPasteboard = .general) {
+    public func callAsFunction(_ items: any Collection<any NSPasteboardWriting>, to pasteboard: NSPasteboard = .general) {
         pasteboard.clearContents()
-        pasteboard.writeObjects(items)
+        let array = Array(items)
+        pasteboard.writeObjects(array)
     }
     
 //    @available(macOS 15.2, *)
