@@ -47,6 +47,7 @@ extension ID where RawValue == Int {
     
 }
 
+extension ID: Sendable where RawValue: Sendable { }
 extension ID: Equatable where RawValue: Equatable { }
 extension ID: Hashable where RawValue: Hashable { }
 extension ID: Identifiable where RawValue: Identifiable { }
