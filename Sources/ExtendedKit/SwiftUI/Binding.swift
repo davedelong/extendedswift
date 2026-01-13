@@ -52,6 +52,34 @@ extension Binding {
                                 }
                              })
     }
+    
+    public func onSet(willSet: @escaping (_ oldValue: Value, _ newValue: Value) -> Void) -> Binding<Value> {
+        return Binding(get: { wrappedValue },
+                       set: { newValue in
+            let oldValue = wrappedValue
+            willSet(oldValue, newValue)
+            wrappedValue = newValue
+        })
+    }
+    
+    public func onSet(didSet: @escaping (_ oldValue: Value, _ newValue: Value) -> Void) -> Binding<Value> {
+        return Binding(get: { wrappedValue },
+                       set: { newValue in
+            let oldValue = wrappedValue
+            wrappedValue = newValue
+            didSet(oldValue, newValue)
+        })
+    }
+    
+    public func onSet(willSet: @escaping (_ oldValue: Value, _ newValue: Value) -> Void, didSet: @escaping (_ oldValue: Value, _ newValue: Value) -> Void) -> Binding<Value> {
+        return Binding(get: { wrappedValue },
+                       set: { newValue in
+            let oldValue = wrappedValue
+            willSet(oldValue, newValue)
+            wrappedValue = newValue
+            didSet(oldValue, newValue)
+        })
+    }
 }
 
 extension Binding where Value == Bool {
