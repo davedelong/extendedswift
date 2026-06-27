@@ -12,15 +12,15 @@ import Foundation
 
 public struct FSEventStream: AsyncSequence {
     
-    private let url: URL
+    private let path: Path
     
-    public init(url: URL) {
-        self.url = url
+    public init(path: Path) {
+        self.path = path
     }
     
     public func makeAsyncIterator() -> some AsyncIteratorProtocol {
         return AsyncStream(FSEvent.self, bufferingPolicy: .unbounded) { continuation in
-            let watcher = FSWatcher(url: url, report: {
+            let watcher = FSWatcher(path: path, report: {
                 continuation.yield($0)
             })
             continuation.onTermination = { arg in

@@ -14,28 +14,28 @@ public struct FSPublisher: Publisher {
     public typealias Output = FSEvent
     public typealias Failure = Never
     
-    public var url: URL
+    public var path: Path
     
-    public init(url: URL) {
-        self.url = url
+    public init(path: Path) {
+        self.path = path
     }
     
     public func receive<S>(subscriber: S) where S : Subscriber, Failure == S.Failure, Output == S.Input {
-        let subscription = FSSubscription(url: url, subscriber: subscriber)
+        let subscription = FSSubscription(path: path, subscriber: subscriber)
         subscriber.receive(subscription: subscription)
     }
     
 }
 
 private class FSSubscription: Subscription {
-    private let url: URL
+    private let path: Path
     private var watcher: FSWatcher?
     
     private let sendToSubscriber: (FSPublisher.Output) -> Subscribers.Demand
     private var currentDemand: Subscribers.Demand = .none
     
-    init<T: Subscriber>(url: URL, subscriber: T) where T.Input == FSPublisher.Output, T.Failure == FSPublisher.Failure {
-        self.url = url
+    init<T: Subscriber>(path: Path, subscriber: T) where T.Input == FSPublisher.Output, T.Failure == FSPublisher.Failure {
+        self.path = path
         self.sendToSubscriber = { subscriber.receive($0) }
     }
     
@@ -47,7 +47,7 @@ private class FSSubscription: Subscription {
         self.currentDemand += demand
         
         if currentDemand > 0 && watcher == nil {
-            watcher = FSWatcher(url: self.url, report: { [weak self] event in
+            watcher = FSWatcher(path: self.path, report: { [weak self] event in
                 self?.send(event)
             })
         }

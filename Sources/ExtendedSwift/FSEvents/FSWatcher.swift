@@ -10,15 +10,15 @@ import Foundation
 #if os(macOS)
 
 internal class FSWatcher {
-    private let url: URL
+    private let path: Path
     fileprivate let report: (FSEvent) -> Void
     
     private var stream: FSEventStreamRef?
     
     private var strongSelf: FSWatcher?
     
-    init(url: URL, report: @escaping (FSEvent) -> Void) {
-        self.url = url
+    init(path: Path, report: @escaping (FSEvent) -> Void) {
+        self.path = path
         self.report = report
         
         // retaining self makes using this with AsyncSequence a little bit nicer
@@ -37,7 +37,7 @@ internal class FSWatcher {
         stream = FSEventStreamCreate(kCFAllocatorDefault,
                                      fscallback,
                                      &context,
-                                     NSArray(object: url.path(percentEncoded: false) as NSString) as CFArray,
+                                     NSArray(object: path.fileSystemPath as NSString) as CFArray,
                                      FSEventStreamEventId(kFSEventStreamEventIdSinceNow),
                                      0.1,
                                      FSEventStreamCreateFlags(kFSEventStreamCreateFlagUseCFTypes |
@@ -74,12 +74,12 @@ private func fscallback(_ stream: ConstFSEventStreamRef, _ callbackInfo: UnsafeM
         let data = datas[index]
         let path = data[kFSEventStreamEventExtendedDataPathKey] as! String
         let flags = FSEvent.Flags(rawValue: Int(flags[index]))
-        let this = URL(filePath: path)
+        let this = Path(fileSystemPath: path)
         
         var event = FSEvent(id: eventIDs[index],
                             flags: flags,
-                            url: this,
-                            newURL: nil,
+                            path: this,
+                            newPath: nil,
                             fileID: data[kFSEventStreamEventExtendedFileIDKey] as? UInt64,
                             docID: data[kFSEventStreamEventExtendedDocIDKey] as? UInt64)
         
@@ -87,8 +87,8 @@ private func fscallback(_ stream: ConstFSEventStreamRef, _ callbackInfo: UnsafeM
             index += 1
             let nextData = datas[index]
             let nextPath = nextData[kFSEventStreamEventExtendedDataPathKey] as! String
-            let newURL = URL(filePath: nextPath)
-            event.newURL = newURL
+            let newPath = Path(fileSystemPath: nextPath)
+            event.newPath = newPath
         }
         
         watcher.report(event)

@@ -15,8 +15,8 @@ public struct FSEvent: Identifiable, Hashable, Sendable {
     public let id: ID
     public var flags: Flags
     
-    public var url: URL
-    public var newURL: URL?
+    public var path: Path
+    public var newPath: Path?
     
     public var fileID: UInt64?
     public var docID: UInt64?
