@@ -9,7 +9,16 @@ import Foundation
 import Combine
 
 // internal while i still work on this
-#warning("TODO: FileObserver")
+
+/*
+ Notes:
+ 
+ - 27 June 2026: Subitem presentation is problematic
+    - instead of `presentedSubitemDidAppear(at:)`, i got `presentedSubitemDidChange(at:)`
+    - instead of `presentedSubitem(at:didMoveTo:)`, i got two `presentedSubitemDidChange(at:)` calls
+    - instead of `accommodatePresentedSubitemDeletion(at:)`, i got `presentedSubitemDidChange(at:)`
+    - basically, this seems unusable for reasonably observing the contents of a folder
+ */
 
 struct Item: Identifiable, Hashable {
     let id: URL
