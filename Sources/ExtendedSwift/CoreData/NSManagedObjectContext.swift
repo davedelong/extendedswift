@@ -8,7 +8,7 @@
 import Foundation
 import CoreData
 
-public class ReadOnlyManagedObjectContext: NSManagedObjectContext {
+public class ReadOnlyManagedObjectContext: NSManagedObjectContext, @unchecked Sendable {
     
     override public func save() throws {
         throw CocoaError(.persistentStoreSave, userInfo: [
@@ -36,7 +36,7 @@ extension NSManagedObjectContext {
     }
     
     @discardableResult
-    public func perform<T>(_ work: @escaping (NSManagedObjectContext) throws -> T) async throws -> T {
+    public func perform<T>(_ work: @escaping @Sendable (NSManagedObjectContext) throws -> T) async throws -> T {
         return try await withCheckedThrowingContinuation { continuation in
             self.perform {
                 do {
@@ -50,7 +50,7 @@ extension NSManagedObjectContext {
     }
     
     @discardableResult
-    public func perform<T>(_ work: @escaping (NSManagedObjectContext) -> T) async -> T {
+    public func perform<T>(_ work: @escaping @Sendable (NSManagedObjectContext) -> T) async -> T {
         return await withCheckedContinuation { continuation in
             self.perform {
                 let result = work(self)

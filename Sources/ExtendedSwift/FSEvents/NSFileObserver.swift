@@ -5,6 +5,8 @@
 //  Created by Dave DeLong on 11/20/22.
 //
 
+#if USE_NSFILEPRESENTER
+
 import Foundation
 import Combine
 
@@ -48,8 +50,10 @@ internal class FolderObserver: NSObject, NSFilePresenter {
     }
 
     private func performInitialScan() {
+        let folder = self.folder
+        let publisher = self.directoryChangedPublisher
         DispatchQueue.global(qos: .userInitiated).async {
-            let iter = FileManager.default.enumerator(at: self.folder,
+            let iter = FileManager.default.enumerator(at: folder,
                                                       includingPropertiesForKeys: [.nameKey])
             
             let a = iter?.compactMap { item -> Item? in
@@ -61,7 +65,7 @@ internal class FolderObserver: NSObject, NSFilePresenter {
                 return Item(id: url, displayName: name)//, icon: icon)
             }
 
-            self.directoryChangedPublisher.send(a ?? [])
+            publisher.send(a ?? [])
         }
         
         hasAddedAsPresenter = true
@@ -90,3 +94,5 @@ internal class FolderObserver: NSObject, NSFilePresenter {
         print("\(#function): \(url)")
     }
 }
+
+#endif

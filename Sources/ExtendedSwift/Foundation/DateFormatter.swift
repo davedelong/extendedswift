@@ -29,7 +29,7 @@ extension DateFormatter {
     
 }
 
-public class UnlocalizedDateFormatter: DateFormatter {
+public class UnlocalizedDateFormatter: DateFormatter, @unchecked Sendable {
     
     /// Instantiate a new unlocalized date formatter
     /// - Parameters:
@@ -81,7 +81,7 @@ public class UnlocalizedDateFormatter: DateFormatter {
     
 }
 
-public class POSIXDateFormatter: UnlocalizedDateFormatter {
+public class POSIXDateFormatter: UnlocalizedDateFormatter, @unchecked Sendable {
     
     public init(dateFormat: String) {
         super.init(dateFormat: dateFormat,

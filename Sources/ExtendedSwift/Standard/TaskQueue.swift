@@ -22,7 +22,7 @@ public actor TaskQueue {
     }
     
     @discardableResult
-    public nonisolated func enqueue<T>(name: String, priority: TaskPriority? = nil, _ task: @Sendable @escaping () async throws -> T) -> Task<T, Error> {
+    public nonisolated func enqueue<T>(name: String, priority: TaskPriority? = nil, _ task: @escaping @Sendable () async throws -> T) -> Task<T, Error> {
         return Task.detached(priority: priority, operation: {
             await self.waitForCapacity()
             let result: Result<T, Error>
@@ -39,7 +39,7 @@ public actor TaskQueue {
     }
     
     @discardableResult
-    public nonisolated func enqueue<T>(name: String, priority: TaskPriority? = nil, _ task: @Sendable @escaping () async -> T) -> Task<T, Never> {
+    public nonisolated func enqueue<T>(name: String, priority: TaskPriority? = nil, _ task: @escaping @Sendable () async -> T) -> Task<T, Never> {
         return Task.detached(priority: priority, operation: {
             await self.waitForCapacity()
             

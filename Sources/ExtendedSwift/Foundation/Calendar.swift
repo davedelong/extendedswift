@@ -9,7 +9,7 @@ import Foundation
 
 public struct CalendarError: Error, CustomStringConvertible {
     
-    public enum Code: Int {
+    public enum Code: Int, Sendable {
         case invalidComponent
         case cannotOffset
         case cannotDetermineRange
@@ -54,7 +54,8 @@ extension Calendar.Component {
             case .timeZone: return "timeZone"
             // for some reason, uncommenting this causes linking failures
 //            case .isLeapMonth: return "isLeapMonth"
-            @unknown default: return "unknown(\(self))"
+            default: return "other(\(self))"
+//            @unknown default: return "unknown(\(self))"
         }
     }
     

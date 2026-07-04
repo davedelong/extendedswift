@@ -17,7 +17,7 @@ extension Scanner where Element == Character {
         let backslash = Character.backslash
         
         do {
-            let openQuote = try self.scanElement(doubleQuote)
+            let _ = try self.scanElement(doubleQuote)
             
             var isEscaped = false
             while true {

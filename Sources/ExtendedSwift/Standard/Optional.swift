@@ -20,7 +20,7 @@ extension Optional {
     }
 }
 
-extension Optional: Sequence where Wrapped: Sequence {
+extension Optional: @retroactive Sequence where Wrapped: Sequence {
     public typealias Element = Wrapped.Element
     public typealias Iterator = OptionalIterator<Wrapped>
     

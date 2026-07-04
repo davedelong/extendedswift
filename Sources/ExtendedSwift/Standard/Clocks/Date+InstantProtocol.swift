@@ -9,7 +9,7 @@ import Foundation
 
 private let ASEC_PER_SEC = 1e18
 
-extension Date: InstantProtocol {
+extension Date: @retroactive InstantProtocol {
     public typealias Duration = Swift.Duration
     
     public func advanced(by duration: Duration) -> Date {

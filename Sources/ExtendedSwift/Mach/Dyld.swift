@@ -56,7 +56,7 @@ public struct Dyld {
             bestSize = size
         })
         
-        guard let bestHeader, let bestOffset, let bestSize, status == 0 else {
+        guard let bestHeader, bestOffset != nil, bestSize != nil, status == 0 else {
             throw ImageError(kind: .cannotLocateImage, description: "Cannot locate loadable header from \(path)")
         }
         
