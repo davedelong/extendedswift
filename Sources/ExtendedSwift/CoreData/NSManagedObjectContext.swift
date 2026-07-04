@@ -83,27 +83,18 @@ extension NSManagedObjectContext {
         
     }
     
-    public func performSave() -> Result<SaveResult, Error> {
-        var saveResult: SaveResult?
+    public func performSave() throws -> SaveResult {
+        nonisolated(unsafe) var saveResult: SaveResult?
         let token = NotificationCenter.default.addObserver(forName: NSManagedObjectContext.didSaveObjectsNotification, 
                                                            object: self,
                                                            queue: nil,
                                                            using: { saveResult = SaveResult($0) })
         
-        let result: Result<SaveResult, Error>
-        do {
-            try self.save()
-            if let saveResult {
-                result = .success(saveResult)
-            } else {
-                result = .failure(CocoaError(.persistentStoreIncompleteSave))
-            }
-        } catch {
-            result = .failure(error)
-        }
+        defer { NotificationCenter.default.removeObserver(token) }
         
-        NotificationCenter.default.removeObserver(token)
-        return result
+        try self.save()
+        if let saveResult { return saveResult }
+        throw CocoaError(.persistentStoreIncompleteSave)
     }
     
 }
