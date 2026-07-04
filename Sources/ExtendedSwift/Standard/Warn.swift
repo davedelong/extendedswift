@@ -34,7 +34,7 @@ extension Dyld {
     
 }
 
-public let _swiftUIInfo: UnsafeRawPointer? = {
+nonisolated(unsafe) public let _swiftUIInfo: UnsafeRawPointer? = {
     // see if we can find the header manually
     if let images = Dyld.images.first(where: { $0.name.hasSuffix("SwiftUI") }) {
         return images.header.pointer

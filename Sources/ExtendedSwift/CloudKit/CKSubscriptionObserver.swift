@@ -11,6 +11,7 @@ import Foundation
 import CloudKit
 import Combine
 
+@MainActor
 public class CKSubscriptionObserver: ObservableObject {
     
     private let database: CKDatabase
@@ -52,19 +53,18 @@ public class CKSubscriptionObserver: ObservableObject {
             self.sink = nil
         }
         
-        let result = await Result { try await self.database.allSubscriptions() }
-        
-        self.performChange {
-            switch result {
-                case .success(let subs):
-                    self.mostRecentError = nil
-                    if subs != self.results {
-                        self.results = subs
-                    }
-                case .failure(let error):
-                    self.mostRecentError = error
+        do {
+            let subs = try await self.database.allSubscriptions()
+            self.performChange {
+                if subs != self.results { self.results = subs }
+                self.mostRecentError = nil
+                self.isSearching = false
             }
-            self.isSearching = false
+        } catch {
+            self.performChange {
+                self.mostRecentError = error
+                self.isSearching = false
+            }
         }
         
         self.rescheduleTimer()

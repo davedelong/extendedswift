@@ -8,13 +8,13 @@
 import Foundation
 import MapKit
 
-extension MKCoordinateRegion: Equatable {
+extension MKCoordinateRegion: @retroactive Equatable {
     public static func ==(lhs: Self, rhs: Self) -> Bool {
         return lhs.center == rhs.center && lhs.span == rhs.span
     }
 }
 
-extension MKCoordinateSpan: Equatable {
+extension MKCoordinateSpan: @retroactive Equatable {
     public static func ==(lhs: Self, rhs: Self) -> Bool {
         return lhs.latitudeDelta == rhs.latitudeDelta && lhs.longitudeDelta == rhs.longitudeDelta
     }

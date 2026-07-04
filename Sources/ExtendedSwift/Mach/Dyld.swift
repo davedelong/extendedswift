@@ -8,6 +8,7 @@
 import Foundation
 import MachO
 import MachO.dyld.utils
+private import Synchronization
 
 public struct Dyld {
     
@@ -73,8 +74,7 @@ public struct Dyld {
     
     public struct Image: CustomStringConvertible {
         
-        private static let dlopenHandleLock = NSLock()
-        private static var dlopenHandles = Dictionary<String, UnsafeMutableRawPointer>()
+        private static let dlopenHandles = Mutex<Dictionary<String, UnsafeMutableRawPointer>>([:])
         
         public let name: String
         public let header: Mach.Header
@@ -109,13 +109,13 @@ public struct Dyld {
         }
         
         internal static func load(_ path: String, flags: OpenFlags) throws -> UnsafeMutableRawPointer {
-            return try Self.dlopenHandleLock.withLock {
+            return try Self.dlopenHandles.withLock { handles in
                 let handle: UnsafeMutableRawPointer
-                if let existing = Self.dlopenHandles[path] {
+                if let existing = handles[path] {
                     handle = existing
                 } else if let h = dlopen(path, flags.mode) {
                     handle = h
-                    Self.dlopenHandles[path] = h
+                    handles[path] = h
                 } else {
                     throw ImageError(kind: .cannotLoadImage,
                                      description: String(cString: dlerror()))
@@ -173,7 +173,7 @@ public struct Dyld {
     
     public struct ImageError: Error, CustomStringConvertible {
         
-        public enum Kind {
+        public enum Kind: Sendable {
             case cannotLocateImage
             case cannotLoadImage
             case cannotLocateSymbol(String)

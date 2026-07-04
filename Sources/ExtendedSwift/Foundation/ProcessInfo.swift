@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_implementationOnly import PrivateAPI
+private import PrivateAPI
 
 extension ProcessInfo {
     
@@ -39,7 +39,7 @@ extension ProcessInfo {
     
 }
 
-private let _entitlementsDict: Dictionary<String, Any> = {
+nonisolated(unsafe) private let _entitlementsDict: Dictionary<String, Any> = {
     let exe = Dyld.executable
     return exe.header.entitlements ?? [:]
 }()

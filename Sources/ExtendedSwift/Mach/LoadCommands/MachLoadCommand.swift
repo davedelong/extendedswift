@@ -60,7 +60,7 @@ extension MachLoadCommand {
 
 extension Mach {
     
-    public struct LoadCommandType: RawRepresentable {
+    public struct LoadCommandType: RawRepresentable, Sendable {
         public static let segment = LoadCommandType(rawValue: UInt32(LC_SEGMENT))
         public static let segment64 = LoadCommandType(rawValue: UInt32(LC_SEGMENT_64))
         public static let uuid = LoadCommandType(rawValue: UInt32(LC_UUID))

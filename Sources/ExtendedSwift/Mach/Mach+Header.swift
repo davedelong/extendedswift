@@ -11,7 +11,7 @@ import MachO.dyld.utils
 
 public enum Mach {
     
-    public struct FileType: RawRepresentable {
+    public struct FileType: RawRepresentable, Sendable {
         
         public static let executable = FileType(rawValue: MH_EXECUTE)
         

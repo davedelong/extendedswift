@@ -184,7 +184,7 @@ extension String {
 
 extension String {
     
-    public struct MatchOption: Hashable, RawRepresentable {
+    public struct MatchOption: Hashable, RawRepresentable, Sendable {
         
         /// Normally, every occurrence of a backslash (`\`) followed by a character in pattern is replaced by that character.
         /// This is done to negate any special meaning for the character.  If this options is specified,

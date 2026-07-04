@@ -30,7 +30,7 @@ extension String {
         })
     }
     
-    public struct HTMLEncodingOptions: OptionSet {
+    public struct HTMLEncodingOptions: OptionSet, Sendable {
         public static let preferNamedEntities = HTMLEncodingOptions(rawValue: 1 << 0)
         public static let useHexEntities = HTMLEncodingOptions(rawValue: 1 << 1)
         public static let useUppercaseHex = HTMLEncodingOptions(rawValue: 1 << 2)
@@ -124,4 +124,4 @@ fileprivate struct NamedEntity: Decodable {
     }
 }
 
-fileprivate let EntityRegex = /&(#(\d+)|#x([:xdigit:]+)|([^&#;]+));/
+nonisolated(unsafe) fileprivate let EntityRegex = /&(#(\d+)|#x([:xdigit:]+)|([^&#;]+));/

@@ -94,8 +94,7 @@ extension SetAlgebra {
     }
     
     public func intersects(_ other: Self) -> Bool {
-        let i = self.intersection(other)
-        return i.isEmpty == false
+        return self.isDisjoint(with: other) == false
     }
     
     @_disfavoredOverload

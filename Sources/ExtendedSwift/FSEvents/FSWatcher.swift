@@ -9,7 +9,7 @@ import Foundation
 
 #if os(macOS)
 
-internal class FSWatcher {
+internal class FSWatcher: @unchecked Sendable {
     private let path: Path
     fileprivate let report: (FSEvent) -> Void
     

@@ -10,7 +10,7 @@ import Foundation
 public typealias Spotlight = NSMetadataQuery
 
 extension Spotlight {
-    public struct SearchScope: RawRepresentable {
+    public struct SearchScope: RawRepresentable, Sendable {
         #if os(macOS)
         public static let homeDirectory = SearchScope(rawValue: NSMetadataQueryUserHomeScope)
         public static let local = SearchScope(rawValue: NSMetadataQueryLocalComputerScope)
@@ -29,20 +29,44 @@ extension Spotlight {
         }
     }
     
-    public enum Result {
-        case added(NSMetadataItem)
-        case removed(NSMetadataItem)
-        case updated(NSMetadataItem)
+    public struct Item: Sendable {
+        nonisolated(unsafe) private let values: Dictionary<String, Any>
+                
+        /// Returns the value for the specified attribute of the receiver.
+        public func value(forAttribute key: String) -> Any? { values[key] }
+        
+        /// Returns a dictionary containing the specified attributes and their values.
+        public func values(forAttributes keys: [String]) -> [String : Any]? {
+            let uniqued = keys.uniqued()
+            return Dictionary(uniqueKeysWithValues: uniqued.compactMap { key -> (String, Any)? in
+                guard let value = self.values[key] else { return nil }
+                return (key, value)
+            })
+        }
+        
+        /// An array containing the attributes of the receiver.
+        public var attributes: [String] { Array(values.keys) }
+        
+        fileprivate init(item: NSMetadataItem) {
+            let allKeys = item.attributeKeys
+            self.values = item.values(forAttributes: allKeys) ?? [:]
+        }
     }
     
-    public var items: AnyAsyncSequence<NSMetadataItem> {
+    public enum Result {
+        case added(Item)
+        case removed(Item)
+        case updated(Item)
+    }
+    
+    public var items: AnyAsyncSequence<Item> {
         let stream = AsyncStream { continuation in
             let delegate = SpotlightDelegate(query: self, provideContinuousUpdates: false, continuation: continuation)
             self.delegate = delegate
             self.start()
         }
         
-        let compacted = stream.compactMap { result -> NSMetadataItem? in
+        let compacted = stream.compactMap { result -> Item? in
             if case .added(let item) = result { return item }
             return nil
         }
@@ -52,14 +76,14 @@ extension Spotlight {
 }
 
 public struct SpotlightQuery: AsyncSequence {
-    public typealias Element = NSMetadataItem
+    public typealias Element = Spotlight.Item
     public typealias AsyncIterator = AnyAsyncIterator<Element>
     
     public var scopes = Array<Spotlight.SearchScope>()
     public var predicate: NSPredicate
-    public var sortDescriptors = Array<SortDescriptor<Element>>()
+    public var sortDescriptors = Array<SortDescriptor<NSMetadataItem>>()
     
-    public init(scopes: Array<Spotlight.SearchScope> = [], predicate: NSPredicate, sortDescriptors: Array<SortDescriptor<Element>> = []) {
+    public init(scopes: Array<Spotlight.SearchScope> = [], predicate: NSPredicate, sortDescriptors: Array<SortDescriptor<NSMetadataItem>> = []) {
         self.scopes = scopes
         self.predicate = predicate
     }
@@ -105,7 +129,7 @@ private class SpotlightDelegate: NSObject, NSMetadataQueryDelegate {
         
         for idx in 0 ..< query.resultCount {
             guard let mdItem = query.result(at: idx) as? NSMetadataItem else { continue }
-            continuation.yield(.added(mdItem))
+            continuation.yield(.added(.init(item: mdItem)))
         }
         
         if self.continuousUpdates {
@@ -120,13 +144,13 @@ private class SpotlightDelegate: NSObject, NSMetadataQueryDelegate {
     
     @objc func didUpdateResults(_ note: Notification) {
         let addedItems = note.userInfo?[NSMetadataQueryUpdateAddedItemsKey] as? Array<NSMetadataItem>
-        for item in addedItems ?? [] { continuation.yield(.added(item)) }
+        for item in addedItems ?? [] { continuation.yield(.added(.init(item: item))) }
         
         let removedItems = note.userInfo?[NSMetadataQueryUpdateRemovedItemsKey] as? Array<NSMetadataItem>
-        for item in removedItems ?? [] { continuation.yield(.removed(item)) }
+        for item in removedItems ?? [] { continuation.yield(.removed(.init(item: item))) }
         
         let changedItems = note.userInfo?[NSMetadataQueryUpdateChangedItemsKey] as? Array<NSMetadataItem>
-        for item in changedItems ?? [] { continuation.yield(.updated(item)) }
+        for item in changedItems ?? [] { continuation.yield(.updated(.init(item: item))) }
     }
     
 }

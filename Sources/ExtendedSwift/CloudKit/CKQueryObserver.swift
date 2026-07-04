@@ -11,6 +11,7 @@ import Foundation
 import CloudKit
 import Combine
 
+@MainActor
 public class CKQueryObserver<Value: Equatable>: ObservableObject {
     
     public struct Configuration {
@@ -52,7 +53,7 @@ public class CKQueryObserver<Value: Equatable>: ObservableObject {
     
     @_disfavoredOverload
     public convenience init(configuration: Configuration, refreshInterval: TimeInterval = 60) where Value: CKRecordDecodable {
-        self.init(configuration: configuration, refreshInterval: refreshInterval, decoder: Value.init(from:))
+        self.init(configuration: configuration, refreshInterval: refreshInterval, decoder: { try Value(from: $0) })
     }
     
     public init(configuration: Configuration, refreshInterval: TimeInterval, decoder: @escaping (CKRecord) throws -> Value) {
@@ -86,21 +87,23 @@ public class CKQueryObserver<Value: Equatable>: ObservableObject {
             self.sink = nil
         }
         
-        let result = await Result { try await self.fetchAllRecords() }
-        
-        self.performChange {
-            switch result {
-                case .success(let values):
-                    if values != self.results {
-                        self.results = values
-                    }
-                    self.mostRecentError = nil
-                case .failure(let error):
-                    print("Error refreshing: \(error)")
-                    self.mostRecentError = error
+        do {
+            let values = try await self.fetchAllRecords()
+            self.performChange {
+                if values != self.results {
+                    self.results = values
+                }
+                self.mostRecentError = nil
+                self.isSearching = false
             }
-            self.isSearching = false
+        } catch {
+            print("Error refreshing: \(error)")
+            self.performChange {
+                self.mostRecentError = error
+                self.isSearching = false
+            }
         }
+        
         self.rescheduleTimer()
     }
     

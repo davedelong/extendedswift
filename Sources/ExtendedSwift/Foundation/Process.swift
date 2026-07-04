@@ -61,7 +61,7 @@ extension Process {
     
 }
 
-private class ProcessIO {
+private final class ProcessIO: Sendable {
     let outputPath: Path
     let errorPath: Path
     

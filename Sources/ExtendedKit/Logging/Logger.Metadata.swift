@@ -8,7 +8,10 @@
 import Foundation
 import Logging
 
-extension Logger.MetadataValue: Codable {
+extension Logger.MetadataValue: @retroactive Decodable {}
+extension Logger.MetadataValue: @retroactive Encodable {}
+
+extension Logger.MetadataValue {
     
     public init(from decoder: Decoder) throws {
         if var u = try? decoder.unkeyedContainer() {

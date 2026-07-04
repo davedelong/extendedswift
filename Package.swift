@@ -1,4 +1,4 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 6.3
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -10,11 +10,11 @@ let includeDebugTarget = true
 let package = Package(
     name: "ExtendedSwift",
     platforms: [
-        .macOS(.v13),
-        .iOS("16.1"),
-        .watchOS("9.1"),
-        .tvOS("16.1"),
-        .macCatalyst("16.1")
+        .macOS(.v15),
+        .iOS(.v18),
+        .watchOS(.v11),
+        .tvOS(.v18),
+        .macCatalyst(.v18)
     ],
     products: [
         // Products define the executables and libraries a package produces, and make them visible to other packages.

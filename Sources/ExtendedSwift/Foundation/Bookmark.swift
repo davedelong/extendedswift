@@ -55,8 +55,7 @@ public struct Bookmark: Codable {
         try container.encode(self.data)
     }
     
-    internal func access(options: URL.BookmarkResolutionOptions) -> Result<AccessToken, BookmarkError> {
-        let result: Result<AccessToken, BookmarkError>
+    internal func access(options: URL.BookmarkResolutionOptions) throws(BookmarkError) -> AccessToken {
         do {
             var isStale = false
             let u = try URL(resolvingBookmarkData: data,
@@ -65,29 +64,30 @@ public struct Bookmark: Codable {
                             bookmarkDataIsStale: &isStale)
             
             if isStale {
-                result = .failure(.staleBookmark)
+                throw BookmarkError.staleBookmark
             } else {
                 let shouldStartAccessing: Bool
-                #if os(macOS)
+#if os(macOS)
                 shouldStartAccessing = options.contains(.withSecurityScope) && options.contains(.withoutImplicitStartAccessing) == false
-                #else
+#else
                 shouldStartAccessing = options.contains(.withoutImplicitStartAccessing) == false
-                #endif
+#endif
                 
                 if shouldStartAccessing {
                     if u.startAccessingSecurityScopedResource() {
-                        result = .success(AccessToken(url: u, isAccessing: true))
+                        return AccessToken(url: u, isAccessing: true)
                     } else {
-                        result = .failure(.cannotAccessSecurityScopedResource)
+                        throw BookmarkError.cannotAccessSecurityScopedResource
                     }
                 } else {
-                    result = .success(AccessToken(url: u, isAccessing: false))
+                    return AccessToken(url: u, isAccessing: false)
                 }
             }
+        } catch let error as BookmarkError {
+            throw error
         } catch {
-            result = .failure(.cannotResolve(error))
+            throw .cannotResolve(error)
         }
-        return result
     }
     
 }
@@ -145,7 +145,7 @@ extension Bookmark.AccessToken {
 
 extension Bookmark {
     
-    public static var defaultResolutionOptions: URL.BookmarkResolutionOptions {
+    private static var defaultResolutionOptions: URL.BookmarkResolutionOptions {
         #if os(macOS)
         return [.withSecurityScope]
         #else
@@ -153,58 +153,50 @@ extension Bookmark {
         #endif
     }
     
-    public func accessResource(options: URL.BookmarkResolutionOptions = Self.defaultResolutionOptions) throws -> AccessToken {
-        return try access(options: options).get()
+    public func accessResource(options: URL.BookmarkResolutionOptions? = nil) throws(BookmarkError) -> AccessToken {
+        let resolvedOptions = options ?? Self.defaultResolutionOptions
+        return try access(options: resolvedOptions)
     }
     
     @discardableResult
-    public func withResolvedURL<T>(options: URL.BookmarkResolutionOptions = Self.defaultResolutionOptions,
-                                   perform work: (Result<URL, BookmarkError>) async throws -> T) async rethrows -> T {
+    public func withResolvedURL<T>(options: URL.BookmarkResolutionOptions? = nil,
+                                   perform work: (URL) async throws -> T) async throws -> T {
         
-        let result = access(options: options)
-        switch result {
-            case .success(let token):
-                return try await withExtendedLifetime(token) {
-                    return try await work(.success($0.url))
-                }
-            case .failure(let error):
-                return try await work(.failure(error))
+        let resolvedOptions = options ?? Self.defaultResolutionOptions
+        let token = try access(options: resolvedOptions)
+        return try await withExtendedLifetime(token) {
+            return try await work($0.url)
         }
     }
     
     @discardableResult
-    public func withResolvedURL<T>(options: URL.BookmarkResolutionOptions = Self.defaultResolutionOptions,
-                                   perform work: (Result<URL, BookmarkError>) throws -> T) rethrows -> T {
+    public func withResolvedURL<T>(options: URL.BookmarkResolutionOptions? = nil,
+                                   perform work: (URL) throws -> T) throws -> T {
         
-        let result = access(options: options)
-        switch result {
-            case .success(let token):
-                return try withExtendedLifetime(token) {
-                    return try work(.success($0.url))
-                }
-            case .failure(let error):
-                return try work(.failure(error))
+        let resolvedOptions = options ?? Self.defaultResolutionOptions
+        let token = try access(options: resolvedOptions)
+        return try withExtendedLifetime(token) {
+            return try work($0.url)
         }
     }
     
     @discardableResult
-    public func withResolvedPath<T>(options: URL.BookmarkResolutionOptions = Self.defaultResolutionOptions,
-                                    perform work: (Result<Path, BookmarkError>) async throws -> T) async rethrows -> T {
+    public func withResolvedPath<T>(options: URL.BookmarkResolutionOptions? = nil,
+                                    perform work: (Path) async throws -> T) async throws -> T {
         
-        return try await self.withResolvedURL(options: options, perform: { result in
-            let mapped = result.map { Path($0) }
-            return try await work(mapped)
+        let resolvedOptions = options ?? Self.defaultResolutionOptions
+        return try await self.withResolvedURL(options: resolvedOptions, perform: { url in
+            return try await work(Path(url))
         })
         
     }
     
     @discardableResult
-    public func withResolvedPath<T>(options: URL.BookmarkResolutionOptions = Self.defaultResolutionOptions,
-                                    perform work: (Result<Path, BookmarkError>) throws -> T) rethrows -> T {
+    public func withResolvedPath<T>(options: URL.BookmarkResolutionOptions? = nil,
+                                    perform work: (Path) throws -> T) throws -> T {
         
-        return try self.withResolvedURL(options: options, perform: { result in
-            let mapped = result.map { Path($0) }
-            return try work(mapped)
+        return try self.withResolvedURL(options: options, perform: { url in
+            return try work(Path(url))
         })
         
     }

@@ -9,7 +9,7 @@ import Foundation
 
 public let PathSeparator = "/"
 
-public enum PathComponent: Hashable {
+public enum PathComponent: Hashable, Sendable {
     case this
     case up
     case item(basename: String, extension: String?)

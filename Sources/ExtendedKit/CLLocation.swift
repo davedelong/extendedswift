@@ -8,7 +8,7 @@
 import Foundation
 import CoreLocation
 
-extension CLLocationCoordinate2D: Equatable {
+extension CLLocationCoordinate2D: @retroactive Equatable {
     
     public static func ==(lhs: Self, rhs: Self) -> Bool {
         guard lhs.isValid == rhs.isValid else { return false }

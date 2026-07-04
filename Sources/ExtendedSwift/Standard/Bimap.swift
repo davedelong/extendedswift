@@ -57,6 +57,8 @@ public struct Bimap<Left: Hashable, Right: Hashable> {
     }
 }
 
+extension Bimap: Sendable where Left: Sendable, Right: Sendable { }
+
 extension Bimap: ExpressibleByDictionaryLiteral {
     
     public init(dictionaryLiteral elements: (Left, Right)...) {

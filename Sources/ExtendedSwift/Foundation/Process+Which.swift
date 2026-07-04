@@ -5,11 +5,12 @@
 //  Created by Dave DeLong on 4/8/23.
 //
 
-import Foundation
 
 #if os(macOS)
 
-import OpenDirectory
+import Foundation
+private import Synchronization
+private import OpenDirectory
 
 extension Process {
     
@@ -20,7 +21,7 @@ extension Process {
             ])
         }
         
-        if let existing = whichLock.withLock({ whichLookup[command] }) {
+        if let existing = whichLookup.withLock({ $0[command] }) {
             return existing
         }
         
@@ -38,9 +39,7 @@ extension Process {
             
             let url = URL(filePath: trimmed)
             
-            whichLock.withLock({
-                whichLookup[command] = url
-            })
+            whichLookup.withLock { $0[command] = url }
             
             return url
         }
@@ -74,8 +73,7 @@ extension Process {
         return URL(filePath: "/bin/zsh")
     }()
     
-    private static let whichLock = NSLock()
-    private static var whichLookup = Dictionary<String, URL>()
+    private static let whichLookup = Mutex<Dictionary<String, URL>>([:])
     
 }
 

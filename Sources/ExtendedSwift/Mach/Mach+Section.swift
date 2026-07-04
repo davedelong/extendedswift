@@ -97,7 +97,7 @@ extension Mach {
         
     }
     
-    public struct SectionType: RawRepresentable {
+    public struct SectionType: RawRepresentable, Sendable {
         public static let regular = SectionType(rawValue: UInt8(S_REGULAR))
         public static let zeroFill = SectionType(rawValue: UInt8(S_ZEROFILL))
         public static let cStringLiterals = SectionType(rawValue: UInt8(S_CSTRING_LITERALS))
@@ -129,7 +129,7 @@ extension Mach {
         }
     }
     
-    public struct Flags: OptionSet {
+    public struct Flags: OptionSet, Sendable {
         public static let cStringLiterals = Flags(rawValue: UInt32(S_CSTRING_LITERALS))
         
         public let rawValue: UInt32
