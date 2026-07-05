@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct Scanner<C: Collection> {
+public struct Scanner<C>: Sendable where C: Collection & Sendable, C.SubSequence: Sendable, C.Element: Sendable, C.Index: Sendable {
     
     public typealias Element = C.Element
     

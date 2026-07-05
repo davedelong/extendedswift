@@ -12,14 +12,17 @@ import SwiftUI
 import AppKit
 
 extension EnvironmentValues {
+    @MainActor
     public var revealInFinder: RevealInFinder { RevealInFinder.default }
     
+    @MainActor
     public var copyToPasteboard: CopyToPasteboard { CopyToPasteboard.default }
     
+    @MainActor
     public var openSystemSettings: OpenSystemSettings { OpenSystemSettings(open: self.openURL) }
 }
 
-public struct RevealInFinder {
+public struct RevealInFinder: Sendable {
     fileprivate static let `default` = Self()
     
     public func callAsFunction(_ url: URL) {
@@ -37,7 +40,7 @@ public struct RevealInFinder {
     
 }
 
-public struct CopyToPasteboard {
+public struct CopyToPasteboard: Sendable {
     fileprivate static let `default` = Self()
     
     public func callAsFunction<O: _ObjectiveCBridgeable>(_ item: O, to pasteboard: NSPasteboard = .general) where O._ObjectiveCType: NSPasteboardWriting {
@@ -103,7 +106,7 @@ public struct CopyToPasteboard {
 
 public struct OpenSystemSettings {
     
-    public struct Pane {
+    public struct Pane: Sendable {
         public static let general = Self(rawValue: "com.apple.preference.general")
         public static let desktop = Self(rawValue: "com.apple.preference.desktopscreeneffect")
         public static let dock = Self(rawValue: "com.apple.preference.dock")
@@ -142,7 +145,7 @@ public struct OpenSystemSettings {
         internal let rawValue: String
     }
     
-    public struct SecuritySection {
+    public struct SecuritySection: Sendable {
         public static let location = Self(rawValue: "Privacy_LocationServices")
         public static let camera = Self(rawValue: "Privacy_Camera")
         public static let microphone = Self(rawValue: "Privacy_Microphone")
@@ -154,7 +157,7 @@ public struct OpenSystemSettings {
         internal let rawValue: String
     }
     
-    public struct NetworkSection {
+    public struct NetworkSection: Sendable {
         public static let wifi = Self(rawValue: "Wi-Fi")
         
         internal let rawValue: String
@@ -162,6 +165,7 @@ public struct OpenSystemSettings {
     
     fileprivate let open: OpenURLAction
     
+    @MainActor
     public func callAsFunction(_ pane: Pane) {
         let raw = "x-apple.systempreferences:" + pane.rawValue
         guard let u = URL(string: raw) else { return }

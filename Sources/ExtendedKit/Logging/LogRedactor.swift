@@ -45,4 +45,4 @@ extension String {
     
 }
 
-private let redactor = /"(token|password|data)"\s*:\s*"(.+?)"/
+nonisolated(unsafe) private let redactor = /"(token|password|data)"\s*:\s*"(.+?)"/

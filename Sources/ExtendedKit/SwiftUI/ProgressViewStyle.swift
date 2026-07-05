@@ -60,7 +60,7 @@ private struct CircleSpinner: View {
                 .animation(.default, value: fraction)
         }
         .onAppear { updateRotation() }
-        .onChange(of: fraction) { _ in updateRotation() }
+        .onChange(of: fraction) { updateRotation() }
         .onGeometryChange(for: CGSize.self, of: \.size) { circleDimension = min($0.width, $0.height) }
         .frame(width: circleDimension, height: circleDimension, alignment: .center)
     }

@@ -8,8 +8,9 @@
 import Foundation
 import SwiftUI
 
+@MainActor
 @propertyWrapper
-public struct Fetch<T: Fetchable>: DynamicProperty {
+public struct Fetch<T: Fetchable>: @MainActor DynamicProperty {
     @Environment(\.managedObjectContext) var context
     
     @StateObject private var observer: FetchObserver<T>

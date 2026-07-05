@@ -29,7 +29,7 @@ extension ProxyTransferable {
     
     public static var transferRepresentation: ProxyRepresentation<Self, Proxy> {
         ProxyRepresentation(exporting: { simple in
-            return try await simple.transferableProxy()
+            return try simple.transferableProxy()
         })
     }
     

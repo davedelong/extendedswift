@@ -9,7 +9,7 @@ import Foundation
 import CoreData
 import Logging
 
-public struct LogEntry: Identifiable {
+public struct LogEntry: Identifiable, Sendable {
     public var id: Date { timestamp }
     public let timestamp: Date
     public let category: String
@@ -24,7 +24,7 @@ extension LogEntry: Fetchable {
     
     internal static var entity: NSEntityDescription { LogSchema.entities[0] }
     
-    public struct Filter: FetchFilter {
+    public struct Filter: FetchFilter, Sendable {
         public typealias ResultType = NSManagedObject
         public static let all = Filter()
         

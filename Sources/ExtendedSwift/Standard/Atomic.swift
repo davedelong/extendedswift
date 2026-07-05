@@ -7,6 +7,7 @@
 
 import Foundation
 
+@available(*, unavailable, message: "Use Synchronization.Mutex instead")
 public final class Atomic<T> {
     private let _lock = NSLock()
     private var _value: T

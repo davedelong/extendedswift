@@ -8,8 +8,9 @@
 import Foundation
 import SwiftUI
 
+@MainActor
 @propertyWrapper
-public struct FetchOne<T: Fetchable>: DynamicProperty {
+public struct FetchOne<T: Fetchable>: @MainActor DynamicProperty {
     @Fetch var inner: FetchResults<T>
     
     public var wrappedValue: T? { inner.first }

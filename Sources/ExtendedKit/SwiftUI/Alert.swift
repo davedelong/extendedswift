@@ -9,7 +9,7 @@ import SwiftUI
 
 extension View {
     
-    public func alert<V, Message: View, Actions: View>(_ titleKey: LocalizedStringKey, item: Binding<V?>, @ViewBuilder message: (V) -> Message, @ViewBuilder actions: (V) -> Actions) -> some View {
+    public func alert<V: Sendable, Message: View, Actions: View>(_ titleKey: LocalizedStringKey, item: Binding<V?>, @ViewBuilder message: (V) -> Message, @ViewBuilder actions: (V) -> Actions) -> some View {
         self.alert(titleKey, isPresented: item.isNotNull(), actions: {
             if let value = item.wrappedValue {
                 actions(value)

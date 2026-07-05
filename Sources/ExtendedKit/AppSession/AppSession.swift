@@ -8,7 +8,7 @@
 import Foundation
 import Logging
 @_exported import ExtendedSwift
-@_implementationOnly import PrivateAPI
+private import PrivateAPI
 
 public class AppSession {
     
@@ -28,7 +28,7 @@ public class AppSession {
         return AppSession.current
     }
     
-    private static var _current: AppSession?
+    nonisolated(unsafe) private static var _current: AppSession?
     
     public static var current: AppSession { _current !! "Missing call to AppSession.initialize(_:)" }
     

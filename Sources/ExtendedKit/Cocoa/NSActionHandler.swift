@@ -34,7 +34,7 @@ extension NSMenuItem {
 
 #endif
 
-private var actionKey: UInt8 = 0
+nonisolated(unsafe) private var actionKey: UInt8 = 0
 
 @objc
 private class ActionHandler: NSObject {

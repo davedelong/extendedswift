@@ -8,8 +8,9 @@
 import Foundation
 import ExtendedSwift
 import SwiftUI
+import Synchronization
 
-extension Binding {
+extension Binding where Value: Sendable {
     
     public func equals(_ value: Value) -> Binding<Bool> where Value: Equatable {
         return Binding<Bool>(get: { self.wrappedValue == value },
@@ -23,7 +24,7 @@ extension Binding {
                              set: { _ in self.wrappedValue = nil })
     }
     
-    public func map<V>(getter: @escaping (Value) -> V, setter: @escaping (V) -> Value) -> Binding<V> {
+    public func map<V: Sendable>(getter: @escaping @Sendable (Value) -> V, setter: @escaping @Sendable (V) -> Value) -> Binding<V> {
         return Binding<V>(get: { getter(self.wrappedValue) },
                           set: { self.wrappedValue = setter($0) })
     }
@@ -53,7 +54,7 @@ extension Binding {
                              })
     }
     
-    public func onSet(willSet: @escaping (_ oldValue: Value, _ newValue: Value) -> Void) -> Binding<Value> {
+    public func onSet(willSet: @escaping @Sendable (_ oldValue: Value, _ newValue: Value) -> Void) -> Binding<Value> {
         return Binding(get: { wrappedValue },
                        set: { newValue in
             let oldValue = wrappedValue
@@ -62,7 +63,7 @@ extension Binding {
         })
     }
     
-    public func onSet(didSet: @escaping (_ oldValue: Value, _ newValue: Value) -> Void) -> Binding<Value> {
+    public func onSet(didSet: @escaping @Sendable (_ oldValue: Value, _ newValue: Value) -> Void) -> Binding<Value> {
         return Binding(get: { wrappedValue },
                        set: { newValue in
             let oldValue = wrappedValue
@@ -71,7 +72,7 @@ extension Binding {
         })
     }
     
-    public func onSet(willSet: @escaping (_ oldValue: Value, _ newValue: Value) -> Void, didSet: @escaping (_ oldValue: Value, _ newValue: Value) -> Void) -> Binding<Value> {
+    public func onSet(willSet: @escaping @Sendable (_ oldValue: Value, _ newValue: Value) -> Void, didSet: @escaping @Sendable (_ oldValue: Value, _ newValue: Value) -> Void) -> Binding<Value> {
         return Binding(get: { wrappedValue },
                        set: { newValue in
             let oldValue = wrappedValue
@@ -91,31 +92,34 @@ extension Binding where Value == Bool {
     
 }
 
-extension Binding where Value: SetAlgebra {
+extension Binding where Value: SetAlgebra & Sendable {
     
-    public func contains(_ element: Value.Element) -> Binding<Bool> {
+    public func contains(_ element: Value.Element) -> Binding<Bool> where Value.Element: Sendable {
         return Binding<Bool>(get: { self.wrappedValue[contains: element] },
                              set: { self.wrappedValue[contains: element] = $0 })
     }
     
 }
 
-private class Debouncer<Value> {
+private final class Debouncer<Value: Sendable>: Sendable {
     let interval: TimeInterval
-    let sender: (Value) -> Void
+    let sender: @Sendable (Value) -> Void
     
-    private var current: DispatchWorkItem?
+    private let current = Mutex<DispatchWorkItem?>(nil)
     
-    init(interval: TimeInterval, sender: @escaping (Value) -> Void) {
+    init(interval: TimeInterval, sender: @escaping @Sendable (Value) -> Void) {
         self.interval = interval
         self.sender = sender
     }
     
     func send(_ value: Value) {
-        current?.cancel()
-        let work = DispatchWorkItem(block: { self.sender(value) })
-        self.current = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + interval, execute: work)
+        let newWork = current.withLock { old in
+            old?.cancel()
+            let new = DispatchWorkItem(block: { self.sender(value) })
+            old = new
+            return new
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + interval, execute: newWork)
     }
     
 }

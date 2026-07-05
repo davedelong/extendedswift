@@ -9,7 +9,7 @@ import Foundation
 import Logging
 import CoreData
 
-internal let LogSchema: NSManagedObjectModel = {
+nonisolated(unsafe) internal let LogSchema: NSManagedObjectModel = {
     
     let m = NSManagedObjectModel {
         NSEntityDescription("LogEntry", properties: {
@@ -131,6 +131,7 @@ public class CoreDataLogStore {
             return
         }
         
+        let encoder = self.metadataEncoder
         moc.perform {
             let entry = NSManagedObject(entity: LogEntry.entity, insertInto: moc)
             entry.setValue(e.timestamp, forKey: "timestamp")
@@ -141,7 +142,7 @@ public class CoreDataLogStore {
             entry.setValue(e.location, forKey: "location")
             
             if let md = e.metadata,
-               let data = try? self.metadataEncoder.encode(md),
+               let data = try? encoder.encode(md),
                let json = String(data: data, encoding: .utf8) {
                 
                 entry.setValue(json, forKey: "metadata")
