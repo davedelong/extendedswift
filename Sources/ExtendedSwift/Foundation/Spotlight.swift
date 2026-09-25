@@ -48,7 +48,7 @@ extension Spotlight {
         public var attributes: [String] { Array(values.keys) }
         
         fileprivate init(item: NSMetadataItem) {
-            let allKeys = item.attributeKeys
+            let allKeys = item.mdAttributeNames
             self.values = item.values(forAttributes: allKeys) ?? [:]
         }
     }
@@ -95,6 +95,17 @@ public struct SpotlightQuery: AsyncSequence {
         q.sortDescriptors = sortDescriptors.map { NSSortDescriptor($0) }
         
         return q.items.makeAsyncIterator()
+    }
+    
+}
+
+extension NSMetadataItem {
+    
+    fileprivate var mdAttributeNames: [String] {
+        guard let raw = self.value(forKey: "_item") else { return [] }
+        let mdItem = (raw as! MDItem)
+        let cfArray = MDItemCopyAttributeNames(mdItem)
+        return (cfArray as? [String]) ?? []
     }
     
 }
