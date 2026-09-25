@@ -1,6 +1,6 @@
 import Foundation
 
-public struct HTTPRequestEnvironment: Sendable, HTTPOption {
+public struct HTTPRequestEnvironment: HTTPOption {
     
     public static let defaultValue: HTTPRequestEnvironment? = nil
     

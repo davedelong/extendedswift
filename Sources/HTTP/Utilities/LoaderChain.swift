@@ -1,4 +1,4 @@
-import os
+import Synchronization
 
 internal final class LoaderChain: Sendable {
     
@@ -7,10 +7,10 @@ internal final class LoaderChain: Sendable {
     private typealias State = [ObjectIdentifier: HTTPLoader]
     
     // BUG: this will retain loaders indefinitely
-    private let lock: OSAllocatedUnfairLock<State>
+    private let lock: Mutex<State>
     
     private init() {
-        lock = OSAllocatedUnfairLock(initialState: [:])
+        lock = Mutex([:])
     }
     
     func nextLoader(for loader: HTTPLoader) -> HTTPLoader? {

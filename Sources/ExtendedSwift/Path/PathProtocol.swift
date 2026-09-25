@@ -83,12 +83,12 @@ extension PathProtocol {
     }
     
     public var lastComponent: PathComponent? { return components.last }
-    public var lastItem: String? { return components.last?.itemString }
     
-    public var `extension`: String? {
-        guard case .some(.item(_, let e)) = components.last else { return nil }
-        return e
-    }
+    public var lastItem: String? { return lastComponent?.itemString }
+    
+    public var baseName: String? { lastComponent?.itemBaseName }
+    
+    public var `extension`: String? { lastComponent?.itemExtension }
     
     public func modifyingLastItem(_ modifier: (String, String?) -> (String, String?)?) -> Self {
         var pieces = self.components

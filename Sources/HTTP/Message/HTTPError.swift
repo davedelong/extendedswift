@@ -1,4 +1,4 @@
-public struct HTTPError: Error, Sendable, CustomStringConvertible {
+public struct HTTPError: Error,CustomStringConvertible {
     
     public enum Code: Sendable {
         case cancelled

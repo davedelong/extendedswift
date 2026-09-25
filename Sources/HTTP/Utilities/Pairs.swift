@@ -1,4 +1,4 @@
-internal struct Pairs<Key: Equatable & Sendable, Value: Sendable>: Sendable, ExpressibleByArrayLiteral {
+internal struct Pairs<Key: Equatable, Value>: ExpressibleByArrayLiteral {
     typealias Element = (Key, Value)
     
     private var values = [Element]()
@@ -58,6 +58,8 @@ internal struct Pairs<Key: Equatable & Sendable, Value: Sendable>: Sendable, Exp
         self.values = new
     }
 }
+
+extension Pairs: Sendable where Key: Sendable, Value: Sendable { }
 
 extension Pairs: Sequence {
     typealias Iterator = Array<Element>.Iterator
