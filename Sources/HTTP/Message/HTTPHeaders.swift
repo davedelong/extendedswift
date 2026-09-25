@@ -1,3 +1,4 @@
+@dynamicMemberLookup
 public struct HTTPHeaders: Sendable, Collection {
     
     private var pairs = Pairs<HTTPHeader, String>()
@@ -18,6 +19,16 @@ public struct HTTPHeaders: Sendable, Collection {
                 pairs[name] = []
             }
         }
+    }
+    
+    public subscript(dynamicMember keyPath: KeyPath<HTTPHeader.Type, HTTPHeader>) -> [String] {
+        get { self[HTTPHeader.self[keyPath: keyPath]] }
+        set { self[HTTPHeader.self[keyPath: keyPath]] = newValue }
+    }
+    
+    public subscript(dynamicMember keyPath: KeyPath<HTTPHeader.Type, HTTPHeader>) -> String? {
+        get { self[HTTPHeader.self[keyPath: keyPath]] }
+        set { self[HTTPHeader.self[keyPath: keyPath]] = newValue }
     }
     
     public func firstValue(for header: HTTPHeader) -> String? {
