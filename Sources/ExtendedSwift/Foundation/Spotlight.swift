@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import CoreServices
 
 public typealias Spotlight = NSMetadataQuery
 
