@@ -2,7 +2,7 @@ import Foundation
 
 extension AsyncStream {
     
-    internal init<S: Sequence>(sequence: S) where S.Element == Element {
+    internal init<S: Sequence>(sequence: S) where S.Element == Element, S.Element: Sendable {
         self.init { continuation in
             for element in sequence {
                 continuation.yield(element)

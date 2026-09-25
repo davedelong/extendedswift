@@ -1,6 +1,7 @@
 import Foundation
+import Synchronization
 
-internal class URLSessionAdapter {
+internal final class URLSessionAdapter: Sendable {
     
     private let session: URLSession
     private let delegate: URLSessionAdapterDelegate
@@ -27,14 +28,7 @@ internal class URLSessionAdapter {
     }
     
     // this value is only accessed on the delegate's queue
-    private let stateLock = NSLock()
-    private var states = [Int: URLSessionTaskState]()
-    
-    private func withState<T>(_ perform: (inout Dictionary<Int, URLSessionTaskState>) -> T) -> T {
-        return stateLock.withLock {
-            return perform(&states)
-        }
-    }
+    private let states = Mutex<Dictionary<Int, URLSessionTaskState>>([:])
     
     private func execute(_ urlRequest: URLRequest, httpRequest: HTTPRequest, token: HTTPRequestToken) async -> HTTPResult {
         return await withUnsafeContinuation { continuation in
@@ -45,7 +39,7 @@ internal class URLSessionAdapter {
                                                 dataTask: dataTask,
                                                 continuation: continuation)
                 
-                self.withState {
+                self.states.withLock {
                     $0[dataTask.taskIdentifier] = state
                 }
                 dataTask.resume()
@@ -61,7 +55,7 @@ internal class URLSessionAdapter {
     
     func task(_ task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest) async -> URLRequest? {
         
-        let originalRequest = withState { $0[task.taskIdentifier]?.httpRequest }
+        let originalRequest = self.states.withLock { $0[task.taskIdentifier]?.httpRequest }
         
         guard let originalRequest else {
             return nil
@@ -83,7 +77,7 @@ internal class URLSessionAdapter {
     
     func task(_ task: URLSessionTask, didReceive challenge: URLAuthenticationChallenge) async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
         
-        let originalRequest = withState { $0[task.taskIdentifier]?.httpRequest }
+        let originalRequest = self.states.withLock { $0[task.taskIdentifier]?.httpRequest }
         
         guard let originalRequest else {
             return (.cancelAuthenticationChallenge, nil)
@@ -98,7 +92,7 @@ internal class URLSessionAdapter {
     }
     
     func task(needsNewBodyStream task: URLSessionTask) async -> InputStream? {
-        let body = withState { $0[task.taskIdentifier]?.httpRequest.body }
+        let body = self.states.withLock { $0[task.taskIdentifier]?.httpRequest.body }
         guard let body else { return nil }
         
         print("TODO: create a new input stream for this body", body)
@@ -110,7 +104,7 @@ internal class URLSessionAdapter {
     }
     
     func task(_ task: URLSessionTask, didCompleteWithError error: Error?) {
-        let state = withState { $0.removeValue(forKey: task.taskIdentifier) }
+        let state = self.states.withLock { $0.removeValue(forKey: task.taskIdentifier) }
         guard let state else {
             return
         }
@@ -142,7 +136,7 @@ internal class URLSessionAdapter {
             return .cancel
         }
         
-        return withState { states in
+        return self.states.withLock { states in
             guard let request = states[dataTask.taskIdentifier]?.httpRequest else {
                 return .cancel
             }
@@ -156,7 +150,7 @@ internal class URLSessionAdapter {
     }
     
     func task(_ dataTask: URLSessionDataTask, didReceive data: Data) {
-        withState { states in
+        self.states.withLock { states in
             guard states[dataTask.taskIdentifier] != nil else {
                 return
             }

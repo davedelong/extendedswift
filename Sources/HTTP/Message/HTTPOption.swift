@@ -1,4 +1,4 @@
-public protocol HTTPOption {
+public protocol HTTPOption: Sendable {
     
     associatedtype Value: Sendable
     

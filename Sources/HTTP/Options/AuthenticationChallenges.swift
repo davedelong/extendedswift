@@ -1,6 +1,6 @@
 import Foundation
 
-public struct HTTPAuthenticationChallengeResponse {
+public struct HTTPAuthenticationChallengeResponse: Sendable {
     public static let cancelRequest = HTTPAuthenticationChallengeResponse(disposition: .cancelAuthenticationChallenge, credential: nil)
     
     public static let performDefaultAction = HTTPAuthenticationChallengeResponse(disposition: .performDefaultHandling, credential: nil)
@@ -15,7 +15,7 @@ public struct HTTPAuthenticationChallengeResponse {
     internal let credential: URLCredential?
 }
 
-public protocol HTTPAuthenticationChallengeHandler {
+public protocol HTTPAuthenticationChallengeHandler: Sendable {
     func evaluate(_ challenge: URLAuthenticationChallenge, for request: HTTPRequest) async -> HTTPAuthenticationChallengeResponse
 }
 

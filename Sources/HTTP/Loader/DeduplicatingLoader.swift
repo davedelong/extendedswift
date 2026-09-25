@@ -2,7 +2,7 @@ import Foundation
 
 public actor DeduplicatingLoader: HTTPLoader {
     
-    private typealias DeduplicationHandler = (HTTPResult) -> Void
+    private typealias DeduplicationHandler = @Sendable (HTTPResult) -> Void
     
     private struct DeduplicationList {
         let originalRequestID: UUID
@@ -49,11 +49,15 @@ public actor DeduplicatingLoader: HTTPLoader {
             
             #warning("TODO: continuing if it's cancelled?")
             token.addCancellationHandler {
-                self.ongoingRequests[identifier]?.dedupedTasks.setValue(nil, for: id)
+                Task { await self.requestDidCancel(requestID: identifier, handlerID: id) }
             }
             
             self.ongoingRequests[identifier]?.dedupedTasks.setValue(handler, for: id)
         }
+    }
+    
+    private func requestDidCancel(requestID identifier: String, handlerID: UUID) {
+        self.ongoingRequests[identifier]?.dedupedTasks.setValue(nil, for: handlerID)
     }
     
 }

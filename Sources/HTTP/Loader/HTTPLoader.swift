@@ -6,6 +6,12 @@ public protocol HTTPLoader: Actor {
 
 extension HTTPLoader {
     
+    public nonisolated var loaderID: ObjectIdentifier { ObjectIdentifier(self) }
+    
+}
+
+extension HTTPLoader {
+    
     public nonisolated var nextLoader: HTTPLoader? {
         get  { LoaderChain.shared.nextLoader(for: self) }
         set { LoaderChain.shared.setNextLoader(newValue, for: self) }

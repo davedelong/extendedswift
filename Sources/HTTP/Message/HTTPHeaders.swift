@@ -9,6 +9,17 @@ public struct HTTPHeaders: Sendable, Collection {
         set { pairs[name] = newValue }
     }
     
+    public subscript(name: HTTPHeader) -> String? {
+        get { pairs[name].first }
+        set {
+            if let newValue {
+                pairs[name] = [newValue]
+            } else {
+                pairs[name] = []
+            }
+        }
+    }
+    
     public func firstValue(for header: HTTPHeader) -> String? {
         pairs.firstValue(for: header)
     }

@@ -12,7 +12,7 @@ extension HTTPOptions {
     
 }
 
-public protocol HTTPRetryStrategy {
+public protocol HTTPRetryStrategy: Sendable {
     mutating func nextDelay(after result: HTTPResult) -> TimeInterval?
 }
 
@@ -52,9 +52,9 @@ public struct BackoffRetry: HTTPRetryStrategy {
 
 public struct CustomRetry: HTTPRetryStrategy {
     
-    private let computeDelay: (HTTPResult) -> TimeInterval?
+    private let computeDelay: @Sendable (HTTPResult) -> TimeInterval?
     
-    public init(_ delay: @escaping (HTTPResult) -> TimeInterval?) {
+    public init(_ delay: @escaping @Sendable (HTTPResult) -> TimeInterval?) {
         self.computeDelay = delay
     }
     

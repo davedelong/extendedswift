@@ -1,6 +1,6 @@
 import Foundation
 
-internal class URLSessionAdapterDelegate: NSObject, URLSessionTaskDelegate, URLSessionDataDelegate {
+internal final class URLSessionAdapterDelegate: NSObject, URLSessionTaskDelegate, URLSessionDataDelegate {
     
     let queue: OperationQueue
     weak var adapter: URLSessionAdapter?

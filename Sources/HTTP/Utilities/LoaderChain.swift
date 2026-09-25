@@ -1,13 +1,13 @@
 import os
 
-internal class LoaderChain {
+internal final class LoaderChain: Sendable {
     
     static let shared = LoaderChain()
     
     private typealias State = [ObjectIdentifier: HTTPLoader]
     
     // BUG: this will retain loaders indefinitely
-    private var lock: OSAllocatedUnfairLock<State>
+    private let lock: OSAllocatedUnfairLock<State>
     
     private init() {
         lock = OSAllocatedUnfairLock(initialState: [:])
@@ -15,21 +15,20 @@ internal class LoaderChain {
     
     func nextLoader(for loader: HTTPLoader) -> HTTPLoader? {
         return lock.withLock { state in
-            let id = ObjectIdentifier(loader)
-            return state[id]
+            return state[loader.loaderID]
         }
     }
     
     func setNextLoader(_ next: HTTPLoader?, for loader: HTTPLoader) {
         lock.withLock { state in
-            let id = ObjectIdentifier(loader)
+            let id = loader.loaderID
             if let n = next {
                 var seen = Set<ObjectIdentifier>()
                 seen.insert(id)
                 
                 var current = id
                 while let nextLoader = state[current] {
-                    let nextID = ObjectIdentifier(nextLoader)
+                    let nextID = nextLoader.loaderID
                     if seen.contains(nextID) {
                         fatalError("Cycle detected while setting the nextLoader")
                     } else {
