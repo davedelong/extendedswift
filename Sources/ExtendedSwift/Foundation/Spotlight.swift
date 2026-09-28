@@ -103,10 +103,14 @@ public struct SpotlightQuery: AsyncSequence {
 extension NSMetadataItem {
     
     fileprivate var mdAttributeNames: [String] {
+        #if os(macOS)
         guard let raw = self.value(forKey: "_item") else { return [] }
         let mdItem = (raw as! MDItem)
         let cfArray = MDItemCopyAttributeNames(mdItem)
         return (cfArray as? [String]) ?? []
+        #else
+        return []
+        #endif
     }
     
 }
