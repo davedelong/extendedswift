@@ -17,7 +17,7 @@ extension ProcessInfo {
         var info: kinfo_proc = kinfo_proc()
         var info_size = MemoryLayout<kinfo_proc>.size
         
-        let success = sysctl(&name, nameSize, &info, &info_size, nil, 0) == 0
+        let success = Darwin.sysctl(&name, nameSize, &info, &info_size, nil, 0) == 0
         
         if success && ((info.kp_proc.p_flag & P_TRACED) != 0) {
             return true
@@ -37,6 +37,21 @@ extension ProcessInfo {
         }
     }
     
+    public func sysctl(name: String) throws -> String? {
+        var size = 0
+        let status = sysctlbyname(name, nil, &size, nil, 0)
+        guard status == 0 else {
+            throw NSError(domain: "extendedswift.sysctl", code: Int(errno), userInfo: [
+                "name": name
+            ])
+        }
+        guard size > 0 else { return nil }
+        
+        return String(unsafeUninitializedCapacity: size, initializingUTF8With: { umrbp in
+            sysctlbyname(name, umrbp.baseAddress, &size, nil, 0)
+            return size - 1 // ignore the trailing null byte
+        })
+    }
 }
 
 nonisolated(unsafe) private let _entitlementsDict: Dictionary<String, Any> = {
