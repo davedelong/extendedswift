@@ -37,6 +37,21 @@ extension ProcessInfo {
         }
     }
     
+    public var uname: String? {
+        get throws {
+            var systemInfo = utsname()
+            let status = Darwin.uname(&systemInfo)
+            guard status == 0 else {
+                throw NSError(domain: "extendedswift.uname", code: Int(errno))
+            }
+            return withUnsafePointer(to: &systemInfo.machine) {
+                $0.withMemoryRebound(to: CChar.self, capacity: 1) { ptr in
+                    String(validatingCString: ptr)
+                }
+            }
+        }
+    }
+    
     public func sysctl(name: String) throws -> String? {
         var size = 0
         let status = sysctlbyname(name, nil, &size, nil, 0)
