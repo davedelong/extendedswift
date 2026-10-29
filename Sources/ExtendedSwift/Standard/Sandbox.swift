@@ -13,7 +13,7 @@ public protocol SandboxProperty {
     static func provideValue(for sandbox: Sandbox) -> PropertyValue
 }
 
-public class Sandbox {
+public class Sandbox: @unchecked Sendable {
     
     private let lock = NSRecursiveLock()
     private var values = Dictionary<ObjectIdentifier, Any>()
