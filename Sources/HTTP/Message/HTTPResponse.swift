@@ -29,23 +29,39 @@ public struct HTTPResponse: Sendable, CustomStringConvertible {
         set { headers[name] = newValue }
     }
     
-    public var description: String { descriptionLines.joined(separator: "\n") }
+    public var description: String { description(options: .init()) }
+    
+    public func description(options: HTTPMessage.DescriptionOptions) -> String {
+        descriptionLines(options: options).joined(separator: "\n")
+    }
     
     public var descriptionLines: Array<String> {
+        return descriptionLines(options: .init())
+    }
+    
+    public func descriptionLines(options: HTTPMessage.DescriptionOptions) -> Array<String> {
         var lines = Array<String>()
         
         lines.append("\(status)")
         for (header, value) in headers {
-            lines.append("\(header.rawValue): \(value)")
+            if options.redactedHeaders.contains(header) {
+                lines.append("\(header.rawValue): (redacted)")
+            } else {
+                lines.append("\(header.rawValue): \(value)")
+            }
         }
         if let body {
             for (header, value) in body.headers {
-                lines.append("\(header.rawValue): \(value)")
+                if options.redactedHeaders.contains(header) {
+                    lines.append("\(header.rawValue): (redacted)")
+                } else {
+                    lines.append("\(header.rawValue): \(value)")
+                }
             }
             lines.append("")
             
             if let syncBody = body as? HTTPSynchronousBody, let data = try? syncBody.bodyData {
-                if let str = String(data: data, encoding: .utf8) {
+                if let str = String(data: data.prefix(options.bodyLengthLimit ?? Int.max), encoding: .utf8) {
                     lines.append(str)
                 } else {
                     lines.append(data.map { String(format: "%02X", $0) }.joined())
@@ -64,6 +80,20 @@ extension HTTPResponse {
     
     public static func ok(_ request: HTTPRequest) -> HTTPResponse {
         return .init(request: request, status: .ok)
+    }
+    
+}
+
+public enum HTTPMessage {
+    
+    public struct DescriptionOptions {
+        public var redactedHeaders: Set<HTTPHeader>
+        public var bodyLengthLimit: Int?
+        
+        public init(redactedHeaders: Set<HTTPHeader> = [], bodyLengthLimit: Int? = nil) {
+            self.redactedHeaders = redactedHeaders
+            self.bodyLengthLimit = bodyLengthLimit
+        }
     }
     
 }

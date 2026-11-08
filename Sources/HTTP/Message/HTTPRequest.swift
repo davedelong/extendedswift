@@ -35,12 +35,13 @@ public struct HTTPRequest: Sendable, CustomStringConvertible {
         self.body = body
     }
     
-    public init(method: HTTPMethod = .get, host: String? = nil, path: String? = nil, query: HTTPQuery? = nil) {
+    public init(method: HTTPMethod = .get, host: String? = nil, path: String? = nil, fragment: String? = nil, query: HTTPQuery? = nil, headers: HTTPHeaders? = nil, body: (any HTTPBody)? = nil) {
         self.method = method
         self.host = host
         self.path = path
         self.query = query ?? .init()
-        self.body = nil
+        self.headers = headers ?? .init()
+        self.body = body
     }
     
     public subscript(header name: HTTPHeader) -> String? {
@@ -73,9 +74,17 @@ public struct HTTPRequest: Sendable, CustomStringConvertible {
         set { options[keyPath: keyPath] = newValue }
     }
     
-    public var description: String { descriptionLines.joined(separator: "\n") }
+    public var description: String { description(options: .init()) }
+    
+    public func description(options: HTTPMessage.DescriptionOptions) -> String {
+        descriptionLines(options: options).joined(separator: "\n")
+    }
     
     public var descriptionLines: Array<String> {
+        return descriptionLines(options: .init())
+    }
+    
+    public func descriptionLines(options: HTTPMessage.DescriptionOptions) -> Array<String> {
         var lines = Array<String>()
         
         var path = path ?? "/"
@@ -93,16 +102,24 @@ public struct HTTPRequest: Sendable, CustomStringConvertible {
             lines.append("Host: \(host)")
         }
         for (header, value) in headers {
-            lines.append("\(header.rawValue): \(value)")
+            if options.redactedHeaders.contains(header) {
+                lines.append("\(header.rawValue): (redacted)")
+            } else {
+                lines.append("\(header.rawValue): \(value)")
+            }
         }
         if let body {
             for (header, value) in body.headers {
-                lines.append("\(header.rawValue): \(value)")
+                if options.redactedHeaders.contains(header) {
+                    lines.append("\(header.rawValue): (redacted)")
+                } else {
+                    lines.append("\(header.rawValue): \(value)")
+                }
             }
             lines.append("")
             
             if let syncBody = body as? HTTPSynchronousBody, let data = try? syncBody.bodyData {
-                if let str = String(data: data, encoding: .utf8) {
+                if let str = String(data: data.prefix(options.bodyLengthLimit ?? Int.max), encoding: .utf8) {
                     lines.append(str)
                 } else {
                     lines.append(data.map { String(format: "%02X", $0) }.joined())

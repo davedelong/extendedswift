@@ -22,6 +22,34 @@ extension View {
         self.frame(width: size.width, height: size.height)
     }
     
+    public func padding(leading: CGFloat) -> some View {
+        self.padding(.leading, leading)
+    }
+    
+    public func padding(trailing: CGFloat) -> some View {
+        self.padding(.trailing, trailing)
+    }
+    
+    public func padding(top: CGFloat) -> some View {
+        self.padding(.top, top)
+    }
+    
+    public func padding(bottom: CGFloat) -> some View {
+        self.padding(.bottom, bottom)
+    }
+    
+    public func padding(horizontal: CGFloat) -> some View {
+        self.padding(.horizontal, horizontal)
+    }
+    
+    public func padding(vertical: CGFloat) -> some View {
+        self.padding(.vertical, vertical)
+    }
+    
+    public func padding(horizontal: CGFloat, vertical: CGFloat) -> some View {
+        self.padding(EdgeInsets(top: vertical, leading: horizontal, bottom: vertical, trailing: horizontal))
+    }
+    
     public func frame(size: CGSize, alignment: Alignment) -> some View {
         self.frame(width: size.width, height: size.height, alignment: alignment)
     }
@@ -61,16 +89,8 @@ extension View {
         return self.readFrame(in: coordinateSpace, onChange: { onChange($0.center) })
     }
     
-    public func readSize(in coordinateSpace: CoordinateSpace = .local, onChange: @escaping (CGSize) -> Void) -> some View {
-        return self.readFrame(in: coordinateSpace, onChange: { onChange($0.size) })
-    }
-    
     public func readFrame(_ binding: Binding<CGRect>, in coordinateSpace: CoordinateSpace = .local) -> some View {
         self.readFrame(in: coordinateSpace, onChange: { binding.wrappedValue = $0 })
-    }
-    
-    public func readSize(_ binding: Binding<CGSize>, in coordinateSpace: CoordinateSpace = .local) -> some View {
-        self.readFrame(in: coordinateSpace, onChange: { binding.wrappedValue = $0.size })
     }
     
     public func readOrigin(_ binding: Binding<CGPoint>, in coordinateSpace: CoordinateSpace = .local) -> some View {
@@ -79,6 +99,14 @@ extension View {
     
     public func readPosition(_ binding: Binding<CGPoint>, in coordinateSpace: CoordinateSpace = .local) -> some View {
         self.readFrame(in: coordinateSpace, onChange: { binding.wrappedValue = $0.center })
+    }
+    
+    public func readSize(onChange: @escaping (CGSize) -> Void) -> some View {
+        self.onGeometryChange(for: CGSize.self, of: \.size, action: onChange)
+    }
+    
+    public func readSize(_ binding: Binding<CGSize>) -> some View {
+        self.readSize(onChange: { binding.wrappedValue = $0 })
     }
     
 }

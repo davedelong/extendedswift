@@ -24,6 +24,11 @@ extension Binding where Value: Sendable {
                              set: { _ in self.wrappedValue = nil })
     }
     
+    public func `default`<V>(_ missing: V) -> Binding<V> where Value == Optional<V> {
+        return Binding<V>(get: { self.wrappedValue ?? missing },
+                          set: { self.wrappedValue = $0 })
+    }
+    
     public func map<V: Sendable>(getter: @escaping @Sendable (Value) -> V, setter: @escaping @Sendable (V) -> Value) -> Binding<V> {
         return Binding<V>(get: { getter(self.wrappedValue) },
                           set: { self.wrappedValue = setter($0) })
