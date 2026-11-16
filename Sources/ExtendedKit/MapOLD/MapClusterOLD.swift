@@ -8,24 +8,24 @@
 import Foundation
 import MapKit
 
-public protocol MapCluster {
+public protocol MapClusterOLD {
     associatedtype Marker: MKAnnotationView
-    associatedtype Item: MapItem
+    associatedtype Item: MapItemOLD
     
     static func configure(view: Marker, members: Array<Item>)
     
 }
 
-extension Never: MapCluster {
+extension Never: MapClusterOLD {
     public typealias Marker = MKAnnotationView
-    public typealias Item = BasicMapItem
+    public typealias Item = BasicMapItemOLD
     
-    public static func configure(view: MKAnnotationView, members: Array<BasicMapItem>) {
+    public static func configure(view: MKAnnotationView, members: Array<BasicMapItemOLD>) {
         fatalError("Unreachable")
     }
 }
 
-extension MapCluster {
+extension MapClusterOLD {
     
     internal static var isValid: Bool {
         return self != Never.self
@@ -41,7 +41,7 @@ extension MapCluster {
     internal static func configure(annotations: Array<MKAnnotation>, for marker: MKAnnotationView) {
         guard let typedMarker = marker as? Marker else { return }
         
-        let mapAnnotations = annotations.filter(is: _MapAnnotation<Item>.self)
+        let mapAnnotations = annotations.filter(is: _MapAnnotationOLD<Item>.self)
         let items = mapAnnotations.map(\.item)
         if items.isEmpty { return }
         

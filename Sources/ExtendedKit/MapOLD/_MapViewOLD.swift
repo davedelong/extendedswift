@@ -9,8 +9,10 @@ import Foundation
 import SwiftUI
 import MapKit
 
-internal struct _MapView<Data, Label: MKAnnotationView>: PlatformViewRepresentable where Data: RandomAccessCollection, Data.Element: MapItem {
-    typealias Coordinator = _MapCoordinator<Data, Label>
+internal struct _MapViewOLD<Data, Label: MKAnnotationView>: PlatformViewRepresentable where Data: RandomAccessCollection, Data.Element: MapItemOLD {
+    typealias UIViewType = MKMapView
+    
+    typealias Coordinator = _MapCoordinatorOLD<Data, Label>
         
     let annotations: Data
     let interactable: Bool
@@ -20,20 +22,15 @@ internal struct _MapView<Data, Label: MKAnnotationView>: PlatformViewRepresentab
     let label: (Data.Element, Label) -> Void
     
     func makeCoordinator() -> Coordinator {
-        _MapCoordinator(region: visibleRegion, action: action, label: label)
+        _MapCoordinatorOLD(region: visibleRegion, action: action, label: label)
     }
     
-    #if os(macOS)
-    func makeNSView(context: Context) -> MKMapView { return context.coordinator.map }
-    func updateNSView(_ nsView: MKMapView, context: Context) { context.coordinator.updateMap(from: self) }
-    #else
-    func makeUIView(context: Self.Context) -> MKMapView { return context.coordinator.map }
-    func updateUIView(_ uiView: MKMapView, context: Context) { context.coordinator.updateMap(from: self) }
-    #endif
+    func makePlatformView(context: Self.Context) -> MKMapView { return context.coordinator.map }
+    func updatePlatformView(_ uiView: MKMapView, context: Context) { context.coordinator.updateMap(from: self) }
 }
 
 
-internal class _MapCoordinator<Data, Label: MKAnnotationView>: NSObject, MKMapViewDelegate where Data: RandomAccessCollection, Data.Element: MapItem {
+internal class _MapCoordinatorOLD<Data, Label: MKAnnotationView>: NSObject, MKMapViewDelegate where Data: RandomAccessCollection, Data.Element: MapItemOLD {
     let region: Binding<MKCoordinateRegion?>
     let action: (Data.Element) -> Void
     let label: (Data.Element, Label) -> Void
@@ -41,7 +38,7 @@ internal class _MapCoordinator<Data, Label: MKAnnotationView>: NSObject, MKMapVi
     
     private var registeredClusters = Set<String>()
     
-    private var itemMap = Dictionary<Data.Element.ID, _MapAnnotation<Data.Element>>()
+    private var itemMap = Dictionary<Data.Element.ID, _MapAnnotationOLD<Data.Element>>()
     
     private(set) lazy var map: MKMapView = {
         let map = MKMapView(frame: CGRect(x: 0, y: 0, width: 320, height: 320))
@@ -61,7 +58,7 @@ internal class _MapCoordinator<Data, Label: MKAnnotationView>: NSObject, MKMapVi
         super.init()
     }
     
-    func updateMap(from container: _MapView<Data, Label>) {
+    func updateMap(from container: _MapViewOLD<Data, Label>) {
         map.isZoomEnabled = container.interactable
         map.isScrollEnabled = container.interactable
         map.isPitchEnabled = false
@@ -89,7 +86,7 @@ internal class _MapCoordinator<Data, Label: MKAnnotationView>: NSObject, MKMapVi
     
     func updateAnnotations(_ newAnnotations: Data) {
         var previous = itemMap
-        var new = Dictionary<Data.Element.ID, _MapAnnotation<Data.Element>>()
+        var new = Dictionary<Data.Element.ID, _MapAnnotationOLD<Data.Element>>()
         
         var added = Array<MKAnnotation>()
         for item in newAnnotations {
@@ -101,7 +98,7 @@ internal class _MapCoordinator<Data, Label: MKAnnotationView>: NSObject, MKMapVi
                 new[item.id] = e
                 previous[item.id] = nil
             } else {
-                let annotation = _MapAnnotation(item: item)
+                let annotation = _MapAnnotationOLD(item: item)
                 new[item.id] = annotation
                 added.append(annotation)
             }
@@ -117,7 +114,7 @@ internal class _MapCoordinator<Data, Label: MKAnnotationView>: NSObject, MKMapVi
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
         if annotation is MKUserLocation { return nil }
         
-        if let mapAnnotation = annotation as? _MapAnnotation<Data.Element> {
+        if let mapAnnotation = annotation as? _MapAnnotationOLD<Data.Element> {
             let view = mapView.dequeueReusableAnnotationView(withIdentifier: "\(Data.Element.self)", for: annotation) as! Label
             label(mapAnnotation.item, view)
             view.clusteringIdentifier = mapAnnotation.item.cluster.clusteringIdentifier
@@ -126,7 +123,7 @@ internal class _MapCoordinator<Data, Label: MKAnnotationView>: NSObject, MKMapVi
         
         if let clusterAnnotation = annotation as? MKClusterAnnotation {
             let cluster = clusterAnnotation.memberAnnotations.firstNonNil {
-                ($0 as? _MapAnnotation<Data.Element>)?.item.resolvedCluster
+                ($0 as? _MapAnnotationOLD<Data.Element>)?.item.resolvedCluster
             }
             
             if let cluster, let id = cluster.clusteringIdentifier {
@@ -142,7 +139,7 @@ internal class _MapCoordinator<Data, Label: MKAnnotationView>: NSObject, MKMapVi
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
         guard let annotation = view.annotation else { return }
         
-        if let mapAnnotation = annotation as? _MapAnnotation<Data.Element> {
+        if let mapAnnotation = annotation as? _MapAnnotationOLD<Data.Element> {
             if view.canShowCallout == false {
                 action(mapAnnotation.item)
             }
@@ -167,7 +164,7 @@ internal class _MapCoordinator<Data, Label: MKAnnotationView>: NSObject, MKMapVi
     #if !os(macOS)
     func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
         
-        if let mapAnnotation = view.annotation as? _MapAnnotation<Data.Element> {
+        if let mapAnnotation = view.annotation as? _MapAnnotationOLD<Data.Element> {
             action(mapAnnotation.item)
         }
     }
@@ -182,11 +179,11 @@ internal class _MapCoordinator<Data, Label: MKAnnotationView>: NSObject, MKMapVi
     }
 }
 
-internal class _MapAnnotation<Item: MapItem>: NSObject, MKAnnotation {
+internal class _MapAnnotationOLD<Item: MapItemOLD>: NSObject, MKAnnotation {
     let item: Item
     var id: Item.ID { item.id }
     var coordinate: CLLocationCoordinate2D { item.coordinate }
-    var cluster: any MapCluster.Type { Never.self }
+    var cluster: any MapClusterOLD.Type { Never.self }
     var title: String? { item.title }
     var subtitle: String? { item.subtitle }
     

@@ -1,98 +1,83 @@
 //
-//  File.swift
-//  
+//  SwiftUIView.swift
+//  ExtendedSwift
 //
-//  Created by Dave DeLong on 4/14/23.
+//  Created by Dave DeLong on 11/10/26.
 //
 
-import Foundation
 import SwiftUI
 import MapKit
+import UIKit
 
-public struct MapView<Data, Label: MKAnnotationView>: View where Data: RandomAccessCollection, Data.Element: MapItem {
+@available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, visionOS 26.0, *)
+public struct MapView<Content: MapItem>: View {
     
-    private let data: Data
-    private let interactable: Bool
-    private let showsUserLocation: Bool
-    private let visibleRegion: Binding<MKCoordinateRegion?>
-    private let action: (Data.Element) -> Void
-    private let label: (Data.Element, Label) -> Void
+    private let content: Content
     
-    public init(items: Data,
-                interactable: Bool = true,
-                showsUserLocation: Bool = false,
-                visibleRegion: Binding<MKCoordinateRegion?>,
-                action: @escaping (Data.Element) -> Void,
-                label: @escaping (Data.Element, Label) -> Void) {
-        
-        self.data = items
-        self.interactable = interactable
-        self.showsUserLocation = showsUserLocation
-        self.visibleRegion = visibleRegion
-        self.action = action
-        self.label = label
+    private let tracksRegion: Bool
+    @Binding private var region: MKCoordinateRegion
+    
+    public init(@ContentBuilder content: () -> Content) {
+        self.content = content()
+        self._region = .constant(.init())
+        self.tracksRegion = false
     }
     
-    public init(items: Data,
-                interactable: Bool = true,
-                showsUserLocation: Bool = false,
-                visibleRegion: Binding<MKCoordinateRegion>,
-                action: @escaping (Data.Element) -> Void,
-                label: @escaping (Data.Element, Label) -> Void) {
-        
-        let region: Binding<MKCoordinateRegion?> = Binding(get: { visibleRegion.wrappedValue },
-                                                           set: {
-                                                            if let v = $0 { visibleRegion.wrappedValue = v }
-                                                           })
-        self.init(items: items,
-                  interactable: interactable,
-                  showsUserLocation: showsUserLocation,
-                  visibleRegion: region,
-                  action: action,
-                  label: label)
-    }
-    
-    public init(items: Data,
-                interactable: Bool = true,
-                showsUserLocation: Bool = false,
-                visibleRegion: Binding<MKCoordinateRegion?>,
-                selection: Binding<Data.Element?>,
-                label: @escaping (Data.Element, Label) -> Void) {
-    
-        self.init(items: items,
-                  interactable: interactable,
-                  showsUserLocation: showsUserLocation,
-                  visibleRegion: visibleRegion,
-                  action: { selection.wrappedValue = $0 },
-                  label: label)
-    }
-    
-    public init(items: Data,
-                interactable: Bool = true,
-                showsUserLocation: Bool = false,
-                visibleRegion: Binding<MKCoordinateRegion>,
-                selection: Binding<Data.Element?>,
-                label: @escaping (Data.Element, Label) -> Void) {
-        
-        let region: Binding<MKCoordinateRegion?> = Binding(get: { visibleRegion.wrappedValue },
-                                                           set: {
-                                                            if let v = $0 { visibleRegion.wrappedValue = v }
-                                                           })
-    
-        self.init(items: items,
-                  interactable: interactable,
-                  showsUserLocation: showsUserLocation,
-                  visibleRegion: region,
-                  action: { selection.wrappedValue = $0 },
-                  label: label)
+    public init(region: Binding<MKCoordinateRegion>, @ContentBuilder content: () -> Content) {
+        self.content = content()
+        self._region = region
+        self.tracksRegion = true
     }
     
     public var body: some View {
-        _MapView(annotations: data,
-                 interactable: interactable,
-                 showsUserLocation: showsUserLocation,
-                 visibleRegion: visibleRegion,
-                 action: action,
-                 label: label)
+        if let typedContent = content as? any _MapItem {
+            unbox(typedContent)
+        } else {
+            Label("Unknown content type \(Content.self)" as String, systemImage: "questionmark")
+        }
+    }
+    
+    private func unbox<T: _MapItem>(_ content: T) -> AnyView {
+        AnyView(_MapViewContent(content: content, region: tracksRegion ? _region : nil))
+    }
+}
+
+
+private struct _MapViewContent<Content: _MapItem>: PlatformViewRepresentable {
+    typealias UIViewType = MKMapView
+    @Environment(\.isEnabled) var interactionEnabled
+    
+    var content: Content
+    var region: Binding<MKCoordinateRegion>?
+    
+    var config: _MapConfiguration {
+        .init(region: region, interactionEnabled: interactionEnabled)
+    }
+    
+    func makeCoordinator() -> _MapViewCoordinator<Content> {
+        _MapViewCoordinator()
+    }
+    func makePlatformView(context: Context) -> MKMapView {
+        context.coordinator.make(config: config)
+    }
+    func updatePlatformView(_ view: MKMapView, context: Context) {
+        context.coordinator.update(content: content, config: config)
+    }
+}
+
+internal struct _MapConfiguration {
+    var region: Binding<MKCoordinateRegion>?
+    var interactionEnabled: Bool
+}
+
+@available(iOS 27.0, macOS 27.0, watchOS 27.0, tvOS 27.0, visionOS 27.0, *)
+#Preview {
+    MapView {
+        UserLocation()
+        Point(coordinate: CLLocationCoordinate2D(latitude: 40.40568, longitude: -111.93768)) {
+            MapMarker()
+                .glyph("DD")
+                .tint(.yellow)
+        }
     }
 }
